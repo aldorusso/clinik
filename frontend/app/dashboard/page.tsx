@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -10,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { api, User } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
@@ -40,11 +40,6 @@ export default function Dashboard() {
     loadUser()
   }, [router])
 
-  const handleLogout = () => {
-    auth.removeToken()
-    router.push("/")
-  }
-
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -54,92 +49,72 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <div className="container mx-auto p-6">
-        <div className="flex justify-between items-center mb-8">
+    <DashboardLayout user={user}>
+      <div className="space-y-6">
+        <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <Button onClick={handleLogout} variant="outline">
-            Logout
-          </Button>
+          <p className="text-muted-foreground">
+            Bienvenido, {user?.full_name || user?.email}
+          </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader>
-              <CardTitle>Welcome</CardTitle>
-              <CardDescription>User Information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div>
-                <p className="text-sm font-medium">Email</p>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
-              </div>
-              {user?.full_name && (
-                <div>
-                  <p className="text-sm font-medium">Name</p>
-                  <p className="text-sm text-muted-foreground">
-                    {user.full_name}
-                  </p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-medium">Role</p>
-                <p className="text-sm text-muted-foreground capitalize">
-                  {user?.role}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Status</p>
-                <p className="text-sm text-muted-foreground">
-                  {user?.is_active ? "Active" : "Inactive"}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Scraper Tasks</CardTitle>
-              <CardDescription>Manage your scraping jobs</CardDescription>
+              <CardTitle>Tareas Activas</CardTitle>
+              <CardDescription>Trabajos de scraping en progreso</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                No active tasks yet. Start a new scraping job.
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">
+                No hay tareas activas
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Statistics</CardTitle>
-              <CardDescription>Your scraping statistics</CardDescription>
+              <CardTitle>Tareas Completadas</CardTitle>
+              <CardDescription>Total de trabajos finalizados</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Statistics will appear here.
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">
+                Aún no has completado tareas
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Resultados</CardTitle>
+              <CardDescription>Total de resultados obtenidos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">
+                Sin resultados aún
               </p>
             </CardContent>
           </Card>
         </div>
 
         {user?.role === "admin" && (
-          <div className="mt-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Admin Panel</CardTitle>
-                <CardDescription>
-                  Administrative functions and settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Admin features will be available here.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Panel de Administración</CardTitle>
+              <CardDescription>
+                Funciones administrativas del sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Las funciones de administración estarán disponibles próximamente.
+              </p>
+            </CardContent>
+          </Card>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   )
 }
