@@ -44,6 +44,9 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 
+# User credentials
+USERS.md
+
 # IDEs
 .vscode/
 .idea/
