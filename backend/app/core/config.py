@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
 
+    # Security
+    SECRET_KEY: str = "your-secret-key-change-this-in-production-make-it-long-and-random"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+
     class Config:
         env_file = ".env"
         case_sensitive = True

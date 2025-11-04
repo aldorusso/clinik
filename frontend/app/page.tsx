@@ -1,14 +1,17 @@
+import { LoginForm } from "@/components/login-form"
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm">
-        <h1 className="text-4xl font-bold text-center mb-8">
+    <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold mb-2">
           Scraper App
         </h1>
-        <p className="text-center text-muted-foreground">
-          SerpAPI and Google Maps Scraper - Ready for development
+        <p className="text-muted-foreground">
+          SerpAPI and Google Maps Scraper
         </p>
       </div>
+      <LoginForm />
     </main>
   );
 }

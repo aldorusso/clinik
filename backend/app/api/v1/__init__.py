@@ -1,10 +1,10 @@
 from fastapi import APIRouter
+from app.api.v1 import auth
 
 api_router = APIRouter()
 
-# Import and include routers here
-# from app.api.v1 import scraper
-# api_router.include_router(scraper.router, prefix="/scraper", tags=["scraper"])
+# Include authentication router
+api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 
 
 @api_router.get("/")
