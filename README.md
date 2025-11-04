@@ -65,6 +65,22 @@ Esto levantará tres servicios:
 - **API Docs**: http://localhost:8000/docs
 - **PostgreSQL**: localhost:5432
 
+3. Aplicar las migraciones de base de datos:
+```bash
+docker-compose exec backend alembic upgrade head
+```
+
+4. Crear un usuario admin inicial:
+```bash
+docker-compose exec backend python create_admin.py
+```
+
+Credenciales por defecto:
+- Email: `admin@example.com`
+- Password: `admin123`
+
+5. Acceder a la aplicación en http://localhost:3000 y hacer login con las credenciales del admin
+
 ### Desarrollo
 
 Los contenedores están configurados con hot-reload:
@@ -130,14 +146,35 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 NODE_ENV=development
 ```
 
+## Autenticación
+
+El sistema incluye autenticación JWT con dos roles:
+
+### Roles de Usuario
+- **Admin**: Acceso completo al sistema, puede crear otros admins
+- **User**: Acceso básico al sistema
+
+### Endpoints de Autenticación
+- `POST /api/v1/auth/register` - Registrar nuevo usuario
+- `POST /api/v1/auth/login` - Login (retorna JWT token)
+- `GET /api/v1/auth/me` - Obtener información del usuario actual (requiere token)
+- `POST /api/v1/auth/create-admin` - Crear admin (solo admins)
+
+### Flujo de Autenticación
+1. Usuario hace login en el frontend
+2. Backend valida credenciales y retorna JWT token
+3. Frontend almacena token en localStorage
+4. Todas las peticiones subsecuentes incluyen el token en headers
+5. Backend valida token y permisos en cada request
+
 ## Próximos Pasos
 
 - [ ] Implementar modelos de datos para scraping
 - [ ] Crear endpoints de API para SerpAPI
 - [ ] Crear endpoints de API para Google Maps
-- [ ] Diseñar interfaz de usuario
+- [ ] Diseñar interfaz de usuario para scraping
 - [ ] Implementar sistema de jobs/tareas
-- [ ] Agregar autenticación si es necesario
+- [x] Agregar autenticación JWT
 
 ## Licencia
 
