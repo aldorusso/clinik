@@ -125,13 +125,13 @@ export function Sidebar({ user }: SidebarProps) {
             <DropdownMenuSeparator />
 
             {/* Perfil */}
-            <DropdownMenuItem onClick={() => setActiveSection("profile")}>
+            <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </DropdownMenuItem>
 
             {/* Configuración */}
-            <DropdownMenuItem onClick={() => setActiveSection("settings")}>
+            <DropdownMenuItem onClick={() => router.push("/dashboard/settings")}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Configuración</span>
             </DropdownMenuItem>

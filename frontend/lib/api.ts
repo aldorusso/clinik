@@ -14,10 +14,29 @@ export interface User {
   id: string;
   email: string;
   full_name?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  country?: string;
+  city?: string;
+  office_address?: string;
+  company_name?: string;
+  profile_photo?: string;
   role: 'admin' | 'user';
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface UserUpdate {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  country?: string;
+  city?: string;
+  office_address?: string;
+  company_name?: string;
+  profile_photo?: string;
 }
 
 export const api = {
@@ -68,6 +87,24 @@ export const api = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Registration failed');
+    }
+
+    return response.json();
+  },
+
+  async updateProfile(token: string, data: UserUpdate): Promise<User> {
+    const response = await fetch(`${API_URL}/api/v1/auth/profile`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Profile update failed');
     }
 
     return response.json();

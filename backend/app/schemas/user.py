@@ -10,6 +10,14 @@ from app.models.user import UserRole
 class UserBase(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    office_address: Optional[str] = None
+    company_name: Optional[str] = None
+    profile_photo: Optional[str] = None
 
 
 # Schema for creating a user
@@ -22,6 +30,14 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    office_address: Optional[str] = None
+    company_name: Optional[str] = None
+    profile_photo: Optional[str] = None
     password: Optional[str] = Field(None, min_length=6)
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None

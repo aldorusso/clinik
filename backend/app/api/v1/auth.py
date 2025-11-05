@@ -13,7 +13,7 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.user import User, UserRole
-from app.schemas.user import UserCreate, Token, User as UserSchema
+from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema
 
 router = APIRouter()
 
@@ -112,3 +112,29 @@ async def create_admin_user(
     db.refresh(db_user)
 
     return db_user
+
+
+@router.put("/profile", response_model=UserSchema)
+async def update_profile(
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Update current user's profile."""
+    # Update fields if provided
+    update_data = user_update.model_dump(exclude_unset=True)
+
+    # Handle password update separately
+    if "password" in update_data:
+        password = update_data.pop("password")
+        if password:
+            update_data["hashed_password"] = get_password_hash(password)
+
+    # Update user
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    db.commit()
+    db.refresh(current_user)
+
+    return current_user
