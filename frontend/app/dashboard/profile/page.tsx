@@ -1,9 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { User as UserIcon, MapPin, Building2, Mail, Save, X } from "lucide-react"
+import { User as UserIcon, MapPin, Building2, Mail, Save, X, Camera } from "lucide-react"
+import { toast } from "sonner"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { ImageCropDialog } from "@/components/image-crop-dialog"
 import { api, User, UserUpdate } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
@@ -28,9 +30,12 @@ import { Separator } from "@/components/ui/separator"
 
 export default function ProfilePage() {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [cropDialogOpen, setCropDialogOpen] = useState(false)
+  const [imageToCrop, setImageToCrop] = useState<string>("")
   const [formData, setFormData] = useState<UserUpdate>({
     first_name: "",
     last_name: "",
@@ -78,6 +83,32 @@ export default function ProfilePage() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("La imagen es demasiado grande", {
+          description: "El tamaño máximo es 2MB"
+        })
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImageToCrop(reader.result as string)
+        setCropDialogOpen(true)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleCropComplete = (croppedImage: string) => {
+    setFormData((prev) => ({ ...prev, profile_photo: croppedImage }))
+    toast.success("Foto actualizada", {
+      description: "No olvides guardar los cambios"
+    })
+  }
+
   const handleSave = async () => {
     const token = auth.getToken()
     if (!token) {
@@ -89,9 +120,13 @@ export default function ProfilePage() {
     try {
       const updatedUser = await api.updateProfile(token, formData)
       setUser(updatedUser)
-      alert("Perfil actualizado correctamente")
+      toast.success("Perfil actualizado", {
+        description: "Tus cambios han sido guardados correctamente"
+      })
     } catch (error) {
-      alert("Error al actualizar el perfil")
+      toast.error("Error al actualizar", {
+        description: "No se pudo guardar tu perfil. Intenta de nuevo."
+      })
     } finally {
       setIsSaving(false)
     }
@@ -108,6 +143,9 @@ export default function ProfilePage() {
         office_address: user.office_address || "",
         company_name: user.company_name || "",
         profile_photo: user.profile_photo || "",
+      })
+      toast.info("Cambios cancelados", {
+        description: "Se restauraron los valores originales"
       })
     }
   }
@@ -163,7 +201,19 @@ export default function ProfilePage() {
                   {getInitials(formData.first_name, formData.last_name, user?.email)}
                 </AvatarFallback>
               </Avatar>
-              <Button variant="outline" size="sm">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Camera className="mr-2 h-4 w-4" />
                 Seleccionar Foto
               </Button>
               <p className="text-xs text-muted-foreground">
@@ -172,6 +222,14 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Image Crop Dialog */}
+        <ImageCropDialog
+          open={cropDialogOpen}
+          onOpenChange={setCropDialogOpen}
+          imageSrc={imageToCrop}
+          onCropComplete={handleCropComplete}
+        />
 
         {/* Personal Information Card */}
         <Card>
