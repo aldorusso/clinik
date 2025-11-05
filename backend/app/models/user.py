@@ -26,7 +26,7 @@ class User(Base):
     city = Column(String(100), nullable=True)
     office_address = Column(String(500), nullable=True)
     company_name = Column(String(255), nullable=True)
-    profile_photo = Column(String(500), nullable=True)
+    profile_photo = Column(String, nullable=True)
     role = Column(SQLEnum(UserRole), default=UserRole.USER, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
