@@ -13,7 +13,7 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.user import User, UserRole
-from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema
+from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema, ChangePassword
 
 router = APIRouter()
 
@@ -138,3 +138,25 @@ async def update_profile(
     db.refresh(current_user)
 
     return current_user
+
+
+@router.post("/change-password")
+async def change_password(
+    password_data: ChangePassword,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Change current user's password."""
+    # Verify current password
+    if not verify_password(password_data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña actual es incorrecta"
+        )
+
+    # Update password
+    current_user.hashed_password = get_password_hash(password_data.new_password)
+
+    db.commit()
+
+    return {"message": "Contraseña actualizada correctamente"}
