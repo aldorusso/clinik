@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { User, Settings, Key, LogOut, User as UserIcon, Bell, Lock } from "lucide-react"
+import { User, Settings, Key, LogOut, User as UserIcon, Bell, Lock, LayoutDashboard } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 
@@ -23,7 +23,7 @@ interface SidebarProps {
 
 export function Sidebar({ user }: SidebarProps) {
   const router = useRouter()
-  const [activeSection, setActiveSection] = useState("dashboard")
+  const pathname = usePathname()
 
   const handleLogout = () => {
     auth.removeToken()
@@ -60,10 +60,14 @@ export function Sidebar({ user }: SidebarProps) {
       {/* Navigation Section */}
       <div className="flex-1 overflow-y-auto p-4">
         <nav className="space-y-2">
-          {/* Future navigation items will go here */}
-          <p className="text-xs text-muted-foreground px-3 py-2">
-            Funcionalidades próximamente...
-          </p>
+          <Button
+            variant={pathname === "/dashboard" ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard")}
+          >
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            Dashboard
+          </Button>
         </nav>
 
         <Separator className="my-4" />
@@ -76,17 +80,17 @@ export function Sidebar({ user }: SidebarProps) {
             </h3>
           </div>
           <Button
-            variant={activeSection === "google-maps" ? "secondary" : "ghost"}
+            variant={pathname === "/dashboard/api-keys/google-maps" ? "secondary" : "ghost"}
             className="w-full justify-start"
-            onClick={() => setActiveSection("google-maps")}
+            onClick={() => router.push("/dashboard/api-keys/google-maps")}
           >
             <Key className="mr-2 h-4 w-4" />
             Google Maps API
           </Button>
           <Button
-            variant={activeSection === "serpapi" ? "secondary" : "ghost"}
+            variant={pathname === "/dashboard/api-keys/serpapi" ? "secondary" : "ghost"}
             className="w-full justify-start"
-            onClick={() => setActiveSection("serpapi")}
+            onClick={() => router.push("/dashboard/api-keys/serpapi")}
           >
             <Key className="mr-2 h-4 w-4" />
             SerpAPI Key
