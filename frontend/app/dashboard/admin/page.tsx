@@ -9,11 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { api, User } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
-export default function Dashboard() {
+export default function AdminDashboard() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -28,13 +28,14 @@ export default function Dashboard() {
 
       try {
         const userData = await api.getCurrentUser(token)
-        setUser(userData)
 
-        // Redirect based on user role
-        if (userData.role === "admin") {
-          router.push("/dashboard/admin")
+        // Verify user is admin
+        if (userData.role !== "admin") {
+          router.push("/dashboard")
           return
         }
+
+        setUser(userData)
       } catch (error) {
         auth.removeToken()
         router.push("/")
@@ -54,12 +55,12 @@ export default function Dashboard() {
     )
   }
 
-  // This is the User dashboard
+  // This is the Admin dashboard
   return (
-    <DashboardLayout>
+    <AdminDashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-muted-foreground">
             Bienvenido, {user?.full_name || user?.email}
           </p>
@@ -105,7 +106,22 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Admin-specific section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Panel de Administración</CardTitle>
+            <CardDescription>
+              Funciones administrativas del sistema
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Las funciones de administración estarán disponibles próximamente.
+            </p>
+          </CardContent>
+        </Card>
       </div>
-    </DashboardLayout>
+    </AdminDashboardLayout>
   )
 }

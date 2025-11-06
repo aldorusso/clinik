@@ -17,11 +17,11 @@ import { User, Settings, Key, LogOut, User as UserIcon, Bell, Lock, LayoutDashbo
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 
-interface SidebarProps {
+interface AdminSidebarProps {
   user: UserType | null
 }
 
-export function Sidebar({ user }: SidebarProps) {
+export function AdminSidebar({ user }: AdminSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -42,7 +42,7 @@ export function Sidebar({ user }: SidebarProps) {
     if (email) {
       return email.slice(0, 2).toUpperCase()
     }
-    return "U"
+    return "A"
   }
 
   return (
@@ -53,7 +53,7 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-lg">S</span>
           </div>
-          <span className="font-bold text-xl">Scraper</span>
+          <span className="font-bold text-xl">Scraper Admin</span>
         </div>
       </div>
 
@@ -61,9 +61,9 @@ export function Sidebar({ user }: SidebarProps) {
       <div className="flex-1 overflow-y-auto p-4">
         <nav className="space-y-2">
           <Button
-            variant={pathname === "/dashboard" ? "secondary" : "ghost"}
+            variant={pathname === "/dashboard/admin" ? "secondary" : "ghost"}
             className="w-full justify-start"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/dashboard/admin")}
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
@@ -79,17 +79,17 @@ export function Sidebar({ user }: SidebarProps) {
               </h3>
             </div>
             <Button
-              variant={pathname.startsWith("/dashboard/scrapers/google") && !pathname.includes("maps") ? "secondary" : "ghost"}
+              variant={pathname.startsWith("/dashboard/admin/scrapers/google") && !pathname.includes("maps") ? "secondary" : "ghost"}
               className="w-full justify-start"
-              onClick={() => router.push("/dashboard/scrapers/google")}
+              onClick={() => router.push("/dashboard/admin/scrapers/google")}
             >
               <Search className="mr-2 h-4 w-4" />
               Google
             </Button>
             <Button
-              variant={pathname.startsWith("/dashboard/scrapers/google-maps") ? "secondary" : "ghost"}
+              variant={pathname.startsWith("/dashboard/admin/scrapers/google-maps") ? "secondary" : "ghost"}
               className="w-full justify-start"
-              onClick={() => router.push("/dashboard/scrapers/google-maps")}
+              onClick={() => router.push("/dashboard/admin/scrapers/google-maps")}
             >
               <MapPin className="mr-2 h-4 w-4" />
               Google Maps
@@ -100,9 +100,9 @@ export function Sidebar({ user }: SidebarProps) {
 
           {/* API Keys Section */}
           <Button
-            variant={pathname.startsWith("/dashboard/api-keys") ? "secondary" : "ghost"}
+            variant={pathname.startsWith("/dashboard/admin/api-keys") ? "secondary" : "ghost"}
             className="w-full justify-start"
-            onClick={() => router.push("/dashboard/api-keys")}
+            onClick={() => router.push("/dashboard/admin/api-keys")}
           >
             <Key className="mr-2 h-4 w-4" />
             API Keys
@@ -127,7 +127,7 @@ export function Sidebar({ user }: SidebarProps) {
                 </Avatar>
                 <div className="flex flex-col items-start flex-1 min-w-0">
                   <span className="text-sm font-medium truncate w-full text-left">
-                    {user?.first_name || user?.full_name || "Usuario"}
+                    {user?.first_name || user?.full_name || "Admin"}
                   </span>
                   <span className="text-xs text-muted-foreground truncate w-full text-left">
                     {user?.email}
@@ -141,13 +141,13 @@ export function Sidebar({ user }: SidebarProps) {
             <DropdownMenuSeparator />
 
             {/* Perfil */}
-            <DropdownMenuItem onClick={() => router.push("/dashboard/profile")} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => router.push("/dashboard/admin/profile")} className="cursor-pointer">
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </DropdownMenuItem>
 
             {/* Configuración */}
-            <DropdownMenuItem onClick={() => router.push("/dashboard/settings")} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => router.push("/dashboard/admin/settings")} className="cursor-pointer">
               <Settings className="mr-2 h-4 w-4" />
               <span>Configuración</span>
             </DropdownMenuItem>

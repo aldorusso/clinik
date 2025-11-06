@@ -2,15 +2,15 @@
 
 import { ReactNode, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Sidebar } from "./sidebar"
+import { AdminSidebar } from "./admin-sidebar"
 import { User, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
-interface DashboardLayoutProps {
+interface AdminDashboardLayoutProps {
   children: ReactNode
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
 
@@ -24,6 +24,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       try {
         const userData = await api.getCurrentUser(token)
+
+        // Verify user is admin
+        if (userData.role !== "admin") {
+          router.push("/dashboard")
+          return
+        }
+
         setUser(userData)
       } catch (error) {
         auth.removeToken()
@@ -36,7 +43,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar user={user} />
+      <AdminSidebar user={user} />
       <main className="flex-1 overflow-y-auto">
         <div className="container mx-auto p-6">
           {children}
