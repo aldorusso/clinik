@@ -164,6 +164,8 @@ export default function UsuariosPage() {
           email: formData.email,
           first_name: formData.first_name,
           last_name: formData.last_name,
+          phone: formData.phone,
+          company_name: formData.company_name,
           role: formData.role,
           is_active: formData.is_active,
         }),
