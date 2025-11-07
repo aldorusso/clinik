@@ -241,7 +241,6 @@ export default function UsuariosPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...user,
           is_active: !user.is_active,
         }),
       })
