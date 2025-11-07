@@ -60,6 +60,8 @@ export default function UsuariosPage() {
     password: "",
     first_name: "",
     last_name: "",
+    phone: "",
+    company_name: "",
     role: "user" as "admin" | "user",
     is_active: true,
   })
@@ -129,6 +131,8 @@ export default function UsuariosPage() {
         password: "",
         first_name: "",
         last_name: "",
+        phone: "",
+        company_name: "",
         role: "user",
         is_active: true,
       })
@@ -264,6 +268,8 @@ export default function UsuariosPage() {
       password: "",
       first_name: user.first_name || "",
       last_name: user.last_name || "",
+      phone: user.phone || "",
+      company_name: user.company_name || "",
       role: user.role,
       is_active: user.is_active,
     })
@@ -352,6 +358,24 @@ export default function UsuariosPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="add-phone">Teléfono</Label>
+                  <Input
+                    id="add-phone"
+                    placeholder="+1234567890"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="add-company">Empresa</Label>
+                  <Input
+                    id="add-company"
+                    placeholder="Nombre de la empresa"
+                    value={formData.company_name}
+                    onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="add-role">Rol *</Label>
                   <Select
                     value={formData.role}
@@ -390,8 +414,10 @@ export default function UsuariosPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Usuario</TableHead>
+                  <TableHead>Nombre</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Teléfono</TableHead>
+                  <TableHead>Empresa</TableHead>
                   <TableHead>Rol</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
@@ -400,7 +426,7 @@ export default function UsuariosPage() {
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
                       No hay usuarios registrados
                     </TableCell>
                   </TableRow>
@@ -408,9 +434,17 @@ export default function UsuariosPage() {
                   users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
-                        {user.full_name || user.first_name || "Sin nombre"}
+                        <div>
+                          <div>{user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : (user.full_name || "Sin nombre")}</div>
+                        </div>
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <span className="text-sm">{user.phone || "-"}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{user.company_name || "-"}</span>
+                      </TableCell>
                       <TableCell>
                         {user.role === "admin" ? (
                           <Badge variant="default" className="flex items-center gap-1 w-fit">
@@ -513,6 +547,24 @@ export default function UsuariosPage() {
                   id="edit-last-name"
                   value={formData.last_name}
                   onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Teléfono</Label>
+                <Input
+                  id="edit-phone"
+                  placeholder="+1234567890"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-company">Empresa</Label>
+                <Input
+                  id="edit-company"
+                  placeholder="Nombre de la empresa"
+                  value={formData.company_name}
+                  onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
