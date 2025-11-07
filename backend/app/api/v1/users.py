@@ -41,7 +41,7 @@ async def create_user(
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya está registrado"
+            detail="El email ya esta registrado"
         )
 
     # Create new user
