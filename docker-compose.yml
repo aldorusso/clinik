@@ -4,11 +4,11 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:16-alpine
-    container_name: scraper_db
+    container_name: base_fastapi_nextjs_db
     environment:
-      POSTGRES_DB: scraper_db
-      POSTGRES_USER: scraper_user
-      POSTGRES_PASSWORD: scraper_password
+      POSTGRES_DB: base_fastapi_nextjs_db
+      POSTGRES_USER: base_fastapi_nextjs_user
+      POSTGRES_PASSWORD: base_fastapi_nextjs_password
     ports:
       - "5433:5432"
     volumes:
@@ -17,7 +17,7 @@ services:
     networks:
       - scraper_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U scraper_user -d scraper_db"]
+      test: ["CMD-SHELL", "pg_isready -U base_fastapi_nextjs_user -d base_fastapi_nextjs_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,9 +27,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: scraper_backend
+    container_name: base_fastapi_nextjs_backend
     environment:
-      DATABASE_URL: postgresql://scraper_user:scraper_password@db:5432/scraper_db
+      DATABASE_URL: postgresql://base_fastapi_nextjs_user:base_fastapi_nextjs_password@db:5432/base_fastapi_nextjs_db
       ENVIRONMENT: development
       DEBUG: "true"
     ports:
@@ -49,7 +49,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: scraper_frontend
+    container_name: base_fastapi_nextjs_frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8001
       NODE_ENV: development

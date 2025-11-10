@@ -24,14 +24,13 @@ export function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
 
       try {
         const userData = await api.getCurrentUser(token)
+        setUser(userData)
 
-        // Verify user is admin
+        // Verificar que el usuario sea admin
         if (userData.role !== "admin") {
           router.push("/dashboard")
           return
         }
-
-        setUser(userData)
       } catch (error) {
         auth.removeToken()
         router.push("/")

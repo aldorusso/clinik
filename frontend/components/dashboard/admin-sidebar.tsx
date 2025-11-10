@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator"
 import { User, Settings, Key, LogOut, User as UserIcon, Bell, Lock, LayoutDashboard, Users } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface AdminSidebarProps {
   user: UserType | null
@@ -30,17 +31,23 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     router.push("/")
   }
 
-  const getInitials = (name?: string, email?: string) => {
-    if (name) {
-      return name
+  const getInitials = (user?: UserType | null) => {
+    if (user?.first_name && user?.last_name) {
+      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+    }
+    if (user?.first_name) {
+      return user.first_name.slice(0, 2).toUpperCase()
+    }
+    if (user?.full_name) {
+      return user.full_name
         .split(" ")
         .map((n) => n[0])
         .join("")
         .toUpperCase()
         .slice(0, 2)
     }
-    if (email) {
-      return email.slice(0, 2).toUpperCase()
+    if (user?.email) {
+      return user.email.slice(0, 2).toUpperCase()
     }
     return "A"
   }
@@ -48,13 +55,14 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   return (
     <div className="flex h-screen w-64 flex-col border-r bg-card">
       {/* Logo Section */}
-      <div className="flex h-16 items-center justify-center border-b px-4">
+      <div className="flex h-16 items-center justify-between border-b px-4">
         <div className="flex items-center space-x-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">S</span>
+            <span className="text-primary-foreground font-bold text-lg">E</span>
           </div>
-          <span className="font-bold text-xl">Scraper Admin</span>
+          <span className="font-bold text-xl">Admin</span>
         </div>
+        <ThemeToggle />
       </div>
 
       {/* Navigation Section */}
@@ -93,9 +101,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             >
               <div className="flex items-center space-x-3 w-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src="" alt={user?.full_name || user?.email} />
+                  <AvatarImage src={user?.profile_photo || ""} alt={user?.full_name || user?.email} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getInitials(user?.full_name, user?.email)}
+                    {getInitials(user)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start flex-1 min-w-0">

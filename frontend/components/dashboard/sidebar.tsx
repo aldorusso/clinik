@@ -13,9 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { User, Settings, Key, LogOut, User as UserIcon, Bell, Lock, LayoutDashboard, Search, MapPin } from "lucide-react"
+import { User, Settings, LogOut, User as UserIcon, LayoutDashboard } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface SidebarProps {
   user: UserType | null
@@ -30,17 +31,23 @@ export function Sidebar({ user }: SidebarProps) {
     router.push("/")
   }
 
-  const getInitials = (name?: string, email?: string) => {
-    if (name) {
-      return name
+  const getInitials = (user?: UserType | null) => {
+    if (user?.first_name && user?.last_name) {
+      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+    }
+    if (user?.first_name) {
+      return user.first_name.slice(0, 2).toUpperCase()
+    }
+    if (user?.full_name) {
+      return user.full_name
         .split(" ")
         .map((n) => n[0])
         .join("")
         .toUpperCase()
         .slice(0, 2)
     }
-    if (email) {
-      return email.slice(0, 2).toUpperCase()
+    if (user?.email) {
+      return user.email.slice(0, 2).toUpperCase()
     }
     return "U"
   }
@@ -48,13 +55,14 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <div className="flex h-screen w-64 flex-col border-r bg-card">
       {/* Logo Section */}
-      <div className="flex h-16 items-center justify-center border-b px-4">
+      <div className="flex h-16 items-center justify-between border-b px-4">
         <div className="flex items-center space-x-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">S</span>
+            <span className="text-primary-foreground font-bold text-lg">E</span>
           </div>
-          <span className="font-bold text-xl">Scraper</span>
+          <span className="font-bold text-xl">User</span>
         </div>
+        <ThemeToggle />
       </div>
 
       {/* Navigation Section */}
@@ -67,45 +75,6 @@ export function Sidebar({ user }: SidebarProps) {
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
-          </Button>
-
-          <Separator className="my-4" />
-
-          {/* Scrapers Section */}
-          <div className="space-y-2">
-            <div className="px-3 py-2">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Scrapers
-              </h3>
-            </div>
-            <Button
-              variant={pathname.startsWith("/dashboard/scrapers/google") && !pathname.includes("maps") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => router.push("/dashboard/scrapers/google")}
-            >
-              <Search className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-            <Button
-              variant={pathname.startsWith("/dashboard/scrapers/google-maps") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => router.push("/dashboard/scrapers/google-maps")}
-            >
-              <MapPin className="mr-2 h-4 w-4" />
-              Google Maps
-            </Button>
-          </div>
-
-          <Separator className="my-4" />
-
-          {/* API Keys Section */}
-          <Button
-            variant={pathname.startsWith("/dashboard/api-keys") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/api-keys")}
-          >
-            <Key className="mr-2 h-4 w-4" />
-            API Keys
           </Button>
         </nav>
       </div>
@@ -120,9 +89,9 @@ export function Sidebar({ user }: SidebarProps) {
             >
               <div className="flex items-center space-x-3 w-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src="" alt={user?.full_name || user?.email} />
+                  <AvatarImage src={user?.profile_photo || ""} alt={user?.full_name || user?.email} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getInitials(user?.full_name, user?.email)}
+                    {getInitials(user)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start flex-1 min-w-0">
