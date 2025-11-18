@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:3001",
+        "http://localhost:3002",
         "http://frontend:3000",
     ]
 
@@ -25,6 +26,19 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-change-this-in-production-make-it-long-and-random"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int = 24
+
+    # Email/SMTP Configuration
+    MAIL_USERNAME: str = ""
+    MAIL_PASSWORD: str = ""
+    MAIL_FROM: str = "noreply@example.com"
+    MAIL_FROM_NAME: str = "Scraper API"
+    MAIL_PORT: int = 587
+    MAIL_SERVER: str = "smtp.gmail.com"
+    MAIL_STARTTLS: bool = True
+    MAIL_SSL_TLS: bool = False
+    USE_CREDENTIALS: bool = True
+    VALIDATE_CERTS: bool = True
 
     class Config:
         env_file = ".env"

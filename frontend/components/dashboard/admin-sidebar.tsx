@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { User, Settings, Key, LogOut, User as UserIcon, Bell, Lock, LayoutDashboard, Users } from "lucide-react"
+import { User, Settings, Key, LogOut, User as UserIcon, Bell, Lock, LayoutDashboard, Users, Mail } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -87,6 +87,16 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           >
             <Users className="mr-2 h-4 w-4" />
             Usuarios
+          </Button>
+
+          {/* Emails Section */}
+          <Button
+            variant={pathname.startsWith("/dashboard/admin/emails") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/admin/emails")}
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            Plantillas de Email
           </Button>
         </nav>
       </div>

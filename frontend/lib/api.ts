@@ -109,4 +109,79 @@ export const api = {
 
     return response.json();
   },
+
+  // Email Templates
+  async getEmailTemplates(token: string) {
+    const response = await fetch(`${API_URL}/api/v1/email-templates/`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch email templates');
+    }
+
+    return response.json();
+  },
+
+  async getEmailTemplate(token: string, id: string) {
+    const response = await fetch(`${API_URL}/api/v1/email-templates/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch email template');
+    }
+
+    return response.json();
+  },
+
+  async getEmailTemplateByType(token: string, type: string) {
+    const response = await fetch(`${API_URL}/api/v1/email-templates/type/${type}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch email template');
+    }
+
+    return response.json();
+  },
+
+  async updateEmailTemplate(token: string, id: string, data: any) {
+    const response = await fetch(`${API_URL}/api/v1/email-templates/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update email template');
+    }
+
+    return response.json();
+  },
+
+  async previewEmailTemplate(token: string, type: string) {
+    const response = await fetch(`${API_URL}/api/v1/email-templates/preview/${type}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to preview email template');
+    }
+
+    return response.json();
+  },
 };

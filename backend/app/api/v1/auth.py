@@ -1,7 +1,9 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
+import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from pydantic import BaseModel, EmailStr
 
 from app.core.config import settings
 from app.core.security import (
@@ -11,6 +13,7 @@ from app.core.security import (
     get_current_active_user,
     get_current_admin_user
 )
+from app.core.email import send_reset_password_email, send_welcome_email
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema, ChangePassword
@@ -160,3 +163,97 @@ async def change_password(
     db.commit()
 
     return {"message": "Contraseña actualizada correctamente"}
+
+
+# Password reset schemas
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """Request password reset. Sends an email with reset token."""
+    user = db.query(User).filter(User.email == request.email).first()
+
+    # Always return success even if user doesn't exist (security best practice)
+    if not user:
+        return {
+            "message": "Si el correo existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña"
+        }
+
+    # Generate secure random token
+    reset_token = secrets.token_urlsafe(32)
+
+    # Set token expiration
+    expires_at = datetime.utcnow() + timedelta(hours=settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS)
+
+    # Save token to database
+    user.reset_password_token = reset_token
+    user.reset_password_token_expires = expires_at
+    db.commit()
+
+    # Send email with reset link
+    try:
+        await send_reset_password_email(
+            db=db,
+            email_to=user.email,
+            token=reset_token,
+            user_name=user.full_name or user.email.split('@')[0]
+        )
+    except Exception as e:
+        # Log error but don't expose it to user
+        print(f"Error sending email: {e}")
+        # In production, you might want to use proper logging
+
+    return {
+        "message": "Si el correo existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña"
+    }
+
+
+@router.post("/reset-password")
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """Reset password using the token sent via email."""
+    # Find user with this token
+    user = db.query(User).filter(
+        User.reset_password_token == request.token
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token inválido o expirado"
+        )
+
+    # Check if token has expired
+    if not user.reset_password_token_expires or user.reset_password_token_expires < datetime.utcnow():
+        # Clear expired token
+        user.reset_password_token = None
+        user.reset_password_token_expires = None
+        db.commit()
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El token ha expirado. Por favor, solicita un nuevo enlace de recuperación"
+        )
+
+    # Update password
+    user.hashed_password = get_password_hash(request.new_password)
+
+    # Clear reset token
+    user.reset_password_token = None
+    user.reset_password_token_expires = None
+
+    db.commit()
+
+    return {"message": "Contraseña restablecida exitosamente"}

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users
+from app.api.v1 import auth, users, email_templates
 
 api_router = APIRouter()
 
@@ -8,6 +8,9 @@ api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 
 # Include users router
 api_router.include_router(users.router, prefix="/users", tags=["users"])
+
+# Include email templates router
+api_router.include_router(email_templates.router, prefix="/email-templates", tags=["email-templates"])
 
 
 @api_router.get("/")

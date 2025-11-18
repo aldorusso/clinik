@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: base_fastapi_nextjs_user
       POSTGRES_PASSWORD: base_fastapi_nextjs_password
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -33,7 +33,7 @@ services:
       ENVIRONMENT: development
       DEBUG: "true"
     ports:
-      - "8001:8000"
+      - "8002:8000"
     volumes:
       - ./backend:/app
       - /app/__pycache__
@@ -51,10 +51,10 @@ services:
       dockerfile: Dockerfile.dev
     container_name: base_fastapi_nextjs_frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8001
+      NEXT_PUBLIC_API_URL: http://localhost:8002
       NODE_ENV: development
     ports:
-      - "3001:3000"
+      - "3002:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
