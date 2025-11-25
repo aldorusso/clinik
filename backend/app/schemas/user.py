@@ -17,13 +17,26 @@ class UserBase(BaseModel):
     city: Optional[str] = None
     office_address: Optional[str] = None
     company_name: Optional[str] = None
+    job_title: Optional[str] = None
     profile_photo: Optional[str] = None
 
 
-# Schema for creating a user
+# Schema for creating a user (by tenant admin)
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6)
     role: Optional[UserRole] = UserRole.USER
+    tenant_id: Optional[UUID] = None  # Set by system for tenant users
+
+
+# Schema for creating a client (by tenant admin/user)
+class ClientCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    client_company_name: Optional[str] = None
+    client_tax_id: Optional[str] = None
 
 
 # Schema for updating a user
@@ -37,17 +50,25 @@ class UserUpdate(BaseModel):
     city: Optional[str] = None
     office_address: Optional[str] = None
     company_name: Optional[str] = None
+    job_title: Optional[str] = None
     profile_photo: Optional[str] = None
     password: Optional[str] = Field(None, min_length=6)
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
+    # Client specific fields
+    client_company_name: Optional[str] = None
+    client_tax_id: Optional[str] = None
 
 
 # Schema for user in database
 class UserInDB(UserBase):
     id: UUID
+    tenant_id: Optional[UUID] = None
     role: UserRole
     is_active: bool
+    job_title: Optional[str] = None
+    client_company_name: Optional[str] = None
+    client_tax_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -58,6 +79,12 @@ class UserInDB(UserBase):
 # Schema for user response (without sensitive data)
 class User(UserInDB):
     pass
+
+
+# Schema for user with tenant info
+class UserWithTenant(User):
+    tenant_name: Optional[str] = None
+    tenant_slug: Optional[str] = None
 
 
 # Schema for login
@@ -72,13 +99,23 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
-# Schema for token data
+# Schema for token data (includes tenant_id for multi-tenant)
 class TokenData(BaseModel):
     email: Optional[str] = None
     role: Optional[UserRole] = None
+    tenant_id: Optional[UUID] = None
 
 
 # Schema for changing password
 class ChangePassword(BaseModel):
     current_password: str = Field(..., min_length=1)
     new_password: str = Field(..., min_length=6)
+
+
+# Schema for superadmin creating tenant admins
+class TenantAdminCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None

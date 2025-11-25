@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
+from uuid import UUID
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.user import TokenData
 
 # Password hashing
@@ -29,7 +30,13 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create a JWT access token."""
+    """Create a JWT access token.
+
+    For multi-tenant support, the token includes:
+    - sub: user email
+    - role: user role (superadmin, admin, user, client)
+    - tenant_id: UUID of the tenant (null for superadmin)
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -37,6 +44,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({"exp": expire})
+
+    # Convert tenant_id to string for JSON serialization
+    if "tenant_id" in to_encode and to_encode["tenant_id"] is not None:
+        to_encode["tenant_id"] = str(to_encode["tenant_id"])
+
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -47,9 +59,15 @@ def decode_access_token(token: str) -> Optional[TokenData]:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         email: str = payload.get("sub")
         role: str = payload.get("role")
+        tenant_id_str: str = payload.get("tenant_id")
+
         if email is None:
             return None
-        token_data = TokenData(email=email, role=role)
+
+        # Convert tenant_id back to UUID if present
+        tenant_id = UUID(tenant_id_str) if tenant_id_str else None
+
+        token_data = TokenData(email=email, role=role, tenant_id=tenant_id)
         return token_data
     except JWTError:
         return None
@@ -86,14 +104,141 @@ async def get_current_active_user(
     return current_user
 
 
+# ============================================
+# SUPERADMIN: Platform-level access
+# ============================================
+
+async def get_current_superadmin(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    """Get the current superadmin user (platform owner)."""
+    if current_user.role != UserRole.SUPERADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superadmin privileges required"
+        )
+    return current_user
+
+
+# ============================================
+# TENANT ADMIN: Tenant-level administration
+# ============================================
+
+async def get_current_tenant_admin(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    """Get the current tenant admin."""
+    if current_user.role not in [UserRole.SUPERADMIN, UserRole.ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+    if current_user.role == UserRole.ADMIN and current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin must belong to a tenant"
+        )
+    return current_user
+
+
+# ============================================
+# TENANT USER: Internal tenant access
+# ============================================
+
+async def get_current_tenant_user(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    """Get the current tenant user (admin or user, not client)."""
+    if current_user.role == UserRole.CLIENT:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Internal user access required"
+        )
+    if current_user.role in [UserRole.ADMIN, UserRole.USER] and current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must belong to a tenant"
+        )
+    return current_user
+
+
+# ============================================
+# CLIENT: Client portal access
+# ============================================
+
+async def get_current_client(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    """Get the current client user."""
+    if current_user.role != UserRole.CLIENT:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Client access only"
+        )
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Client must belong to a tenant"
+        )
+    return current_user
+
+
+# ============================================
+# BACKWARDS COMPATIBILITY
+# ============================================
+
 async def get_current_admin_user(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
-    """Get the current admin user."""
-    from app.models.user import UserRole
-    if current_user.role != UserRole.ADMIN:
+    """
+    DEPRECATED: Use get_current_superadmin or get_current_tenant_admin instead.
+
+    For backwards compatibility, this now returns superadmin users.
+    """
+    if current_user.role != UserRole.SUPERADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough privileges"
         )
     return current_user
+
+
+# ============================================
+# TENANT ISOLATION HELPERS
+# ============================================
+
+def verify_tenant_access(user: User, tenant_id: UUID) -> bool:
+    """
+    Verify if a user has access to a specific tenant.
+
+    - Superadmins can access any tenant
+    - Other users can only access their own tenant
+    """
+    if user.role == UserRole.SUPERADMIN:
+        return True
+    return user.tenant_id == tenant_id
+
+
+def get_user_tenant_id(user: User) -> Optional[UUID]:
+    """
+    Get the tenant_id for filtering queries.
+
+    - Superadmins return None (no filter, access to all)
+    - Other users return their tenant_id
+    """
+    if user.role == UserRole.SUPERADMIN:
+        return None
+    return user.tenant_id
+
+
+def filter_by_tenant(query, model, user: User):
+    """
+    Apply tenant filter to a query if user is not superadmin.
+
+    Usage:
+        query = db.query(SomeModel)
+        query = filter_by_tenant(query, SomeModel, current_user)
+    """
+    if user.role != UserRole.SUPERADMIN and hasattr(model, 'tenant_id'):
+        query = query.filter(model.tenant_id == user.tenant_id)
+    return query

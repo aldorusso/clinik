@@ -2,15 +2,15 @@
 
 import { ReactNode, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { AdminSidebar } from "./admin-sidebar"
+import { SuperadminSidebar } from "./superadmin-sidebar"
 import { User, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
-interface AdminDashboardLayoutProps {
+interface SuperadminDashboardLayoutProps {
   children: ReactNode
 }
 
-export function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
+export function SuperadminDashboardLayout({ children }: SuperadminDashboardLayoutProps) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -27,22 +27,16 @@ export function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
         const userData = await api.getCurrentUser(token)
         setUser(userData)
 
-        // Redirigir segun rol
-        if (userData.role === "superadmin") {
-          router.push("/dashboard/superadmin")
-          return
-        }
-        if (userData.role === "client") {
-          router.push("/portal")
-          return
-        }
-        if (userData.role === "user") {
-          router.push("/dashboard")
-          return
-        }
-        // Solo admin de tenant puede estar aqui
-        if (userData.role !== "admin") {
-          router.push("/dashboard")
+        // Verificar que el usuario sea superadmin
+        if (userData.role !== "superadmin") {
+          // Redirigir segun rol
+          if (userData.role === "admin") {
+            router.push("/dashboard/admin")
+          } else if (userData.role === "client") {
+            router.push("/portal")
+          } else {
+            router.push("/dashboard")
+          }
           return
         }
         setLoading(false)
@@ -65,7 +59,7 @@ export function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <AdminSidebar user={user} />
+      <SuperadminSidebar user={user} />
       <main className="flex-1 overflow-y-auto">
         <div className="container mx-auto p-6">
           {children}

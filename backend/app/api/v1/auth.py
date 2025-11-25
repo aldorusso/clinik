@@ -11,7 +11,7 @@ from app.core.security import (
     get_password_hash,
     create_access_token,
     get_current_active_user,
-    get_current_admin_user
+    get_current_superadmin,
 )
 from app.core.email import send_reset_password_email, send_welcome_email
 from app.db.session import get_db
@@ -70,10 +70,23 @@ async def login(
             detail="Inactive user"
         )
 
-    # Create access token
+    # Check if tenant is active (for non-superadmin users)
+    if user.role != UserRole.SUPERADMIN and user.tenant:
+        if not user.tenant.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Tu organización está desactivada. Contacta al administrador."
+            )
+
+    # Create access token with tenant_id for multi-tenant support
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token_data = {
+        "sub": user.email,
+        "role": user.role.value,
+        "tenant_id": user.tenant_id  # Will be None for superadmin
+    }
     access_token = create_access_token(
-        data={"sub": user.email, "role": user.role.value},
+        data=token_data,
         expires_delta=access_token_expires
     )
 
@@ -86,13 +99,13 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
-@router.post("/create-admin", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
-async def create_admin_user(
+@router.post("/create-superadmin", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
+async def create_superadmin_user(
     user_in: UserCreate,
     db: Session = Depends(get_db),
-    current_admin: User = Depends(get_current_admin_user)
+    current_superadmin: User = Depends(get_current_superadmin)
 ):
-    """Create a new admin user. Only accessible by admins."""
+    """Create a new superadmin user. Only accessible by superadmins."""
     # Check if user already exists
     user = db.query(User).filter(User.email == user_in.email).first()
     if user:
@@ -101,13 +114,16 @@ async def create_admin_user(
             detail="Email already registered"
         )
 
-    # Create new admin user
+    # Create new superadmin user (no tenant_id)
     hashed_password = get_password_hash(user_in.password)
     db_user = User(
         email=user_in.email,
         hashed_password=hashed_password,
         full_name=user_in.full_name,
-        role=UserRole.ADMIN
+        first_name=user_in.first_name,
+        last_name=user_in.last_name,
+        role=UserRole.SUPERADMIN,
+        tenant_id=None  # Superadmins don't belong to any tenant
     )
 
     db.add(db_user)

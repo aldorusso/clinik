@@ -12,8 +12,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { api } from "@/lib/api"
+import { api, UserRole } from "@/lib/api"
 import { auth } from "@/lib/auth"
+
+// Helper to get redirect path based on user role
+function getRedirectPath(role: UserRole): string {
+  switch (role) {
+    case "superadmin":
+      return "/dashboard/superadmin"
+    case "admin":
+      return "/dashboard/admin"
+    case "client":
+      return "/portal"
+    case "user":
+    default:
+      return "/dashboard"
+  }
+}
 
 export function LoginForm() {
   const router = useRouter()
@@ -34,9 +49,14 @@ export function LoginForm() {
       })
 
       auth.setToken(response.access_token)
-      router.push("/dashboard")
-    } catch (err) {
-      setError("Invalid email or password")
+
+      // Get user data to determine redirect
+      const user = await api.getCurrentUser(response.access_token)
+      const redirectPath = getRedirectPath(user.role)
+
+      router.push(redirectPath)
+    } catch (err: any) {
+      setError(err.message || "Credenciales invalidas")
     } finally {
       setIsLoading(false)
     }

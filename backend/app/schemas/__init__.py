@@ -6,15 +6,42 @@ from app.schemas.user import (
     UserLogin,
     Token,
     TokenData,
-    UserInDB
+    UserInDB,
+    UserWithTenant,
+    ClientCreate,
+    TenantAdminCreate,
+    ChangePassword,
+)
+
+from app.schemas.tenant import (
+    Tenant,
+    TenantCreate,
+    TenantUpdate,
+    TenantInDB,
+    TenantList,
+    TenantWithStats,
+    TenantCreateWithAdmin,
 )
 
 __all__ = [
+    # User schemas
     "User",
     "UserCreate",
     "UserUpdate",
     "UserLogin",
     "Token",
     "TokenData",
-    "UserInDB"
+    "UserInDB",
+    "UserWithTenant",
+    "ClientCreate",
+    "TenantAdminCreate",
+    "ChangePassword",
+    # Tenant schemas
+    "Tenant",
+    "TenantCreate",
+    "TenantUpdate",
+    "TenantInDB",
+    "TenantList",
+    "TenantWithStats",
+    "TenantCreateWithAdmin",
 ]
