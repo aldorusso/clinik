@@ -3,7 +3,7 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Scraper API"
+    PROJECT_NAME: str = "Mi Aplicación"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
 
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     MAIL_USERNAME: str = ""
     MAIL_PASSWORD: str = ""
     MAIL_FROM: str = "noreply@example.com"
-    MAIL_FROM_NAME: str = "Scraper API"
+    MAIL_FROM_NAME: str = "Mi Aplicación"
     MAIL_PORT: int = 587
     MAIL_SERVER: str = "smtp.gmail.com"
     MAIL_STARTTLS: bool = True

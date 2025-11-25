@@ -34,7 +34,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
     For multi-tenant support, the token includes:
     - sub: user email
-    - role: user role (superadmin, admin, user, client)
+    - role: user role (superadmin, tenant_admin, manager, user, client)
     - tenant_id: UUID of the tenant (null for superadmin)
     """
     to_encode = data.copy()
@@ -112,7 +112,7 @@ async def get_current_superadmin(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
     """Get the current superadmin user (platform owner)."""
-    if current_user.role != UserRole.SUPERADMIN:
+    if current_user.role != UserRole.superadmin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Superadmin privileges required"
@@ -128,12 +128,12 @@ async def get_current_tenant_admin(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
     """Get the current tenant admin."""
-    if current_user.role not in [UserRole.SUPERADMIN, UserRole.ADMIN]:
+    if current_user.role not in [UserRole.superadmin, UserRole.tenant_admin]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"
         )
-    if current_user.role == UserRole.ADMIN and current_user.tenant_id is None:
+    if current_user.role == UserRole.tenant_admin and current_user.tenant_id is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin must belong to a tenant"
@@ -142,19 +142,19 @@ async def get_current_tenant_admin(
 
 
 # ============================================
-# TENANT USER: Internal tenant access
+# MANAGER: Manager-level access within tenant
 # ============================================
 
-async def get_current_tenant_user(
+async def get_current_manager_or_above(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
-    """Get the current tenant user (admin or user, not client)."""
-    if current_user.role == UserRole.CLIENT:
+    """Get the current manager or higher (superadmin, tenant_admin, manager)."""
+    if current_user.role == UserRole.user:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Internal user access required"
+            detail="Manager privileges required"
         )
-    if current_user.role in [UserRole.ADMIN, UserRole.USER] and current_user.tenant_id is None:
+    if current_user.role in [UserRole.tenant_admin, UserRole.manager] and current_user.tenant_id is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User must belong to a tenant"
@@ -163,14 +163,37 @@ async def get_current_tenant_user(
 
 
 # ============================================
-# CLIENT: Client portal access
+# TENANT MEMBER: Any tenant member access (internal)
+# ============================================
+
+async def get_current_tenant_member(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    """Get any internal tenant member (tenant_admin, manager, or user - NOT client)."""
+    if current_user.role == UserRole.superadmin:
+        return current_user  # Superadmin can access everything
+    if current_user.role == UserRole.client:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Internal access only"
+        )
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must belong to a tenant"
+        )
+    return current_user
+
+
+# ============================================
+# CLIENT: External client portal access
 # ============================================
 
 async def get_current_client(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
-    """Get the current client user."""
-    if current_user.role != UserRole.CLIENT:
+    """Get the current client user (external client of a tenant)."""
+    if current_user.role != UserRole.client:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Client access only"
@@ -195,7 +218,7 @@ async def get_current_admin_user(
 
     For backwards compatibility, this now returns superadmin users.
     """
-    if current_user.role != UserRole.SUPERADMIN:
+    if current_user.role != UserRole.superadmin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough privileges"
@@ -214,7 +237,7 @@ def verify_tenant_access(user: User, tenant_id: UUID) -> bool:
     - Superadmins can access any tenant
     - Other users can only access their own tenant
     """
-    if user.role == UserRole.SUPERADMIN:
+    if user.role == UserRole.superadmin:
         return True
     return user.tenant_id == tenant_id
 
@@ -226,7 +249,7 @@ def get_user_tenant_id(user: User) -> Optional[UUID]:
     - Superadmins return None (no filter, access to all)
     - Other users return their tenant_id
     """
-    if user.role == UserRole.SUPERADMIN:
+    if user.role == UserRole.superadmin:
         return None
     return user.tenant_id
 
@@ -239,6 +262,6 @@ def filter_by_tenant(query, model, user: User):
         query = db.query(SomeModel)
         query = filter_by_tenant(query, SomeModel, current_user)
     """
-    if user.role != UserRole.SUPERADMIN and hasattr(model, 'tenant_id'):
+    if user.role != UserRole.superadmin and hasattr(model, 'tenant_id'):
         query = query.filter(model.tenant_id == user.tenant_id)
     return query

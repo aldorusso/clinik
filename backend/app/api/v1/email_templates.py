@@ -162,9 +162,9 @@ async def preview_email_template(
     from datetime import datetime
 
     sample_data = {
-        "project_name": "Scraper API",
-        "user_name": "Juan Pérez",
-        "reset_url": "http://localhost:3002/reset-password?token=sample-token-12345",
+        "project_name": "Mi Aplicación",
+        "user_name": "Usuario Ejemplo",
+        "reset_url": "https://example.com/reset-password?token=sample-token-12345",
         "expire_hours": 24,
         "current_year": datetime.now().year,
         "message": "Este es un mensaje de ejemplo para la plantilla de notificación."

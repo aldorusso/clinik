@@ -25,7 +25,7 @@ export default function PreviewEmailTemplatePage() {
       const token = auth.getToken()
 
       if (!token) {
-        setError("No hay sesión activa")
+        setError("No hay sesion activa")
         return
       }
 
@@ -33,7 +33,6 @@ export default function PreviewEmailTemplatePage() {
       setPreview(data)
     } catch (err) {
       setError("Error al cargar la vista previa")
-      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -41,10 +40,10 @@ export default function PreviewEmailTemplatePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando vista previa...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando vista previa...</p>
         </div>
       </div>
     )
@@ -52,11 +51,11 @@ export default function PreviewEmailTemplatePage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-md">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-center mb-2">Error</h2>
-          <p className="text-gray-600 text-center">{error}</p>
+          <p className="text-muted-foreground text-center">{error}</p>
         </div>
       </div>
     )
@@ -67,11 +66,11 @@ export default function PreviewEmailTemplatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8">
       <div className="container mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-4xl mx-auto">
           {/* Email Header */}
-          <div className="border-b border-gray-200 p-6">
+          <div className="border-b border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center gap-3 mb-4">
               <Mail className="h-6 w-6 text-blue-600" />
               <h1 className="text-2xl font-bold">Vista Previa del Email</h1>
@@ -79,27 +78,25 @@ export default function PreviewEmailTemplatePage() {
 
             <div className="space-y-2">
               <div className="flex items-start">
-                <span className="font-semibold text-gray-700 w-20">
-                  Asunto:
-                </span>
-                <span className="text-gray-900">{preview.subject}</span>
+                <span className="font-semibold text-muted-foreground w-20">Asunto:</span>
+                <span>{preview.subject}</span>
               </div>
               <div className="flex items-start">
-                <span className="font-semibold text-gray-700 w-20">De:</span>
-                <span className="text-gray-600">
+                <span className="font-semibold text-muted-foreground w-20">De:</span>
+                <span className="text-muted-foreground">
                   Mi Aplicación &lt;noreply@miapp.com&gt;
                 </span>
               </div>
               <div className="flex items-start">
-                <span className="font-semibold text-gray-700 w-20">Para:</span>
-                <span className="text-gray-600">usuario@example.com</span>
+                <span className="font-semibold text-muted-foreground w-20">Para:</span>
+                <span className="text-muted-foreground">usuario@example.com</span>
               </div>
             </div>
           </div>
 
           {/* Email Body */}
-          <div className="p-6 bg-gray-50">
-            <div className="bg-white rounded border border-gray-200">
+          <div className="p-6 bg-gray-50 dark:bg-gray-900">
+            <div className="bg-white rounded border border-gray-200 dark:border-gray-700">
               <iframe
                 srcDoc={preview.html_content}
                 className="w-full min-h-[600px] border-0"
@@ -110,12 +107,10 @@ export default function PreviewEmailTemplatePage() {
           </div>
 
           {/* Sample Data Info */}
-          <div className="border-t border-gray-200 p-6 bg-gray-50">
-            <h3 className="font-semibold text-gray-900 mb-3">
-              Datos de Ejemplo Utilizados:
-            </h3>
-            <div className="bg-white p-4 rounded border border-gray-200">
-              <pre className="text-xs text-gray-600 overflow-x-auto">
+          <div className="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-900">
+            <h3 className="font-semibold mb-3">Datos de Ejemplo Utilizados:</h3>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-700">
+              <pre className="text-xs text-muted-foreground overflow-x-auto">
                 {JSON.stringify(preview.sample_data, null, 2)}
               </pre>
             </div>

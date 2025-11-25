@@ -79,7 +79,8 @@ class Tenant(TenantInDB):
 # Schema for tenant with user count
 class TenantWithStats(Tenant):
     user_count: int = 0
-    admin_count: int = 0
+    tenant_admin_count: int = 0
+    manager_count: int = 0
     client_count: int = 0
 
 

@@ -71,7 +71,7 @@ async def login(
         )
 
     # Check if tenant is active (for non-superadmin users)
-    if user.role != UserRole.SUPERADMIN and user.tenant:
+    if user.role != UserRole.superadmin and user.tenant:
         if not user.tenant.is_active:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -122,7 +122,7 @@ async def create_superadmin_user(
         full_name=user_in.full_name,
         first_name=user_in.first_name,
         last_name=user_in.last_name,
-        role=UserRole.SUPERADMIN,
+        role=UserRole.superadmin,
         tenant_id=None  # Superadmins don't belong to any tenant
     )
 

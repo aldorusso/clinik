@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
 
 export interface LoginCredentials {
   username: string;
@@ -10,8 +10,8 @@ export interface LoginResponse {
   token_type: string;
 }
 
-// User roles for multi-tenant system
-export type UserRole = 'superadmin' | 'admin' | 'user' | 'client';
+// User roles for multi-tenant system (5 roles)
+export type UserRole = 'superadmin' | 'tenant_admin' | 'manager' | 'user' | 'client';
 
 export interface User {
   id: string;
@@ -96,7 +96,8 @@ export interface Tenant {
 
 export interface TenantWithStats extends Tenant {
   user_count: number;
-  admin_count: number;
+  tenant_admin_count: number;
+  manager_count: number;
   client_count: number;
 }
 
@@ -349,7 +350,7 @@ export const api = {
   },
 
   async createTenantWithAdmin(token: string, data: TenantCreateWithAdmin): Promise<Tenant> {
-    const response = await fetch(`${API_URL}/api/v1/tenants/with-admin`, {
+    const response = await fetch(`${API_URL}/api/v1/tenants/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

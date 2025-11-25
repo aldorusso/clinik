@@ -26,6 +26,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Table,
   TableBody,
   TableCell,
@@ -35,7 +42,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Building2, Plus, Pencil, Trash2, Power, Users, Eye } from "lucide-react"
-import { api, TenantWithStats, TenantCreateWithAdmin } from "@/lib/api"
+import { api, TenantWithStats, TenantCreateWithAdmin, TenantUpdate } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
@@ -45,6 +52,7 @@ export default function TenantsPage() {
   const [tenants, setTenants] = useState<TenantWithStats[]>([])
   const [loading, setLoading] = useState(true)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedTenant, setSelectedTenant] = useState<TenantWithStats | null>(null)
   const [formData, setFormData] = useState<TenantCreateWithAdmin>({
@@ -57,6 +65,15 @@ export default function TenantsPage() {
     admin_password: "",
     admin_first_name: "",
     admin_last_name: "",
+  })
+  const [editFormData, setEditFormData] = useState<TenantUpdate>({
+    name: "",
+    slug: "",
+    email: "",
+    phone: "",
+    plan: "",
+    country: "",
+    city: "",
   })
 
   const loadTenants = async () => {
@@ -148,6 +165,40 @@ export default function TenantsPage() {
     } catch (error: any) {
       toast.error(error.message || "Error al eliminar organizacion")
     }
+  }
+
+  const openEditDialog = (tenant: TenantWithStats) => {
+    setSelectedTenant(tenant)
+    setEditFormData({
+      name: tenant.name,
+      slug: tenant.slug,
+      email: tenant.email || "",
+      phone: tenant.phone || "",
+      plan: tenant.plan,
+      country: tenant.country || "",
+      city: tenant.city || "",
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleEdit = async () => {
+    if (!selectedTenant) return
+    const token = auth.getToken()
+    if (!token) return
+
+    try {
+      await api.updateTenant(token, selectedTenant.id, editFormData)
+      toast.success("Organizacion actualizada")
+      setIsEditDialogOpen(false)
+      setSelectedTenant(null)
+      loadTenants()
+    } catch (error: any) {
+      toast.error(error.message || "Error al actualizar organizacion")
+    }
+  }
+
+  const getTotalUsers = (tenant: TenantWithStats) => {
+    return tenant.tenant_admin_count + tenant.manager_count + tenant.user_count
   }
 
   return (
@@ -368,7 +419,7 @@ export default function TenantsPage() {
                         <div className="flex items-center space-x-1">
                           <Users className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">
-                            {tenant.admin_count + tenant.user_count}
+                            {getTotalUsers(tenant)}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             ({tenant.client_count} clientes)
@@ -392,9 +443,17 @@ export default function TenantsPage() {
                                 `/dashboard/superadmin/tenants/${tenant.id}`
                               )
                             }
-                            title="Ver detalles"
+                            title="Ver detalles y usuarios"
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditDialog(tenant)}
+                            title="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -433,6 +492,111 @@ export default function TenantsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Editar Organizacion</DialogTitle>
+            <DialogDescription>
+              Modifica los datos de la organizacion
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_name">Nombre</Label>
+                <Input
+                  id="edit_name"
+                  value={editFormData.name || ""}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, name: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_slug">Slug (URL)</Label>
+                <Input
+                  id="edit_slug"
+                  value={editFormData.slug || ""}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, slug: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_email">Email</Label>
+                <Input
+                  id="edit_email"
+                  type="email"
+                  value={editFormData.email || ""}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, email: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_phone">Telefono</Label>
+                <Input
+                  id="edit_phone"
+                  value={editFormData.phone || ""}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, phone: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_country">Pais</Label>
+                <Input
+                  id="edit_country"
+                  value={editFormData.country || ""}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, country: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_city">Ciudad</Label>
+                <Input
+                  id="edit_city"
+                  value={editFormData.city || ""}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, city: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_plan">Plan</Label>
+              <Select
+                value={editFormData.plan || "free"}
+                onValueChange={(value) =>
+                  setEditFormData({ ...editFormData, plan: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="professional">Professional</SelectItem>
+                  <SelectItem value="enterprise">Enterprise</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEdit}>Guardar Cambios</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

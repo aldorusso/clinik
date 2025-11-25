@@ -24,19 +24,8 @@ class UserBase(BaseModel):
 # Schema for creating a user (by tenant admin)
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6)
-    role: Optional[UserRole] = UserRole.USER
+    role: Optional[UserRole] = UserRole.user
     tenant_id: Optional[UUID] = None  # Set by system for tenant users
-
-
-# Schema for creating a client (by tenant admin/user)
-class ClientCreate(BaseModel):
-    email: EmailStr
-    password: str = Field(..., min_length=6)
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    phone: Optional[str] = None
-    client_company_name: Optional[str] = None
-    client_tax_id: Optional[str] = None
 
 
 # Schema for updating a user
@@ -119,3 +108,14 @@ class TenantAdminCreate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None
+
+
+# Schema for creating a client (external customer of a tenant)
+class ClientCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    client_company_name: Optional[str] = None  # Empresa del cliente
+    client_tax_id: Optional[str] = None  # RUC/NIT del cliente

@@ -11,15 +11,17 @@ from app.db.session import Base
 class UserRole(str, enum.Enum):
     """
     Roles del sistema multi-tenant:
-    - SUPERADMIN: Administrador global de la plataforma (sin tenant)
-    - ADMIN: Administrador de un tenant específico
-    - USER: Usuario/empleado de un tenant
-    - CLIENT: Cliente externo de un tenant (acceso limitado al portal)
+    - superadmin: Administrador global de la plataforma (sin tenant)
+    - tenant_admin: Administrador de un tenant específico
+    - manager: Gestor/supervisor dentro de un tenant
+    - user: Usuario/empleado regular de un tenant
+    - client: Cliente externo de un tenant (acceso limitado al portal)
     """
-    SUPERADMIN = "superadmin"
-    ADMIN = "admin"
-    USER = "user"
-    CLIENT = "client"
+    superadmin = "superadmin"
+    tenant_admin = "tenant_admin"
+    manager = "manager"
+    user = "user"
+    client = "client"
 
 
 class User(Base):
@@ -45,18 +47,18 @@ class User(Base):
     city = Column(String(100), nullable=True)
     office_address = Column(String(500), nullable=True)
 
-    # Información de negocio (para usuarios internos)
+    # Información de negocio
     company_name = Column(String(255), nullable=True)
     job_title = Column(String(255), nullable=True)  # Cargo/posición
 
-    # Información adicional para CLIENTS
-    client_company_name = Column(String(255), nullable=True)  # Empresa del cliente
-    client_tax_id = Column(String(100), nullable=True)  # RUC/NIT del cliente
+    # Información adicional (empresa externa del usuario si aplica)
+    client_company_name = Column(String(255), nullable=True)
+    client_tax_id = Column(String(100), nullable=True)
 
     profile_photo = Column(String, nullable=True)
 
     # Control de acceso
-    role = Column(SQLEnum(UserRole), default=UserRole.USER, nullable=False)
+    role = Column(SQLEnum(UserRole), default=UserRole.user, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
 
     # Reset de contraseña
@@ -75,19 +77,23 @@ class User(Base):
 
     @property
     def is_superadmin(self) -> bool:
-        return self.role == UserRole.SUPERADMIN
+        return self.role == UserRole.superadmin
 
     @property
     def is_tenant_admin(self) -> bool:
-        return self.role == UserRole.ADMIN
+        return self.role == UserRole.tenant_admin
 
     @property
-    def is_tenant_user(self) -> bool:
-        return self.role == UserRole.USER
+    def is_manager(self) -> bool:
+        return self.role == UserRole.manager
+
+    @property
+    def is_user(self) -> bool:
+        return self.role == UserRole.user
 
     @property
     def is_client(self) -> bool:
-        return self.role == UserRole.CLIENT
+        return self.role == UserRole.client
 
     @property
     def belongs_to_tenant(self) -> bool:

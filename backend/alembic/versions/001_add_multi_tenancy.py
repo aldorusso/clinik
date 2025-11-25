@@ -43,11 +43,6 @@ def upgrade() -> None:
     )
     op.create_index('ix_tenants_slug', 'tenants', ['slug'], unique=True)
 
-    # Create new enum type for user roles (with all 4 roles)
-    # First, create the new enum type
-    userrole_new = postgresql.ENUM('superadmin', 'admin', 'user', 'client', name='userrole_new', create_type=False)
-    userrole_new.create(op.get_bind(), checkfirst=True)
-
     # Add tenant_id column to users (nullable for superadmins)
     op.add_column('users', sa.Column('tenant_id', postgresql.UUID(as_uuid=True), nullable=True))
     op.create_index('ix_users_tenant_id', 'users', ['tenant_id'])
@@ -58,33 +53,38 @@ def upgrade() -> None:
     op.add_column('users', sa.Column('client_company_name', sa.String(255), nullable=True))
     op.add_column('users', sa.Column('client_tax_id', sa.String(100), nullable=True))
 
-    # Update role column: change 'admin' to 'superadmin' for existing admins (they become superadmins)
-    # Then alter the column to use the new enum
+    # Step 1: Convert role column to text temporarily
+    op.execute("ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(50) USING role::text")
+
+    # Step 2: Update existing admin roles to superadmin
     op.execute("UPDATE users SET role = 'superadmin' WHERE role = 'admin'")
 
-    # Alter the role column to use new enum
-    op.execute("ALTER TABLE users ALTER COLUMN role TYPE userrole_new USING role::text::userrole_new")
-
-    # Drop old enum and rename new one
+    # Step 3: Drop old enum type
     op.execute("DROP TYPE IF EXISTS userrole")
-    op.execute("ALTER TYPE userrole_new RENAME TO userrole")
+
+    # Step 4: Create new enum type with all 5 roles
+    op.execute("CREATE TYPE userrole AS ENUM ('superadmin', 'tenant_admin', 'manager', 'user', 'client')")
+
+    # Step 5: Convert role column back to enum
+    op.execute("ALTER TABLE users ALTER COLUMN role TYPE userrole USING role::userrole")
 
 
 def downgrade() -> None:
-    # Create old enum type
-    userrole_old = postgresql.ENUM('admin', 'user', name='userrole_old', create_type=False)
-    userrole_old.create(op.get_bind(), checkfirst=True)
+    # Step 1: Convert role column to text temporarily
+    op.execute("ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(50) USING role::text")
 
-    # Convert roles back
-    op.execute("UPDATE users SET role = 'admin' WHERE role = 'superadmin'")
-    op.execute("UPDATE users SET role = 'user' WHERE role IN ('client', 'user')")
+    # Step 2: Convert roles back
+    op.execute("UPDATE users SET role = 'admin' WHERE role IN ('superadmin', 'tenant_admin')")
+    op.execute("UPDATE users SET role = 'user' WHERE role IN ('manager', 'user', 'client')")
 
-    # Alter column back
-    op.execute("ALTER TABLE users ALTER COLUMN role TYPE userrole_old USING role::text::userrole_old")
-
-    # Drop new enum and rename old one
+    # Step 3: Drop new enum type
     op.execute("DROP TYPE IF EXISTS userrole")
-    op.execute("ALTER TYPE userrole_old RENAME TO userrole")
+
+    # Step 4: Create old enum type
+    op.execute("CREATE TYPE userrole AS ENUM ('admin', 'user')")
+
+    # Step 5: Convert role column back to enum
+    op.execute("ALTER TABLE users ALTER COLUMN role TYPE userrole USING role::userrole")
 
     # Remove new columns from users
     op.drop_column('users', 'client_tax_id')

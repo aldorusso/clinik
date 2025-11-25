@@ -14,6 +14,7 @@ from app.core.security import (
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate, User as UserSchema, ClientCreate
+from app.core.email import send_welcome_email
 
 router = APIRouter()
 
@@ -66,7 +67,7 @@ async def create_user(
         )
 
     # Validate: if role is not superadmin, tenant_id is required
-    if user_in.role != UserRole.SUPERADMIN and not user_in.tenant_id:
+    if user_in.role != UserRole.superadmin and not user_in.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="tenant_id es requerido para usuarios no superadmin"
@@ -81,13 +82,24 @@ async def create_user(
         last_name=user_in.last_name,
         full_name=user_in.full_name,
         role=user_in.role,
-        tenant_id=user_in.tenant_id if user_in.role != UserRole.SUPERADMIN else None,
+        tenant_id=user_in.tenant_id if user_in.role != UserRole.superadmin else None,
         is_active=True
     )
 
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    # Enviar email de bienvenida
+    try:
+        await send_welcome_email(
+            db=db,
+            email_to=db_user.email,
+            user_name=db_user.full_name or db_user.first_name or db_user.email.split('@')[0]
+        )
+    except Exception as e:
+        # Log error but don't fail the request
+        print(f"Error enviando email de bienvenida: {e}")
 
     return db_user
 
@@ -111,7 +123,7 @@ async def get_user(
         )
 
     # Check access for non-superadmins
-    if current_user.role != UserRole.SUPERADMIN:
+    if current_user.role != UserRole.superadmin:
         if user.tenant_id != current_user.tenant_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -141,14 +153,14 @@ async def update_user(
         )
 
     # Check access for non-superadmins
-    if current_user.role != UserRole.SUPERADMIN:
+    if current_user.role != UserRole.superadmin:
         if user.tenant_id != current_user.tenant_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="No tienes acceso a este usuario"
             )
         # Tenant admins cannot change roles to superadmin
-        if user_update.role == UserRole.SUPERADMIN:
+        if user_update.role == UserRole.superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="No puedes asignar el rol superadmin"
@@ -163,7 +175,7 @@ async def update_user(
         update_data["hashed_password"] = get_password_hash(password)
 
     # Prevent changing tenant_id for non-superadmins
-    if "tenant_id" in update_data and current_user.role != UserRole.SUPERADMIN:
+    if "tenant_id" in update_data and current_user.role != UserRole.superadmin:
         del update_data["tenant_id"]
 
     # Update user
@@ -203,14 +215,14 @@ async def delete_user(
         )
 
     # Check access for non-superadmins
-    if current_user.role != UserRole.SUPERADMIN:
+    if current_user.role != UserRole.superadmin:
         if user.tenant_id != current_user.tenant_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="No tienes acceso a este usuario"
             )
-        # Tenant admins cannot delete other admins
-        if user.role == UserRole.ADMIN:
+        # Tenant admins cannot delete other tenant_admins
+        if user.role == UserRole.tenant_admin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="No puedes eliminar a otros administradores"
@@ -237,7 +249,7 @@ async def list_my_tenant_users(
     """
     List all users in my tenant. Accessible by tenant admins.
     """
-    if current_user.role == UserRole.SUPERADMIN:
+    if current_user.role == UserRole.superadmin:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Superadmins no pertenecen a un tenant. Usa /users/ en su lugar."
@@ -262,7 +274,7 @@ async def create_my_tenant_user(
     Create a user in my tenant. Accessible by tenant admins.
     Cannot create superadmins or admins (only users and clients).
     """
-    if current_user.role == UserRole.SUPERADMIN:
+    if current_user.role == UserRole.superadmin:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Superadmins deben usar /users/ o /tenants/{tenant_id}/users"
@@ -276,13 +288,13 @@ async def create_my_tenant_user(
             detail="El email ya esta registrado"
         )
 
-    # Tenant admins can only create users and clients, not admins or superadmins
-    allowed_roles = [UserRole.USER, UserRole.CLIENT]
-    role = user_in.role or UserRole.USER
+    # Tenant admins can only create managers, users, and clients (not tenant_admins or superadmins)
+    allowed_roles = [UserRole.manager, UserRole.user, UserRole.client]
+    role = user_in.role or UserRole.user
     if role not in allowed_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo puedes crear usuarios con rol 'user' o 'client'"
+            detail="Solo puedes crear usuarios con rol 'manager', 'user' o 'client'"
         )
 
     # Create new user in the same tenant
@@ -302,6 +314,16 @@ async def create_my_tenant_user(
     db.commit()
     db.refresh(db_user)
 
+    # Enviar email de bienvenida
+    try:
+        await send_welcome_email(
+            db=db,
+            email_to=db_user.email,
+            user_name=db_user.full_name or db_user.first_name or db_user.email.split('@')[0]
+        )
+    except Exception as e:
+        print(f"Error enviando email de bienvenida: {e}")
+
     return db_user
 
 
@@ -312,10 +334,10 @@ async def create_client(
     current_user: User = Depends(get_current_tenant_admin)
 ):
     """
-    Create a client in my tenant. Accessible by tenant admins.
-    Simplified endpoint specifically for creating clients.
+    Create a client (external customer) in my tenant.
+    Accessible by tenant admins.
     """
-    if current_user.role == UserRole.SUPERADMIN:
+    if current_user.role == UserRole.superadmin:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Superadmins deben usar /tenants/{tenant_id}/users"
@@ -339,7 +361,7 @@ async def create_client(
         phone=client_in.phone,
         client_company_name=client_in.client_company_name,
         client_tax_id=client_in.client_tax_id,
-        role=UserRole.CLIENT,
+        role=UserRole.client,
         tenant_id=current_user.tenant_id,
         is_active=True
     )
@@ -347,5 +369,15 @@ async def create_client(
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    # Enviar email de bienvenida
+    try:
+        await send_welcome_email(
+            db=db,
+            email_to=db_user.email,
+            user_name=db_user.first_name or db_user.email.split('@')[0]
+        )
+    except Exception as e:
+        print(f"Error enviando email de bienvenida: {e}")
 
     return db_user

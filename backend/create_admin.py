@@ -37,7 +37,7 @@ def create_admin_user(
             email=email,
             hashed_password=hashed_password,
             full_name=full_name,
-            role=UserRole.ADMIN,
+            role=UserRole.superadmin,
             is_active=True
         )
 

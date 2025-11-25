@@ -14,7 +14,6 @@ from app.db.session import get_db
 from app.models.tenant import Tenant
 from app.models.user import User, UserRole
 from app.schemas.tenant import (
-    TenantCreate,
     TenantUpdate,
     Tenant as TenantSchema,
     TenantList,
@@ -22,6 +21,7 @@ from app.schemas.tenant import (
     TenantCreateWithAdmin,
 )
 from app.schemas.user import User as UserSchema
+from app.core.email import send_welcome_email
 
 router = APIRouter()
 
@@ -67,23 +67,29 @@ async def list_tenants_with_stats(
         # Count users by role for this tenant
         user_count = db.query(func.count(User.id)).filter(
             User.tenant_id == tenant.id,
-            User.role == UserRole.USER
+            User.role == UserRole.user
         ).scalar()
 
-        admin_count = db.query(func.count(User.id)).filter(
+        tenant_admin_count = db.query(func.count(User.id)).filter(
             User.tenant_id == tenant.id,
-            User.role == UserRole.ADMIN
+            User.role == UserRole.tenant_admin
+        ).scalar()
+
+        manager_count = db.query(func.count(User.id)).filter(
+            User.tenant_id == tenant.id,
+            User.role == UserRole.manager
         ).scalar()
 
         client_count = db.query(func.count(User.id)).filter(
             User.tenant_id == tenant.id,
-            User.role == UserRole.CLIENT
+            User.role == UserRole.client
         ).scalar()
 
         tenant_data = TenantWithStats(
             **TenantSchema.model_validate(tenant).model_dump(),
             user_count=user_count,
-            admin_count=admin_count,
+            tenant_admin_count=tenant_admin_count,
+            manager_count=manager_count,
             client_count=client_count
         )
         result.append(tenant_data)
@@ -92,39 +98,13 @@ async def list_tenants_with_stats(
 
 
 @router.post("/", response_model=TenantSchema, status_code=status.HTTP_201_CREATED)
-async def create_tenant(
-    tenant_in: TenantCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_superadmin)
-):
-    """
-    Create a new tenant. Only accessible by superadmins.
-    """
-    # Check if slug already exists
-    existing = db.query(Tenant).filter(Tenant.slug == tenant_in.slug).first()
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El slug ya está en uso"
-        )
-
-    # Create tenant
-    db_tenant = Tenant(**tenant_in.model_dump())
-    db.add(db_tenant)
-    db.commit()
-    db.refresh(db_tenant)
-
-    return db_tenant
-
-
-@router.post("/with-admin", response_model=TenantSchema, status_code=status.HTTP_201_CREATED)
 async def create_tenant_with_admin(
     data: TenantCreateWithAdmin,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superadmin)
 ):
     """
-    Create a new tenant with its first admin user. Only accessible by superadmins.
+    Create a new tenant with its first tenant_admin user. Only accessible by superadmins.
     """
     # Check if slug already exists
     existing = db.query(Tenant).filter(Tenant.slug == data.slug).first()
@@ -155,7 +135,7 @@ async def create_tenant_with_admin(
         hashed_password=hashed_password,
         first_name=data.admin_first_name,
         last_name=data.admin_last_name,
-        role=UserRole.ADMIN,
+        role=UserRole.tenant_admin,
         tenant_id=db_tenant.id,
         is_active=True
     )
@@ -163,6 +143,17 @@ async def create_tenant_with_admin(
 
     db.commit()
     db.refresh(db_tenant)
+    db.refresh(db_admin)
+
+    # Enviar email de bienvenida al admin del tenant
+    try:
+        await send_welcome_email(
+            db=db,
+            email_to=db_admin.email,
+            user_name=db_admin.first_name or db_admin.email.split('@')[0]
+        )
+    except Exception as e:
+        print(f"Error enviando email de bienvenida: {e}")
 
     return db_tenant
 
@@ -194,23 +185,29 @@ async def get_tenant(
     # Get user counts
     user_count = db.query(func.count(User.id)).filter(
         User.tenant_id == tenant.id,
-        User.role == UserRole.USER
+        User.role == UserRole.user
     ).scalar()
 
-    admin_count = db.query(func.count(User.id)).filter(
+    tenant_admin_count = db.query(func.count(User.id)).filter(
         User.tenant_id == tenant.id,
-        User.role == UserRole.ADMIN
+        User.role == UserRole.tenant_admin
+    ).scalar()
+
+    manager_count = db.query(func.count(User.id)).filter(
+        User.tenant_id == tenant.id,
+        User.role == UserRole.manager
     ).scalar()
 
     client_count = db.query(func.count(User.id)).filter(
         User.tenant_id == tenant.id,
-        User.role == UserRole.CLIENT
+        User.role == UserRole.client
     ).scalar()
 
     return TenantWithStats(
         **TenantSchema.model_validate(tenant).model_dump(),
         user_count=user_count,
-        admin_count=admin_count,
+        tenant_admin_count=tenant_admin_count,
+        manager_count=manager_count,
         client_count=client_count
     )
 
@@ -369,8 +366,8 @@ async def create_tenant_user(
         )
 
     # Ensure role is valid for tenant (not superadmin)
-    role = user_in.get("role", UserRole.USER)
-    if role == UserRole.SUPERADMIN:
+    role = user_in.get("role", UserRole.user)
+    if role == UserRole.superadmin:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No se puede crear un superadmin dentro de un tenant"
@@ -385,5 +382,15 @@ async def create_tenant_user(
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    # Enviar email de bienvenida
+    try:
+        await send_welcome_email(
+            db=db,
+            email_to=db_user.email,
+            user_name=db_user.full_name or db_user.first_name or db_user.email.split('@')[0]
+        )
+    except Exception as e:
+        print(f"Error enviando email de bienvenida: {e}")
 
     return db_user

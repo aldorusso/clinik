@@ -8,14 +8,13 @@ from app.schemas.user import (
     TokenData,
     UserInDB,
     UserWithTenant,
-    ClientCreate,
     TenantAdminCreate,
     ChangePassword,
+    ClientCreate,
 )
 
 from app.schemas.tenant import (
     Tenant,
-    TenantCreate,
     TenantUpdate,
     TenantInDB,
     TenantList,
@@ -33,12 +32,11 @@ __all__ = [
     "TokenData",
     "UserInDB",
     "UserWithTenant",
-    "ClientCreate",
     "TenantAdminCreate",
     "ChangePassword",
+    "ClientCreate",
     # Tenant schemas
     "Tenant",
-    "TenantCreate",
     "TenantUpdate",
     "TenantInDB",
     "TenantList",
