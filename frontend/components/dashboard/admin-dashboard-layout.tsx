@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AdminSidebar } from "./admin-sidebar"
+import { SessionExpiryModal } from "@/components/session-expiry-modal"
 import { User, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
@@ -71,6 +72,7 @@ export function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
           {children}
         </div>
       </main>
+      <SessionExpiryModal />
     </div>
   )
 }

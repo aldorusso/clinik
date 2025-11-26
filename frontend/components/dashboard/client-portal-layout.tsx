@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ClientSidebar } from "./client-sidebar"
+import { SessionExpiryModal } from "@/components/session-expiry-modal"
 import { User, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
@@ -75,6 +76,7 @@ export function ClientPortalLayout({ children }: ClientPortalLayoutProps) {
           {children}
         </div>
       </main>
+      <SessionExpiryModal />
     </div>
   )
 }

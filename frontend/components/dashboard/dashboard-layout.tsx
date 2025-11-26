@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "./sidebar"
+import { SessionExpiryModal } from "@/components/session-expiry-modal"
 import { User, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
@@ -42,6 +43,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </div>
       </main>
+      <SessionExpiryModal />
     </div>
   )
 }

@@ -349,3 +349,48 @@ async def reset_password(
     db.commit()
 
     return {"message": "Contraseña restablecida exitosamente"}
+
+
+@router.post("/refresh-token", response_model=Token)
+async def refresh_token(
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Refresh the access token for the current user."""
+    ip_address = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent", "")[:500]
+
+    # Check if tenant is still active (for non-superadmin users)
+    if current_user.role != UserRole.superadmin and current_user.tenant:
+        if not current_user.tenant.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Tu organización está desactivada. Contacta al administrador."
+            )
+
+    # Log token refresh
+    create_audit_log(
+        db=db,
+        action=AuditAction.TOKEN_REFRESHED,
+        category=AuditCategory.AUTH,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        tenant_id=current_user.tenant_id,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    # Create new access token
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token_data = {
+        "sub": current_user.email,
+        "role": current_user.role.value,
+        "tenant_id": current_user.tenant_id
+    }
+    access_token = create_access_token(
+        data=token_data,
+        expires_delta=access_token_expires
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}

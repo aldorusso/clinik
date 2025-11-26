@@ -200,6 +200,21 @@ export const api = {
     return response.json();
   },
 
+  async refreshToken(token: string): Promise<LoginResponse> {
+    const response = await fetch(`${API_URL}/api/v1/auth/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Token refresh failed');
+    }
+
+    return response.json();
+  },
+
   async getCurrentUser(token: string): Promise<User> {
     const response = await fetch(`${API_URL}/api/v1/auth/me`, {
       headers: {

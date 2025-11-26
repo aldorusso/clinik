@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { SuperadminSidebar } from "./superadmin-sidebar"
+import { SessionExpiryModal } from "@/components/session-expiry-modal"
 import { User, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
@@ -65,6 +66,7 @@ export function SuperadminDashboardLayout({ children }: SuperadminDashboardLayou
           {children}
         </div>
       </main>
+      <SessionExpiryModal />
     </div>
   )
 }

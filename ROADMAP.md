@@ -2,7 +2,7 @@
 
 ## Prioridad Alta (Fundamentales)
 
-- [ ] **Recuperacion de Contrasena**
+- [x] **Recuperacion de Contrasena** ✓
   - Flujo "Olvide mi contrasena"
   - Email con token temporal
   - Pagina de reset
@@ -71,3 +71,4 @@
 - [x] Sistema de emails con plantillas (superadmin)
 - [x] Audit logs (superadmin)
 - [x] Planes y configuracion del sistema (superadmin)
+- [x] Persistencia de sesion con warning de expiracion y renovacion automatica
