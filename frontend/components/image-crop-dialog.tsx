@@ -21,6 +21,11 @@ interface ImageCropDialogProps {
   onCropComplete: (croppedImage: string) => void
 }
 
+// Tamaño máximo para fotos de perfil (px)
+const MAX_SIZE = 256
+// Calidad de compresión (0.85 es óptimo para WebP)
+const QUALITY = 0.85
+
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const image = new Image()
@@ -28,6 +33,15 @@ const createImage = (url: string): Promise<HTMLImageElement> =>
     image.addEventListener("error", (error) => reject(error))
     image.src = url
   })
+
+// Detectar soporte de WebP
+const supportsWebP = (): boolean => {
+  if (typeof document === "undefined") return false
+  const canvas = document.createElement("canvas")
+  canvas.width = 1
+  canvas.height = 1
+  return canvas.toDataURL("image/webp").startsWith("data:image/webp")
+}
 
 async function getCroppedImg(
   imageSrc: string,
@@ -41,8 +55,14 @@ async function getCroppedImg(
     throw new Error("No 2d context")
   }
 
-  canvas.width = pixelCrop.width
-  canvas.height = pixelCrop.height
+  // Calcular tamaño final (máximo MAX_SIZE manteniendo aspecto 1:1)
+  const size = Math.min(pixelCrop.width, pixelCrop.height, MAX_SIZE)
+  canvas.width = size
+  canvas.height = size
+
+  // Habilitar suavizado para mejor calidad al redimensionar
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = "high"
 
   ctx.drawImage(
     image,
@@ -52,21 +72,28 @@ async function getCroppedImg(
     pixelCrop.height,
     0,
     0,
-    pixelCrop.width,
-    pixelCrop.height
+    size,
+    size
   )
 
+  // Usar WebP si está soportado, sino JPEG
+  const format = supportsWebP() ? "image/webp" : "image/jpeg"
+
   return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        return
-      }
-      const reader = new FileReader()
-      reader.readAsDataURL(blob)
-      reader.onloadend = () => {
-        resolve(reader.result as string)
-      }
-    }, "image/jpeg")
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          return
+        }
+        const reader = new FileReader()
+        reader.readAsDataURL(blob)
+        reader.onloadend = () => {
+          resolve(reader.result as string)
+        }
+      },
+      format,
+      QUALITY
+    )
   })
 }
 
