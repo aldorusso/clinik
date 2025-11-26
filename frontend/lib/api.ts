@@ -10,6 +10,15 @@ export interface LoginResponse {
   token_type: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+}
+
 // User roles for multi-tenant system (5 roles)
 export type UserRole = 'superadmin' | 'tenant_admin' | 'manager' | 'user' | 'client';
 
@@ -152,6 +161,40 @@ export const api = {
 
     if (!response.ok) {
       throw new Error('Login failed');
+    }
+
+    return response.json();
+  },
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_URL}/api/v1/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Error al solicitar recuperación');
+    }
+
+    return response.json();
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_URL}/api/v1/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token, new_password: newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Error al restablecer contraseña');
     }
 
     return response.json();
