@@ -171,6 +171,11 @@ export const api = {
     return response.json();
   },
 
+  // Alias for getCurrentUser
+  async getMe(token: string): Promise<User> {
+    return this.getCurrentUser(token);
+  },
+
   async register(data: {
     email: string;
     password: string;
