@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { Settings, LogOut, User as UserIcon, LayoutDashboard, FileText, MessageSquare } from "lucide-react"
+import { Lock, LogOut, User as UserIcon, LayoutDashboard, FileText, MessageSquare } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -129,12 +129,12 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
 
             <DropdownMenuItem onClick={() => router.push("/portal/profile")} className="cursor-pointer">
               <UserIcon className="mr-2 h-4 w-4" />
-              <span>Mi Perfil</span>
+              <span>Perfil</span>
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => router.push("/portal/settings")} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Configuracion</span>
+            <DropdownMenuItem onClick={() => router.push("/portal/profile?tab=security")} className="cursor-pointer">
+              <Lock className="mr-2 h-4 w-4" />
+              <span>Seguridad</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />

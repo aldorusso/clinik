@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { LogOut, User as UserIcon, Lock, LayoutDashboard, Users, Mail } from "lucide-react"
+import { LogOut, User as UserIcon, Lock, LayoutDashboard } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -75,28 +75,6 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
-          </Button>
-
-          <Separator className="my-4" />
-
-          {/* Usuarios Section */}
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/usuarios") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/usuarios")}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Usuarios
-          </Button>
-
-          {/* Emails Section */}
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/emails") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/emails")}
-          >
-            <Mail className="mr-2 h-4 w-4" />
-            Plantillas de Email
           </Button>
         </nav>
       </div>
