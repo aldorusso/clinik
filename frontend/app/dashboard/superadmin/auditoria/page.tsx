@@ -295,12 +295,15 @@ export default function AuditoriaPage() {
 
                   <div className="space-y-2">
                     <Label>Accion</Label>
-                    <Select value={filterAction} onValueChange={setFilterAction}>
+                    <Select
+                      value={filterAction || "all"}
+                      onValueChange={(val) => setFilterAction(val === "all" ? "" : val)}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Todas" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todas</SelectItem>
+                        <SelectItem value="all">Todas</SelectItem>
                         {actions.map((action) => (
                           <SelectItem key={action} value={action}>
                             {ACTION_LABELS[action]?.label || action}
@@ -312,12 +315,15 @@ export default function AuditoriaPage() {
 
                   <div className="space-y-2">
                     <Label>Categoria</Label>
-                    <Select value={filterCategory} onValueChange={setFilterCategory}>
+                    <Select
+                      value={filterCategory || "all"}
+                      onValueChange={(val) => setFilterCategory(val === "all" ? "" : val)}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Todas" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todas</SelectItem>
+                        <SelectItem value="all">Todas</SelectItem>
                         {categories.map((cat) => (
                           <SelectItem key={cat} value={cat}>
                             {CATEGORY_LABELS[cat]?.label || cat}
