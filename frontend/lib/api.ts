@@ -210,6 +210,27 @@ export const api = {
     return response.json();
   },
 
+  async changePassword(token: string, currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_URL}/api/v1/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Password change failed');
+    }
+
+    return response.json();
+  },
+
   // Email Templates
   async getEmailTemplates(token: string) {
     const response = await fetch(`${API_URL}/api/v1/email-templates/`, {

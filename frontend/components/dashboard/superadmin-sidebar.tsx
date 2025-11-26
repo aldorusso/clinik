@@ -170,9 +170,9 @@ export function SuperadminSidebar({ user }: SuperadminSidebarProps) {
               <span>Perfil</span>
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => router.push("/dashboard/superadmin/settings")} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => router.push("/dashboard/superadmin/profile?tab=security")} className="cursor-pointer">
               <Settings className="mr-2 h-4 w-4" />
-              <span>Configuraci&oacute;n</span>
+              <span>Seguridad</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
