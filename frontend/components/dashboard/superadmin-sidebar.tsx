@@ -114,6 +114,15 @@ export function SuperadminSidebar({ user }: SuperadminSidebarProps) {
             <Mail className="mr-2 h-4 w-4" />
             Plantillas de Email
           </Button>
+
+          <Button
+            variant={pathname.startsWith("/dashboard/superadmin/configuracion") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/superadmin/configuracion")}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Configuracion
+          </Button>
         </nav>
       </div>
 

@@ -573,4 +573,232 @@ export const api = {
       throw new Error(error.detail || 'Failed to delete user');
     }
   },
+
+  // ============================================
+  // PLANS MANAGEMENT (Superadmin only)
+  // ============================================
+
+  async getPlans(token: string, includeInactive: boolean = false): Promise<Plan[]> {
+    const params = includeInactive ? '?include_inactive=true' : '';
+    const response = await fetch(`${API_URL}/api/v1/plans/${params}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch plans');
+    }
+
+    return response.json();
+  },
+
+  async getPlan(token: string, planId: string): Promise<Plan> {
+    const response = await fetch(`${API_URL}/api/v1/plans/${planId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch plan');
+    }
+
+    return response.json();
+  },
+
+  async createPlan(token: string, data: PlanCreate): Promise<Plan> {
+    const response = await fetch(`${API_URL}/api/v1/plans/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create plan');
+    }
+
+    return response.json();
+  },
+
+  async updatePlan(token: string, planId: string, data: PlanUpdate): Promise<Plan> {
+    const response = await fetch(`${API_URL}/api/v1/plans/${planId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update plan');
+    }
+
+    return response.json();
+  },
+
+  async deletePlan(token: string, planId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/v1/plans/${planId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete plan');
+    }
+  },
+
+  // ============================================
+  // SYSTEM CONFIG (Superadmin only)
+  // ============================================
+
+  async getSystemConfigs(token: string, category?: string): Promise<SystemConfig[]> {
+    const params = category ? `?category=${category}` : '';
+    const response = await fetch(`${API_URL}/api/v1/system-config/${params}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch system configs');
+    }
+
+    return response.json();
+  },
+
+  async getSystemConfig(token: string, configId: string): Promise<SystemConfig> {
+    const response = await fetch(`${API_URL}/api/v1/system-config/${configId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch system config');
+    }
+
+    return response.json();
+  },
+
+  async updateSystemConfig(token: string, configId: string, data: SystemConfigUpdate): Promise<SystemConfig> {
+    const response = await fetch(`${API_URL}/api/v1/system-config/${configId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update system config');
+    }
+
+    return response.json();
+  },
+
+  async bulkUpdateSystemConfigs(token: string, configs: Record<string, string>): Promise<SystemConfig[]> {
+    const response = await fetch(`${API_URL}/api/v1/system-config/bulk-update`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ configs }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update system configs');
+    }
+
+    return response.json();
+  },
 };
+
+// ============================================
+// PLAN TYPES
+// ============================================
+
+export interface Plan {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  price_monthly: number;
+  price_yearly: number;
+  currency: string;
+  max_users: number;
+  max_clients: number;
+  max_storage_gb: number;
+  features?: string;
+  is_active: boolean;
+  is_default: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlanCreate {
+  name: string;
+  slug: string;
+  description?: string;
+  price_monthly?: number;
+  price_yearly?: number;
+  currency?: string;
+  max_users?: number;
+  max_clients?: number;
+  max_storage_gb?: number;
+  features?: string;
+  is_active?: boolean;
+  is_default?: boolean;
+  display_order?: number;
+}
+
+export interface PlanUpdate {
+  name?: string;
+  description?: string;
+  price_monthly?: number;
+  price_yearly?: number;
+  currency?: string;
+  max_users?: number;
+  max_clients?: number;
+  max_storage_gb?: number;
+  features?: string;
+  is_active?: boolean;
+  is_default?: boolean;
+  display_order?: number;
+}
+
+// ============================================
+// SYSTEM CONFIG TYPES
+// ============================================
+
+export interface SystemConfig {
+  id: string;
+  key: string;
+  value?: string;
+  description?: string;
+  category: string;
+  value_type: 'string' | 'number' | 'boolean' | 'json';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SystemConfigUpdate {
+  value?: string;
+  description?: string;
+  category?: string;
+  value_type?: 'string' | 'number' | 'boolean' | 'json';
+}
