@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { User, Settings, Key, LogOut, User as UserIcon, Bell, Lock, LayoutDashboard, Users, Mail } from "lucide-react"
+import { LogOut, User as UserIcon, Lock, LayoutDashboard, Users, Mail } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -131,24 +131,21 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            {/* Perfil */}
             <DropdownMenuItem onClick={() => router.push("/dashboard/admin/profile")} className="cursor-pointer">
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </DropdownMenuItem>
 
-            {/* Configuración */}
-            <DropdownMenuItem onClick={() => router.push("/dashboard/admin/settings")} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Configuración</span>
+            <DropdownMenuItem onClick={() => router.push("/dashboard/admin/profile?tab=security")} className="cursor-pointer">
+              <Lock className="mr-2 h-4 w-4" />
+              <span>Seguridad</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
-            {/* Logout */}
             <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Cerrar Sesión</span>
+              <span>Cerrar Sesion</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
