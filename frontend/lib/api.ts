@@ -554,6 +554,74 @@ export const api = {
     return response.json();
   },
 
+  // ============================================
+  // CLIENT MANAGEMENT (for tenant_admin, manager, user)
+  // ============================================
+
+  async getMyTenantClients(token: string): Promise<User[]> {
+    const response = await fetch(`${API_URL}/api/v1/users/my-tenant/clients`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch clients');
+    }
+
+    return response.json();
+  },
+
+  async createMyTenantClient(token: string, data: ClientCreate): Promise<User> {
+    const response = await fetch(`${API_URL}/api/v1/users/my-tenant/clients/create`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create client');
+    }
+
+    return response.json();
+  },
+
+  async updateMyTenantClient(token: string, clientId: string, data: UserUpdate): Promise<User> {
+    const response = await fetch(`${API_URL}/api/v1/users/my-tenant/clients/${clientId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update client');
+    }
+
+    return response.json();
+  },
+
+  async deleteMyTenantClient(token: string, clientId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/v1/users/my-tenant/clients/${clientId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete client');
+    }
+  },
+
   async getUser(token: string, userId: string): Promise<User> {
     const response = await fetch(`${API_URL}/api/v1/users/${userId}`, {
       headers: {

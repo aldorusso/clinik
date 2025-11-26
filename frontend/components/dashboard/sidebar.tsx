@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { LogOut, User as UserIcon, Lock, LayoutDashboard } from "lucide-react"
+import { LogOut, User as UserIcon, Lock, LayoutDashboard, Building2 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -75,6 +75,21 @@ export function Sidebar({ user }: SidebarProps) {
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
+          </Button>
+
+          <Separator className="my-4" />
+
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+            Gestion
+          </p>
+
+          <Button
+            variant={pathname.startsWith("/dashboard/clientes") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/clientes")}
+          >
+            <Building2 className="mr-2 h-4 w-4" />
+            Clientes
           </Button>
         </nav>
       </div>
