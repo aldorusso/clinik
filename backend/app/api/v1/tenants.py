@@ -1,6 +1,6 @@
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -13,6 +13,7 @@ from app.core.security import (
 from app.db.session import get_db
 from app.models.tenant import Tenant
 from app.models.user import User, UserRole
+from app.models.audit_log import AuditAction, AuditCategory
 from app.schemas.tenant import (
     TenantUpdate,
     Tenant as TenantSchema,
@@ -22,6 +23,7 @@ from app.schemas.tenant import (
 )
 from app.schemas.user import User as UserSchema
 from app.core.email import send_welcome_email
+from app.api.v1.audit_logs import create_audit_log, get_client_ip
 
 router = APIRouter()
 
@@ -99,6 +101,7 @@ async def list_tenants_with_stats(
 
 @router.post("/", response_model=TenantSchema, status_code=status.HTTP_201_CREATED)
 async def create_tenant_with_admin(
+    request: Request,
     data: TenantCreateWithAdmin,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superadmin)
@@ -144,6 +147,20 @@ async def create_tenant_with_admin(
     db.commit()
     db.refresh(db_tenant)
     db.refresh(db_admin)
+
+    # Log tenant creation
+    create_audit_log(
+        db=db,
+        action=AuditAction.TENANT_CREATED,
+        category=AuditCategory.TENANT,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        entity_type="tenant",
+        entity_id=str(db_tenant.id),
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("User-Agent", "")[:500],
+        details={"tenant_name": db_tenant.name, "tenant_slug": db_tenant.slug, "admin_email": db_admin.email}
+    )
 
     # Enviar email de bienvenida al admin del tenant
     try:
@@ -214,6 +231,7 @@ async def get_tenant(
 
 @router.put("/{tenant_id}", response_model=TenantSchema)
 async def update_tenant(
+    request: Request,
     tenant_id: UUID,
     tenant_in: TenantUpdate,
     db: Session = Depends(get_db),
@@ -246,11 +264,26 @@ async def update_tenant(
     db.commit()
     db.refresh(tenant)
 
+    # Log tenant update
+    create_audit_log(
+        db=db,
+        action=AuditAction.TENANT_UPDATED,
+        category=AuditCategory.TENANT,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        entity_type="tenant",
+        entity_id=str(tenant_id),
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("User-Agent", "")[:500],
+        details={"updated_fields": list(update_data.keys())}
+    )
+
     return tenant
 
 
 @router.delete("/{tenant_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_tenant(
+    request: Request,
     tenant_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superadmin)
@@ -265,6 +298,10 @@ async def delete_tenant(
             detail="Tenant no encontrado"
         )
 
+    # Store tenant info for audit log before deletion
+    tenant_name = tenant.name
+    tenant_slug = tenant.slug
+
     # Delete all users belonging to this tenant
     db.query(User).filter(User.tenant_id == tenant_id).delete()
 
@@ -272,11 +309,26 @@ async def delete_tenant(
     db.delete(tenant)
     db.commit()
 
+    # Log tenant deletion
+    create_audit_log(
+        db=db,
+        action=AuditAction.TENANT_DELETED,
+        category=AuditCategory.TENANT,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        entity_type="tenant",
+        entity_id=str(tenant_id),
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("User-Agent", "")[:500],
+        details={"tenant_name": tenant_name, "tenant_slug": tenant_slug}
+    )
+
     return None
 
 
 @router.post("/{tenant_id}/toggle-active", response_model=TenantSchema)
 async def toggle_tenant_active(
+    request: Request,
     tenant_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superadmin)
@@ -294,6 +346,21 @@ async def toggle_tenant_active(
     tenant.is_active = not tenant.is_active
     db.commit()
     db.refresh(tenant)
+
+    # Log tenant activation/suspension
+    action = AuditAction.TENANT_ACTIVATED if tenant.is_active else AuditAction.TENANT_SUSPENDED
+    create_audit_log(
+        db=db,
+        action=action,
+        category=AuditCategory.TENANT,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        entity_type="tenant",
+        entity_id=str(tenant_id),
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("User-Agent", "")[:500],
+        details={"tenant_name": tenant.name, "is_active": tenant.is_active}
+    )
 
     return tenant
 

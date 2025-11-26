@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { Settings, LogOut, User as UserIcon, LayoutDashboard, Users, Mail, Building2, Shield } from "lucide-react"
+import { Settings, LogOut, User as UserIcon, LayoutDashboard, Users, Mail, Building2, Shield, ClipboardList } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -122,6 +122,15 @@ export function SuperadminSidebar({ user }: SuperadminSidebarProps) {
           >
             <Settings className="mr-2 h-4 w-4" />
             Configuracion
+          </Button>
+
+          <Button
+            variant={pathname.startsWith("/dashboard/superadmin/auditoria") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/superadmin/auditoria")}
+          >
+            <ClipboardList className="mr-2 h-4 w-4" />
+            Logs / Auditoria
           </Button>
         </nav>
       </div>

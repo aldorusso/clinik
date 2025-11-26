@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 import secrets
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
@@ -16,7 +16,9 @@ from app.core.security import (
 from app.core.email import send_reset_password_email, send_welcome_email
 from app.db.session import get_db
 from app.models.user import User, UserRole
+from app.models.audit_log import AuditAction, AuditCategory
 from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema, ChangePassword
+from app.api.v1.audit_logs import create_audit_log, get_client_ip
 
 router = APIRouter()
 
@@ -50,13 +52,27 @@ async def register(user_in: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
     """Login and get access token."""
+    ip_address = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent", "")[:500]
+
     # Authenticate user
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
+        # Log failed login attempt
+        create_audit_log(
+            db=db,
+            action=AuditAction.LOGIN_FAILED,
+            category=AuditCategory.AUTH,
+            user_email=form_data.username,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"reason": "invalid_credentials"}
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -65,6 +81,17 @@ async def login(
 
     # Check if user is active
     if not user.is_active:
+        create_audit_log(
+            db=db,
+            action=AuditAction.LOGIN_FAILED,
+            category=AuditCategory.AUTH,
+            user_id=user.id,
+            user_email=user.email,
+            tenant_id=user.tenant_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"reason": "inactive_user"}
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"
@@ -73,10 +100,34 @@ async def login(
     # Check if tenant is active (for non-superadmin users)
     if user.role != UserRole.superadmin and user.tenant:
         if not user.tenant.is_active:
+            create_audit_log(
+                db=db,
+                action=AuditAction.LOGIN_FAILED,
+                category=AuditCategory.AUTH,
+                user_id=user.id,
+                user_email=user.email,
+                tenant_id=user.tenant_id,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                details={"reason": "inactive_tenant"}
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Tu organización está desactivada. Contacta al administrador."
             )
+
+    # Log successful login
+    create_audit_log(
+        db=db,
+        action=AuditAction.LOGIN_SUCCESS,
+        category=AuditCategory.AUTH,
+        user_id=user.id,
+        user_email=user.email,
+        tenant_id=user.tenant_id,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        details={"role": user.role.value}
+    )
 
     # Create access token with tenant_id for multi-tenant support
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -161,6 +212,7 @@ async def update_profile(
 
 @router.post("/change-password")
 async def change_password(
+    request: Request,
     password_data: ChangePassword,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -175,8 +227,19 @@ async def change_password(
 
     # Update password
     current_user.hashed_password = get_password_hash(password_data.new_password)
-
     db.commit()
+
+    # Log password change
+    create_audit_log(
+        db=db,
+        action=AuditAction.PASSWORD_CHANGED,
+        category=AuditCategory.AUTH,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        tenant_id=current_user.tenant_id,
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("User-Agent", "")[:500],
+    )
 
     return {"message": "Contraseña actualizada correctamente"}
 
@@ -193,6 +256,7 @@ class ResetPasswordRequest(BaseModel):
 
 @router.post("/forgot-password")
 async def forgot_password(
+    http_request: Request,
     request: ForgotPasswordRequest,
     db: Session = Depends(get_db)
 ):
@@ -215,6 +279,18 @@ async def forgot_password(
     user.reset_password_token = reset_token
     user.reset_password_token_expires = expires_at
     db.commit()
+
+    # Log password reset request
+    create_audit_log(
+        db=db,
+        action=AuditAction.PASSWORD_RESET_REQUESTED,
+        category=AuditCategory.AUTH,
+        user_id=user.id,
+        user_email=user.email,
+        tenant_id=user.tenant_id,
+        ip_address=get_client_ip(http_request),
+        user_agent=http_request.headers.get("User-Agent", "")[:500],
+    )
 
     # Send email with reset link
     try:
