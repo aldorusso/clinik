@@ -32,8 +32,12 @@ export function ClientPortalLayout({ children }: ClientPortalLayoutProps) {
           router.push("/dashboard/superadmin")
           return
         }
-        if (userData.role === "admin") {
+        if (userData.role === "tenant_admin") {
           router.push("/dashboard/admin")
+          return
+        }
+        if (userData.role === "manager") {
+          router.push("/dashboard")
           return
         }
         if (userData.role === "user") {

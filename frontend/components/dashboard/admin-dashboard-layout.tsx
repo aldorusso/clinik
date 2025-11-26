@@ -41,7 +41,7 @@ export function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
           return
         }
         // Solo admin de tenant puede estar aqui
-        if (userData.role !== "admin") {
+        if (userData.role !== "tenant_admin") {
           router.push("/dashboard")
           return
         }

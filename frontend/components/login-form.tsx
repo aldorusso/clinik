@@ -20,10 +20,11 @@ function getRedirectPath(role: UserRole): string {
   switch (role) {
     case "superadmin":
       return "/dashboard/superadmin"
-    case "admin":
+    case "tenant_admin":
       return "/dashboard/admin"
     case "client":
       return "/portal"
+    case "manager":
     case "user":
     default:
       return "/dashboard"

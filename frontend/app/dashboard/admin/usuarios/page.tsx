@@ -447,10 +447,15 @@ export default function UsuariosPage() {
                         <span className="text-sm">{user.company_name || "-"}</span>
                       </TableCell>
                       <TableCell>
-                        {user.role === "admin" ? (
+                        {user.role === "tenant_admin" ? (
                           <Badge variant="default" className="flex items-center gap-1 w-fit">
                             <Shield className="h-3 w-3" />
                             Admin
+                          </Badge>
+                        ) : user.role === "manager" ? (
+                          <Badge variant="outline" className="flex items-center gap-1 w-fit border-blue-500 text-blue-700">
+                            <Shield className="h-3 w-3" />
+                            Manager
                           </Badge>
                         ) : (
                           <Badge variant="secondary" className="flex items-center gap-1 w-fit">

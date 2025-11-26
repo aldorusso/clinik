@@ -31,7 +31,7 @@ export default function Dashboard() {
         setUser(userData)
 
         // Redirect based on user role
-        if (userData.role === "admin") {
+        if (userData.role === "tenant_admin") {
           router.push("/dashboard/admin")
           return
         }

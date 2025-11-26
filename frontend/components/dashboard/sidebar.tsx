@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { User, Settings, LogOut, User as UserIcon, LayoutDashboard } from "lucide-react"
+import { LogOut, User as UserIcon, Lock, LayoutDashboard } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -109,16 +109,14 @@ export function Sidebar({ user }: SidebarProps) {
             <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            {/* Perfil */}
             <DropdownMenuItem onClick={() => router.push("/dashboard/profile")} className="cursor-pointer">
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </DropdownMenuItem>
 
-            {/* Configuración */}
-            <DropdownMenuItem onClick={() => router.push("/dashboard/settings")} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Configuración</span>
+            <DropdownMenuItem onClick={() => router.push("/dashboard/profile?tab=security")} className="cursor-pointer">
+              <Lock className="mr-2 h-4 w-4" />
+              <span>Seguridad</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />

@@ -30,7 +30,7 @@ export default function AdminDashboard() {
         const userData = await api.getCurrentUser(token)
 
         // Verify user is admin
-        if (userData.role !== "admin") {
+        if (userData.role !== "tenant_admin") {
           router.push("/dashboard")
           return
         }
