@@ -72,3 +72,4 @@
 - [x] Audit logs (superadmin)
 - [x] Planes y configuracion del sistema (superadmin)
 - [x] Persistencia de sesion con warning de expiracion y renovacion automatica
+- [x] Configuracion SMTP con emails funcionales (bienvenida, reset password)
