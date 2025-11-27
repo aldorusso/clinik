@@ -31,7 +31,6 @@
 📧 Email
    - Plantillas de email
    - Configuración SMTP
-   - Historial de envíos
 
 ⚙️ Configuración
    - Configuración global del sistema

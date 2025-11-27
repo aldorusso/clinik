@@ -702,6 +702,23 @@ export const api = {
     return response.json();
   },
 
+  async acceptInvitation(data: { token: string; password: string; first_name?: string; last_name?: string; phone?: string }): Promise<User> {
+    const response = await fetch(`${API_URL}/api/v1/auth/accept-invitation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to accept invitation');
+    }
+
+    return response.json();
+  },
+
   async getUser(token: string, userId: string): Promise<User> {
     const response = await fetch(`${API_URL}/api/v1/users/${userId}`, {
       headers: {

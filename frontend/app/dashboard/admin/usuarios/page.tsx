@@ -52,6 +52,7 @@ import {
   Briefcase,
   User as UserIcon,
   Filter,
+  Mail,
 } from "lucide-react"
 import { api, User, UserRole } from "@/lib/api"
 import { auth } from "@/lib/auth"
@@ -68,6 +69,7 @@ export default function TenantAdminUsuariosPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -82,6 +84,14 @@ export default function TenantAdminUsuariosPage() {
     first_name: "",
     last_name: "",
     phone: "",
+    role: "user" as UserRole,
+  })
+
+  // Form data for inviting users
+  const [inviteFormData, setInviteFormData] = useState({
+    email: "",
+    first_name: "",
+    last_name: "",
     role: "user" as UserRole,
   })
 
@@ -151,6 +161,36 @@ export default function TenantAdminUsuariosPage() {
       loadData()
     } catch (error: any) {
       toast.error(error.message || "Error al crear usuario")
+    }
+  }
+
+  const handleInvite = async () => {
+    const token = auth.getToken()
+    if (!token) return
+
+    if (!inviteFormData.email) {
+      toast.error("El email es requerido")
+      return
+    }
+
+    try {
+      await api.inviteUser(token, {
+        email: inviteFormData.email,
+        role: inviteFormData.role,
+        first_name: inviteFormData.first_name || undefined,
+        last_name: inviteFormData.last_name || undefined,
+      })
+      toast.success(`Invitación enviada a ${inviteFormData.email}`)
+      setIsInviteDialogOpen(false)
+      setInviteFormData({
+        email: "",
+        first_name: "",
+        last_name: "",
+        role: "user",
+      })
+      loadData()
+    } catch (error: any) {
+      toast.error(error.message || "Error al enviar invitación")
     }
   }
 
@@ -255,13 +295,93 @@ export default function TenantAdminUsuariosPage() {
               Gestiona los managers y usuarios de tu organizacion
             </p>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Nuevo Usuario
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Invitar Usuario
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Invitar Usuario por Email</DialogTitle>
+                  <DialogDescription>
+                    Envia una invitacion por email. El usuario recibira un link para completar su registro.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="invite_email">Email *</Label>
+                    <Input
+                      id="invite_email"
+                      type="email"
+                      value={inviteFormData.email}
+                      onChange={(e) => setInviteFormData({ ...inviteFormData, email: e.target.value })}
+                      placeholder="usuario@ejemplo.com"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="invite_first_name">Nombre (opcional)</Label>
+                      <Input
+                        id="invite_first_name"
+                        value={inviteFormData.first_name}
+                        onChange={(e) => setInviteFormData({ ...inviteFormData, first_name: e.target.value })}
+                        placeholder="Juan"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="invite_last_name">Apellido (opcional)</Label>
+                      <Input
+                        id="invite_last_name"
+                        value={inviteFormData.last_name}
+                        onChange={(e) => setInviteFormData({ ...inviteFormData, last_name: e.target.value })}
+                        placeholder="Perez"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="invite_role">Rol *</Label>
+                    <Select
+                      value={inviteFormData.role}
+                      onValueChange={(value: UserRole) => setInviteFormData({ ...inviteFormData, role: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manager">
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="h-4 w-4" />
+                            Manager
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="user">
+                          <div className="flex items-center gap-2">
+                            <UserIcon className="h-4 w-4" />
+                            Usuario
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleInvite}>Enviar Invitación</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Nuevo Usuario
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Crear Nuevo Usuario</DialogTitle>

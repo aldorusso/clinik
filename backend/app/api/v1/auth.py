@@ -17,7 +17,7 @@ from app.core.email import send_reset_password_email, send_welcome_email
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.models.audit_log import AuditAction, AuditCategory
-from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema, ChangePassword
+from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema, ChangePassword, AcceptInvitation
 from app.api.v1.audit_logs import create_audit_log, get_client_ip
 
 router = APIRouter()
@@ -394,3 +394,79 @@ async def refresh_token(
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/accept-invitation", response_model=UserSchema)
+async def accept_invitation(
+    http_request: Request,
+    request: AcceptInvitation,
+    db: Session = Depends(get_db)
+):
+    """Accept invitation and complete user registration."""
+    # Find user with this invitation token
+    user = db.query(User).filter(
+        User.invitation_token == request.token
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token de invitación inválido o expirado"
+        )
+
+    # Check if token has expired
+    if not user.invitation_token_expires or user.invitation_token_expires < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La invitación ha expirado. Por favor, solicita una nueva invitación"
+        )
+
+    # Check if invitation was already accepted
+    if user.invitation_accepted_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Esta invitación ya fue aceptada"
+        )
+
+    # Update user with password and optional info
+    user.hashed_password = get_password_hash(request.password)
+    if request.first_name:
+        user.first_name = request.first_name
+    if request.last_name:
+        user.last_name = request.last_name
+    if request.phone:
+        user.phone = request.phone
+
+    # Activate user and mark invitation as accepted
+    user.is_active = True
+    user.invitation_accepted_at = datetime.utcnow()
+    user.invitation_token = None
+    user.invitation_token_expires = None
+
+    db.commit()
+    db.refresh(user)
+
+    # Log invitation acceptance
+    create_audit_log(
+        db=db,
+        action=AuditAction.USER_CREATED,
+        category=AuditCategory.USER_MANAGEMENT,
+        user_id=user.id,
+        user_email=user.email,
+        tenant_id=user.tenant_id,
+        ip_address=get_client_ip(http_request),
+        user_agent=http_request.headers.get("User-Agent", "")[:500],
+        details={"method": "invitation_accepted", "role": user.role.value}
+    )
+
+    # Send welcome email
+    try:
+        await send_welcome_email(
+            db=db,
+            email_to=user.email,
+            user_name=user.first_name or user.email.split('@')[0]
+        )
+    except Exception as e:
+        print(f"Error sending welcome email: {e}")
+
+    return user
