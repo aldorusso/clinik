@@ -12,9 +12,9 @@
   - Preferencias de notificacion por usuario
   - Historial de notificaciones
 
-- [ ] **Invitaciones por Email**
+- [x] **Invitaciones por Email** ✓
   - Invitar usuarios por email
-  - Token de invitacion con expiracion
+  - Token de invitacion con expiracion (72 horas)
   - Registro desde invitacion
 
 - [ ] **Activity Log por Tenant**
@@ -73,3 +73,4 @@
 - [x] Planes y configuracion del sistema (superadmin)
 - [x] Persistencia de sesion con warning de expiracion y renovacion automatica
 - [x] Configuracion SMTP con emails funcionales (bienvenida, reset password)
+- [x] Invitaciones por email con tokens de 72 horas
