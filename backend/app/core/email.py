@@ -315,7 +315,7 @@ def get_default_password_reset_template(context: dict) -> str:
                 display: inline-block;
                 padding: 12px 30px;
                 background-color: #4299e1;
-                color: white;
+                color: white !important;
                 text-decoration: none;
                 border-radius: 5px;
                 margin: 20px 0;
@@ -354,7 +354,7 @@ def get_default_password_reset_template(context: dict) -> str:
             <p>Haz clic en el siguiente botón para crear una nueva contraseña:</p>
 
             <div style="text-align: center;">
-                <a href="{{ reset_url }}" class="button">Restablecer Contraseña</a>
+                <a href="{{ reset_url }}" class="button" style="color: white !important;">Restablecer Contraseña</a>
             </div>
 
             <p>O copia y pega el siguiente enlace en tu navegador:</p>

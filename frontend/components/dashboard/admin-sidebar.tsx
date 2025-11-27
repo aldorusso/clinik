@@ -65,6 +65,23 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         <ThemeToggle />
       </div>
 
+      {/* Tenant/Organization Name */}
+      {user?.tenant_name && (
+        <div className="border-b px-4 py-3 bg-muted/30">
+          <div className="flex items-center space-x-2">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">
+                Organizacion
+              </span>
+              <span className="text-sm font-medium truncate">
+                {user.tenant_name}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Navigation Section */}
       <div className="flex-1 overflow-y-auto p-4">
         <nav className="space-y-2">

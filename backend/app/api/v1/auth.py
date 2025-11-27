@@ -17,7 +17,7 @@ from app.core.email import send_reset_password_email, send_welcome_email
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.models.audit_log import AuditAction, AuditCategory
-from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema, ChangePassword, AcceptInvitation
+from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema, UserWithTenant, ChangePassword, AcceptInvitation
 from app.api.v1.audit_logs import create_audit_log, get_client_ip
 
 router = APIRouter()
@@ -144,10 +144,34 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/me", response_model=UserSchema)
+@router.get("/me", response_model=UserWithTenant)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    """Get current user information."""
-    return current_user
+    """Get current user information with tenant details."""
+    # Add tenant information if user belongs to a tenant
+    user_dict = {
+        "id": current_user.id,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "phone": current_user.phone,
+        "country": current_user.country,
+        "city": current_user.city,
+        "office_address": current_user.office_address,
+        "company_name": current_user.company_name,
+        "job_title": current_user.job_title,
+        "profile_photo": current_user.profile_photo,
+        "role": current_user.role,
+        "tenant_id": current_user.tenant_id,
+        "is_active": current_user.is_active,
+        "client_company_name": current_user.client_company_name,
+        "client_tax_id": current_user.client_tax_id,
+        "created_at": current_user.created_at,
+        "updated_at": current_user.updated_at,
+        "tenant_name": current_user.tenant.name if current_user.tenant else None,
+        "tenant_slug": current_user.tenant.slug if current_user.tenant else None,
+    }
+    return user_dict
 
 
 @router.post("/create-superadmin", response_model=UserSchema, status_code=status.HTTP_201_CREATED)

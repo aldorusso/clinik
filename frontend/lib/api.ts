@@ -37,6 +37,8 @@ export interface User {
   profile_photo?: string;
   role: UserRole;
   tenant_id?: string;
+  tenant_name?: string;
+  tenant_slug?: string;
   // Client-specific fields
   client_company_name?: string;
   client_tax_id?: string;

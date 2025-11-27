@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { Lock, LogOut, User as UserIcon, LayoutDashboard, FileText, MessageSquare } from "lucide-react"
+import { Lock, LogOut, User as UserIcon, LayoutDashboard, FileText, MessageSquare, Building2 } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -58,6 +58,23 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
         </div>
         <ThemeToggle />
       </div>
+
+      {/* Tenant/Organization Name */}
+      {user?.tenant_name && (
+        <div className="border-b px-4 py-3 bg-muted/30">
+          <div className="flex items-center space-x-2">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">
+                Organizacion
+              </span>
+              <span className="text-sm font-medium truncate">
+                {user.tenant_name}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navigation Section */}
       <div className="flex-1 overflow-y-auto p-4">
