@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs
+from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications
 
 api_router = APIRouter()
 
@@ -23,6 +23,9 @@ api_router.include_router(system_config.router, prefix="/system-config", tags=["
 
 # Include audit logs router
 api_router.include_router(audit_logs.router, prefix="/audit-logs", tags=["audit-logs"])
+
+# Include notifications router
+api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 
 
 @api_router.get("/")

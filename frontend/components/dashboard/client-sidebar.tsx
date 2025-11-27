@@ -16,6 +16,7 @@ import { Lock, LogOut, User as UserIcon, LayoutDashboard, FileText, MessageSquar
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 
 interface ClientSidebarProps {
   user: UserType | null
@@ -56,7 +57,10 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
           </div>
           <span className="font-bold text-xl">Portal</span>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Tenant/Organization Name */}

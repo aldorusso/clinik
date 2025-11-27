@@ -17,6 +17,7 @@ import { LogOut, User as UserIcon, Lock, LayoutDashboard, Users, Building2 } fro
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 
 interface AdminSidebarProps {
   user: UserType | null
@@ -62,7 +63,10 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           </div>
           <span className="font-bold text-xl">Admin</span>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Tenant/Organization Name */}

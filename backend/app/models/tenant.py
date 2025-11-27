@@ -52,6 +52,7 @@ class Tenant(Base):
 
     # Relationships
     users = relationship("User", back_populates="tenant", lazy="dynamic")
+    notifications = relationship("Notification", back_populates="tenant", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Tenant {self.name} ({self.slug})>"

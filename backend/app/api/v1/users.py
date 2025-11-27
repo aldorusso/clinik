@@ -14,8 +14,10 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.user import User, UserRole
+from app.models.notification import NotificationType
 from app.schemas.user import UserCreate, UserUpdate, User as UserSchema, ClientCreate, UserInvite
 from app.core.email import send_welcome_email, send_invitation_email
+from app.core.notifications import create_notification
 
 router = APIRouter()
 
@@ -170,6 +172,13 @@ async def update_user(
     # Update fields if provided
     update_data = user_update.model_dump(exclude_unset=True)
 
+    # Track if is_active changed for notification
+    is_active_changed = False
+    old_is_active = user.is_active
+    new_is_active = update_data.get("is_active")
+    if new_is_active is not None and new_is_active != old_is_active:
+        is_active_changed = True
+
     # Handle password update separately
     if "password" in update_data and update_data["password"]:
         password = update_data.pop("password")
@@ -186,6 +195,34 @@ async def update_user(
 
     db.commit()
     db.refresh(user)
+
+    # Create notification if account status changed
+    if is_active_changed:
+        try:
+            if new_is_active:
+                # Account activated
+                await create_notification(
+                    db=db,
+                    user_id=user.id,
+                    type=NotificationType.SUCCESS,
+                    title="Cuenta activada",
+                    message="Tu cuenta ha sido activada. Ya puedes acceder a todas las funcionalidades del sistema.",
+                    action_url="/dashboard",
+                    tenant_id=user.tenant_id
+                )
+            else:
+                # Account deactivated
+                await create_notification(
+                    db=db,
+                    user_id=user.id,
+                    type=NotificationType.WARNING,
+                    title="Cuenta desactivada",
+                    message="Tu cuenta ha sido desactivada. Contacta al administrador si crees que esto es un error.",
+                    action_url="/dashboard/profile",
+                    tenant_id=user.tenant_id
+                )
+        except Exception as e:
+            print(f"Error creating activation/deactivation notification: {e}")
 
     return user
 

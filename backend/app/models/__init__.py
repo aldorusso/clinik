@@ -6,6 +6,7 @@ from app.models.email_template import EmailTemplate, EmailTemplateType
 from app.models.plan import Plan
 from app.models.system_config import SystemConfig
 from app.models.audit_log import AuditLog, AuditAction, AuditCategory
+from app.models.notification import Notification, NotificationType
 
 __all__ = [
     "Base",
@@ -19,4 +20,6 @@ __all__ = [
     "AuditLog",
     "AuditAction",
     "AuditCategory",
+    "Notification",
+    "NotificationType",
 ]

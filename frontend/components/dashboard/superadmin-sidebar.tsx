@@ -16,6 +16,7 @@ import { Settings, LogOut, User as UserIcon, LayoutDashboard, Users, Mail, Build
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 
 interface SuperadminSidebarProps {
   user: UserType | null
@@ -61,7 +62,10 @@ export function SuperadminSidebar({ user }: SuperadminSidebarProps) {
           </div>
           <span className="font-bold text-xl">SuperAdmin</span>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Navigation Section */}

@@ -77,6 +77,7 @@ class User(Base):
 
     # Relationships
     tenant = relationship("Tenant", back_populates="users")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User {self.email} ({self.role.value})>"

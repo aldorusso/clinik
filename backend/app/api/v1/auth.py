@@ -14,9 +14,11 @@ from app.core.security import (
     get_current_superadmin,
 )
 from app.core.email import send_reset_password_email, send_welcome_email
+from app.core.notifications import create_notification
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.models.audit_log import AuditAction, AuditCategory
+from app.models.notification import NotificationType
 from app.schemas.user import UserCreate, UserUpdate, Token, User as UserSchema, UserWithTenant, ChangePassword, AcceptInvitation
 from app.api.v1.audit_logs import create_audit_log, get_client_ip
 
@@ -265,6 +267,21 @@ async def change_password(
         user_agent=request.headers.get("User-Agent", "")[:500],
     )
 
+    # Create notification for password change
+    try:
+        await create_notification(
+            db=db,
+            user_id=current_user.id,
+            type=NotificationType.WARNING,
+            title="Contraseña actualizada",
+            message="Tu contraseña fue cambiada exitosamente. Si no fuiste tú, contacta al administrador inmediatamente.",
+            action_url="/dashboard/profile?tab=security",
+            tenant_id=current_user.tenant_id
+        )
+    except Exception as e:
+        # Log error but don't fail the request
+        print(f"Error creating notification: {e}")
+
     return {"message": "Contraseña actualizada correctamente"}
 
 
@@ -371,6 +388,20 @@ async def reset_password(
     user.reset_password_token_expires = None
 
     db.commit()
+
+    # Create notification for password reset
+    try:
+        await create_notification(
+            db=db,
+            user_id=user.id,
+            type=NotificationType.SUCCESS,
+            title="Contraseña restablecida",
+            message="Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.",
+            action_url="/login",
+            tenant_id=user.tenant_id
+        )
+    except Exception as e:
+        print(f"Error creating notification: {e}")
 
     return {"message": "Contraseña restablecida exitosamente"}
 
@@ -492,5 +523,55 @@ async def accept_invitation(
         )
     except Exception as e:
         print(f"Error sending welcome email: {e}")
+
+    # Create welcome notification for the new user
+    try:
+        tenant_name = user.tenant.name if user.tenant else "la plataforma"
+        role_display = {
+            UserRole.tenant_admin: "Administrador",
+            UserRole.manager: "Manager",
+            UserRole.user: "Usuario",
+            UserRole.client: "Cliente"
+        }.get(user.role, user.role.value)
+
+        await create_notification(
+            db=db,
+            user_id=user.id,
+            type=NotificationType.SUCCESS,
+            title="¡Bienvenido al equipo!",
+            message=f"Te has unido a {tenant_name} como {role_display}. Explora el dashboard y comienza a trabajar.",
+            action_url="/dashboard",
+            tenant_id=user.tenant_id
+        )
+    except Exception as e:
+        print(f"Error creating welcome notification: {e}")
+
+    # Notify tenant admins about the new member
+    if user.tenant_id:
+        try:
+            # Get all tenant admins except the new user
+            from app.models.tenant import Tenant
+            tenant = db.query(Tenant).filter(Tenant.id == user.tenant_id).first()
+            if tenant:
+                admin_users = db.query(User).filter(
+                    User.tenant_id == user.tenant_id,
+                    User.role == UserRole.tenant_admin,
+                    User.id != user.id,
+                    User.is_active == True
+                ).all()
+
+                user_name = user.first_name or user.email.split('@')[0]
+                for admin in admin_users:
+                    await create_notification(
+                        db=db,
+                        user_id=admin.id,
+                        type=NotificationType.INFO,
+                        title="Nuevo miembro en el equipo",
+                        message=f"{user_name} ha aceptado tu invitación y se ha unido como {role_display}.",
+                        action_url="/dashboard/users",
+                        tenant_id=user.tenant_id
+                    )
+        except Exception as e:
+            print(f"Error notifying admins: {e}")
 
     return user

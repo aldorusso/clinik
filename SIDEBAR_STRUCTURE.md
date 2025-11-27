@@ -261,6 +261,24 @@ superadmin (global, sin tenant)
 - Filtros por categoría, acción, usuario, tenant
 - Endpoint de auditoría para superadmin
 
+### ✅ Sistema de Notificaciones In-App
+- Notificaciones en tiempo real para usuarios
+- Campanita con badge de contador de no leídas
+- 4 tipos de notificaciones (INFO, SUCCESS, WARNING, ERROR)
+- Polling automático cada 30 segundos
+- Dropdown con últimas 5 notificaciones en header
+- Página completa de gestión de notificaciones
+- Filtros: Todas, No leídas, Leídas
+- Marcar como leída individualmente o todas
+- Eliminar notificaciones
+- Navegación a URL de acción al hacer click
+- Notificaciones automáticas para:
+  - Cambio de contraseña
+  - Recuperación de contraseña exitosa
+  - Aceptación de invitaciones
+  - Activación/desactivación de cuenta
+  - Nuevos miembros en el equipo (para admins)
+
 ### ✅ UI/UX
 - Tema oscuro/claro con toggle
 - Sidebar responsive con navegación

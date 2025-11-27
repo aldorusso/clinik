@@ -1005,6 +1005,183 @@ export const api = {
 
     return response.json();
   },
+
+  // ============================================
+  // NOTIFICATIONS
+  // ============================================
+
+  /**
+   * Obtiene la lista de notificaciones del usuario autenticado.
+   *
+   * @param token - Token de autenticación del usuario
+   * @param params - Parámetros opcionales de paginación y filtrado
+   * @returns Lista de notificaciones con metadatos (total, unread_count)
+   *
+   * @example
+   * // Obtener las primeras 20 notificaciones
+   * const notifications = await api.getNotifications(token, { skip: 0, limit: 20 });
+   *
+   * // Obtener solo las no leídas
+   * const unread = await api.getNotifications(token, { unread_only: true });
+   *
+   * // Paginación
+   * const page2 = await api.getNotifications(token, { skip: 20, limit: 20 });
+   */
+  async getNotifications(
+    token: string,
+    params?: {
+      skip?: number;
+      limit?: number;
+      unread_only?: boolean;
+    }
+  ): Promise<NotificationListResponse> {
+    const searchParams = new URLSearchParams();
+    if (params?.skip) searchParams.append('skip', params.skip.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.unread_only) searchParams.append('unread_only', 'true');
+
+    const url = `${API_URL}/api/v1/notifications${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch notifications');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene el contador de notificaciones no leídas.
+   *
+   * Este endpoint es muy ligero y rápido, ideal para polling frecuente
+   * para actualizar el badge del campanita de notificaciones.
+   *
+   * @param token - Token de autenticación del usuario
+   * @returns Objeto con el contador de notificaciones no leídas
+   *
+   * @example
+   * // Polling cada 30 segundos
+   * setInterval(async () => {
+   *   const { unread_count } = await api.getNotificationCount(token);
+   *   updateBadge(unread_count);
+   * }, 30000);
+   */
+  async getNotificationCount(token: string): Promise<NotificationCountResponse> {
+    const response = await fetch(`${API_URL}/api/v1/notifications/count`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch notification count');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Marca una notificación específica como leída.
+   *
+   * Se llama cuando el usuario hace click en una notificación
+   * o la visualiza en la lista.
+   *
+   * @param token - Token de autenticación del usuario
+   * @param notificationId - UUID de la notificación a marcar
+   * @returns La notificación actualizada
+   *
+   * @example
+   * // Al hacer click en una notificación
+   * async function handleNotificationClick(notificationId: string) {
+   *   await api.markNotificationAsRead(token, notificationId);
+   *   // Navegar a la URL de acción si existe
+   *   if (notification.action_url) {
+   *     router.push(notification.action_url);
+   *   }
+   * }
+   */
+  async markNotificationAsRead(token: string, notificationId: string): Promise<Notification> {
+    const response = await fetch(`${API_URL}/api/v1/notifications/${notificationId}/read`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to mark notification as read');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Marca todas las notificaciones del usuario como leídas.
+   *
+   * Se llama cuando el usuario hace click en "Marcar todas como leídas".
+   *
+   * @param token - Token de autenticación del usuario
+   * @returns Mensaje de éxito con el número de notificaciones marcadas
+   *
+   * @example
+   * // Botón "Marcar todas como leídas"
+   * async function handleMarkAllAsRead() {
+   *   const result = await api.markAllNotificationsAsRead(token);
+   *   console.log(result.message); // "5 notificaciones marcadas como leídas"
+   *   // Recargar la lista de notificaciones
+   *   await fetchNotifications();
+   * }
+   */
+  async markAllNotificationsAsRead(token: string): Promise<{ message: string; count: number }> {
+    const response = await fetch(`${API_URL}/api/v1/notifications/mark-all-read`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to mark all notifications as read');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Elimina una notificación específica.
+   *
+   * Permite al usuario eliminar notificaciones que ya no quiere ver.
+   *
+   * @param token - Token de autenticación del usuario
+   * @param notificationId - UUID de la notificación a eliminar
+   * @returns Mensaje de éxito
+   *
+   * @example
+   * // Botón de eliminar en la notificación
+   * async function handleDeleteNotification(notificationId: string) {
+   *   await api.deleteNotification(token, notificationId);
+   *   // Recargar la lista
+   *   await fetchNotifications();
+   * }
+   */
+  async deleteNotification(token: string, notificationId: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_URL}/api/v1/notifications/${notificationId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete notification');
+    }
+
+    return response.json();
+  },
 };
 
 // ============================================
@@ -1116,4 +1293,53 @@ export interface AuditStats {
   failed_logins_today: number;
   actions_by_category: Record<string, number>;
   recent_critical_actions: AuditLog[];
+}
+
+// ============================================
+// NOTIFICATION TYPES
+// ============================================
+
+/**
+ * Tipos de notificaciones según su naturaleza y urgencia.
+ * Cada tipo tiene un color asociado en la UI:
+ * - info: azul (información general)
+ * - success: verde (acciones exitosas)
+ * - warning: amarillo (advertencias que requieren atención)
+ * - error: rojo (errores o problemas críticos)
+ */
+export type NotificationType = 'info' | 'success' | 'warning' | 'error';
+
+/**
+ * Notificación in-app.
+ * Representa una notificación que pertenece a un usuario específico.
+ */
+export interface Notification {
+  id: string;
+  user_id: string;
+  tenant_id?: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  action_url?: string;
+  is_read: boolean;
+  read_at?: string;
+  created_at: string;
+}
+
+/**
+ * Respuesta de lista de notificaciones con metadatos.
+ * Incluye las notificaciones, el total y el contador de no leídas.
+ */
+export interface NotificationListResponse {
+  notifications: Notification[];
+  total: number;
+  unread_count: number;
+}
+
+/**
+ * Respuesta del contador de notificaciones no leídas.
+ * Usado para el badge en el campanita de notificaciones.
+ */
+export interface NotificationCountResponse {
+  unread_count: number;
 }
