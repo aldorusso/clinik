@@ -119,3 +119,20 @@ class ClientCreate(BaseModel):
     phone: Optional[str] = None
     client_company_name: Optional[str] = None  # Empresa del cliente
     client_tax_id: Optional[str] = None  # RUC/NIT del cliente
+
+
+# Schema for inviting a user
+class UserInvite(BaseModel):
+    email: EmailStr
+    role: UserRole = Field(..., description="Role for the invited user")
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+
+
+# Schema for accepting an invitation
+class AcceptInvitation(BaseModel):
+    token: str = Field(..., description="Invitation token from email")
+    password: str = Field(..., min_length=6)
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None

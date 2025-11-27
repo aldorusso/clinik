@@ -680,6 +680,28 @@ export const api = {
     }
   },
 
+  // ============================================
+  // USER INVITATION
+  // ============================================
+
+  async inviteUser(token: string, data: { email: string; role: UserRole; first_name?: string; last_name?: string }): Promise<{ message: string; expires_at: string }> {
+    const response = await fetch(`${API_URL}/api/v1/users/my-tenant/invite`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to send invitation');
+    }
+
+    return response.json();
+  },
+
   async getUser(token: string, userId: string): Promise<User> {
     const response = await fetch(`${API_URL}/api/v1/users/${userId}`, {
       headers: {

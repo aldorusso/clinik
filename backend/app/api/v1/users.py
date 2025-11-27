@@ -14,8 +14,8 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.user import User, UserRole
-from app.schemas.user import UserCreate, UserUpdate, User as UserSchema, ClientCreate
-from app.core.email import send_welcome_email
+from app.schemas.user import UserCreate, UserUpdate, User as UserSchema, ClientCreate, UserInvite
+from app.core.email import send_welcome_email, send_invitation_email
 
 router = APIRouter()
 
@@ -326,6 +326,92 @@ async def create_my_tenant_user(
         print(f"Error enviando email de bienvenida: {e}")
 
     return db_user
+
+
+@router.post("/my-tenant/invite", response_model=dict, status_code=status.HTTP_201_CREATED)
+async def invite_user(
+    invitation: UserInvite,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_tenant_admin)
+):
+    """
+    Invite a user to join the tenant by email.
+    Accessible by tenant admins.
+    """
+    import secrets
+    from datetime import timedelta, datetime
+
+    if current_user.role == UserRole.superadmin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Superadmins no pueden invitar usuarios a tenants"
+        )
+
+    # Check if user already exists
+    existing_user = db.query(User).filter(User.email == invitation.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El email ya está registrado"
+        )
+
+    # Tenant admins can only invite managers, users, and clients
+    allowed_roles = [UserRole.manager, UserRole.user, UserRole.client]
+    if invitation.role not in allowed_roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo puedes invitar usuarios con rol 'manager', 'user' o 'client'"
+        )
+
+    # Generate invitation token
+    invitation_token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(hours=72)  # 3 days
+
+    # Create user with pending invitation
+    db_user = User(
+        email=invitation.email,
+        hashed_password="",  # Will be set when accepting invitation
+        first_name=invitation.first_name,
+        last_name=invitation.last_name,
+        role=invitation.role,
+        tenant_id=current_user.tenant_id,
+        is_active=False,  # Inactive until invitation is accepted
+        invitation_token=invitation_token,
+        invitation_token_expires=expires_at,
+        invited_by_id=current_user.id
+    )
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    # Send invitation email
+    try:
+        inviter_name = current_user.full_name or current_user.first_name or current_user.email
+        tenant_name = current_user.tenant.name if current_user.tenant else "la organización"
+
+        await send_invitation_email(
+            db=db,
+            email_to=invitation.email,
+            invitation_token=invitation_token,
+            inviter_name=inviter_name,
+            tenant_name=tenant_name,
+            role=invitation.role.value
+        )
+    except Exception as e:
+        print(f"Error enviando email de invitación: {e}")
+        # Rollback user creation if email fails
+        db.delete(db_user)
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error enviando email de invitación"
+        )
+
+    return {
+        "message": f"Invitación enviada a {invitation.email}",
+        "expires_at": expires_at.isoformat()
+    }
 
 
 @router.post("/my-tenant/clients", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
