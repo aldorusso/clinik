@@ -65,6 +65,12 @@ class User(Base):
     reset_password_token = Column(String(255), nullable=True)
     reset_password_token_expires = Column(DateTime, nullable=True)
 
+    # Invitaciones
+    invitation_token = Column(String(255), nullable=True, unique=True, index=True)
+    invitation_token_expires = Column(DateTime, nullable=True)
+    invited_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    invitation_accepted_at = Column(DateTime, nullable=True)
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

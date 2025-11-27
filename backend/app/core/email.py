@@ -216,6 +216,74 @@ async def send_notification_email(
     )
 
 
+async def send_invitation_email(
+    db: Session,
+    email_to: EmailStr,
+    invitation_token: str,
+    inviter_name: str,
+    tenant_name: str,
+    role: str
+):
+    """
+    Send invitation email to join a tenant.
+
+    Args:
+        db: Database session
+        email_to: Invitee email address
+        invitation_token: Unique invitation token
+        inviter_name: Name of the person sending the invitation
+        tenant_name: Name of the tenant/organization
+        role: Role being offered (tenant_admin, manager, user, client)
+    """
+    from datetime import datetime
+
+    # Try to get template from database
+    template = await get_email_template_from_db(db, EmailTemplateType.USER_INVITATION)
+
+    # Build invitation link
+    frontend_url = settings.ALLOWED_ORIGINS[0] if settings.ALLOWED_ORIGINS else "http://localhost:3000"
+    invitation_link = f"{frontend_url}/accept-invitation?token={invitation_token}"
+
+    # Role translation
+    role_translations = {
+        "tenant_admin": "Administrador",
+        "manager": "Manager",
+        "user": "Usuario",
+        "client": "Cliente"
+    }
+    role_display = role_translations.get(role, role)
+
+    # Prepare context
+    context = {
+        "project_name": settings.PROJECT_NAME,
+        "inviter_name": inviter_name,
+        "tenant_name": tenant_name,
+        "role": role_display,
+        "invitation_link": invitation_link,
+        "current_year": datetime.now().year
+    }
+
+    if template:
+        # Use database template
+        subject, html_content = await render_email_template(template, context)
+    else:
+        # Fallback to hardcoded template
+        subject = f"Invitación a unirse a {tenant_name}"
+        html_content = f"""
+        <p>Hola,</p>
+        <p><strong>{inviter_name}</strong> te ha invitado a unirte a <strong>{tenant_name}</strong> como <strong>{role_display}</strong>.</p>
+        <p>Para aceptar esta invitación, haz clic en el siguiente enlace:</p>
+        <p><a href="{invitation_link}">{invitation_link}</a></p>
+        <p><strong>Esta invitación expirará en 72 horas.</strong></p>
+        """
+
+    await send_email(
+        email_to=email_to,
+        subject=subject,
+        html_content=html_content
+    )
+
+
 # Default/Fallback Templates
 
 def get_default_password_reset_template(context: dict) -> str:

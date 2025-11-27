@@ -11,6 +11,7 @@ class EmailTemplateType(str, enum.Enum):
     PASSWORD_RESET = "password_reset"
     WELCOME = "welcome"
     NOTIFICATION = "notification"
+    USER_INVITATION = "user_invitation"
 
 
 class EmailTemplate(Base):
