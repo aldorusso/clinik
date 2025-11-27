@@ -382,7 +382,7 @@ export default function TenantAdminUsuariosPage() {
                   Nuevo Usuario
                 </Button>
               </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Crear Nuevo Usuario</DialogTitle>
                 <DialogDescription>
