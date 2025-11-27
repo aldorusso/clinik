@@ -7,10 +7,13 @@
   - Email con token temporal
   - Pagina de reset
 
-- [ ] **Sistema de Notificaciones**
-  - Notificaciones in-app (bell icon con contador)
-  - Preferencias de notificacion por usuario
-  - Historial de notificaciones
+- [x] **Sistema de Notificaciones** ✓
+  - Notificaciones in-app (bell icon con contador) ✓
+  - Polling automatico cada 30 segundos ✓
+  - Pagina completa de notificaciones con tabs ✓
+  - Historial de notificaciones ✓
+  - Notificaciones automaticas en eventos clave ✓
+  - Tab de notificaciones en perfil de usuario ✓
 
 - [x] **Invitaciones por Email** ✓
   - Invitar usuarios por email
@@ -74,3 +77,4 @@
 - [x] Persistencia de sesion con warning de expiracion y renovacion automatica
 - [x] Configuracion SMTP con emails funcionales (bienvenida, reset password)
 - [x] Invitaciones por email con tokens de 72 horas
+- [x] Sistema completo de notificaciones in-app con polling y eventos automaticos

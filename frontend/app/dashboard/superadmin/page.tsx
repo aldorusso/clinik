@@ -31,8 +31,8 @@ export default function SuperadminDashboardPage() {
 
   const totalTenants = tenants.length
   const activeTenants = tenants.filter(t => t.is_active).length
-  const totalUsers = tenants.reduce((acc, t) => acc + t.user_count + t.admin_count, 0)
-  const totalClients = tenants.reduce((acc, t) => acc + t.client_count, 0)
+  const totalUsers = tenants.reduce((acc, t) => acc + (t.user_count || 0) + (t.admin_count || 0), 0)
+  const totalClients = tenants.reduce((acc, t) => acc + (t.client_count || 0), 0)
 
   return (
     <SuperadminDashboardLayout>
