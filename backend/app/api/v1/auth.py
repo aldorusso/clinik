@@ -450,7 +450,7 @@ async def accept_invitation(
     create_audit_log(
         db=db,
         action=AuditAction.USER_CREATED,
-        category=AuditCategory.USER_MANAGEMENT,
+        category=AuditCategory.USER,
         user_id=user.id,
         user_email=user.email,
         tenant_id=user.tenant_id,
