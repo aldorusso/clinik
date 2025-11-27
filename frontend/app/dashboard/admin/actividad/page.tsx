@@ -236,12 +236,11 @@ export default function ActividadPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="action">Acción</Label>
-                <Select value={filterAction} onValueChange={setFilterAction}>
+                <Select value={filterAction || undefined} onValueChange={(value) => setFilterAction(value)}>
                   <SelectTrigger id="action">
                     <SelectValue placeholder="Todas las acciones" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas</SelectItem>
                     {Object.entries(ACTION_LABELS).map(([key, { label }]) => (
                       <SelectItem key={key} value={key}>
                         {label}
@@ -253,12 +252,11 @@ export default function ActividadPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="category">Categoría</Label>
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <Select value={filterCategory || undefined} onValueChange={(value) => setFilterCategory(value)}>
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Todas las categorías" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas</SelectItem>
                     {Object.entries(CATEGORY_LABELS).map(([key, { label }]) => (
                       <SelectItem key={key} value={key}>
                         {label}
