@@ -20,9 +20,11 @@
   - Token de invitacion con expiracion (72 horas)
   - Registro desde invitacion
 
-- [ ] **Activity Log por Tenant**
-  - Log de actividad visible para tenant_admin
-  - Filtros por usuario, accion, fecha
+- [x] **Activity Log por Tenant** ✓
+  - Log de actividad visible para tenant_admin, manager, user
+  - Filtros por usuario, accion, fecha, categoría
+  - Búsqueda por email, IP, detalles
+  - Estadísticas de actividad (logins, eventos totales)
 
 ## Prioridad Media
 

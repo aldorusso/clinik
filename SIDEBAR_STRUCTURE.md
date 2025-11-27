@@ -82,6 +82,13 @@
    - Portal de clientes separado
    - Datos específicos: client_company_name, client_tax_id
 
+✅ 📋 Registro de Actividad
+   - Log de actividad de su tenant
+   - Filtros por acción, categoría, usuario y fecha
+   - Búsqueda por email, IP o detalles
+   - Estadísticas de actividad (logins, eventos)
+   - Vista detallada de cada evento
+
 ✅ 🔐 Mi Cuenta
    - Perfil completo (first_name, last_name, phone, etc.)
    - Cambiar contraseña con validación
@@ -90,9 +97,6 @@
 ⏳ ⚙️ Configuración
    - Configuración de su tenant
    - Logo, colores, datos fiscales
-
-⏳ 📋 Logs
-   - Actividad de su tenant
 ```
 
 ## Manager
@@ -165,7 +169,7 @@
 | Clientes | Todos | Solo su tenant | Limitado | ❌ | ❌ |
 | Email Templates | ✅ CRUD | ❌ | ❌ | ❌ | ❌ |
 | Configuración | Global | Su tenant | ❌ | ❌ | ❌ |
-| Logs | Todos | Su tenant | ❌ | ❌ | ❌ |
+| Logs/Actividad | Todos | Su tenant | Su tenant | Su tenant | ❌ |
 | Mi Cuenta | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
@@ -259,7 +263,11 @@ superadmin (global, sin tenant)
 - Acciones rastreadas: LOGIN_SUCCESS, LOGIN_FAILED, PASSWORD_CHANGED, etc.
 - Almacenamiento de IP y User-Agent
 - Filtros por categoría, acción, usuario, tenant
-- Endpoint de auditoría para superadmin
+- Endpoint de auditoría para superadmin (todos los tenants)
+- Endpoint de actividad para tenant_admin/manager/user (filtrado por su tenant)
+- Página de "Registro de Actividad" con estadísticas y filtros avanzados
+- Búsqueda por email, IP o detalles
+- Vista detallada de cada evento con JSON completo
 
 ### ✅ Sistema de Notificaciones In-App
 - Notificaciones en tiempo real para usuarios

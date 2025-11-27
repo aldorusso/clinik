@@ -259,3 +259,191 @@ async def get_audit_log(
         raise HTTPException(status_code=404, detail="Audit log not found")
 
     return AuditLogResponse.model_validate(log)
+
+
+# Tenant-specific activity log endpoints (for tenant_admin)
+@router.get("/tenant/activity", response_model=AuditLogListResponse)
+async def list_tenant_activity_logs(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    action: Optional[str] = None,
+    category: Optional[str] = None,
+    user_id: Optional[UUID] = None,
+    entity_type: Optional[str] = None,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    List activity logs for the current tenant.
+    Accessible by tenant_admin, manager, and user roles.
+    Automatically filters by the user's tenant_id.
+    """
+    # Only allow tenant users (not superadmin or clients)
+    if current_user.role == UserRole.superadmin:
+        raise HTTPException(
+            status_code=403,
+            detail="Superadmin should use the main audit logs endpoint"
+        )
+
+    if current_user.role == UserRole.client:
+        raise HTTPException(
+            status_code=403,
+            detail="Clients cannot access activity logs"
+        )
+
+    if not current_user.tenant_id:
+        raise HTTPException(
+            status_code=400,
+            detail="User does not belong to a tenant"
+        )
+
+    query = db.query(AuditLog)
+
+    # IMPORTANT: Always filter by tenant_id for security
+    query = query.filter(AuditLog.tenant_id == current_user.tenant_id)
+
+    # Apply additional filters
+    if action:
+        query = query.filter(AuditLog.action == action)
+    if category:
+        query = query.filter(AuditLog.category == category)
+    if user_id:
+        query = query.filter(AuditLog.user_id == user_id)
+    if entity_type:
+        query = query.filter(AuditLog.entity_type == entity_type)
+    if start_date:
+        query = query.filter(AuditLog.timestamp >= start_date)
+    if end_date:
+        query = query.filter(AuditLog.timestamp <= end_date)
+    if search:
+        query = query.filter(
+            AuditLog.user_email.ilike(f"%{search}%")
+            | AuditLog.ip_address.ilike(f"%{search}%")
+            | AuditLog.details.ilike(f"%{search}%")
+        )
+
+    # Get total count
+    total = query.count()
+
+    # Apply pagination and ordering
+    logs = (
+        query.order_by(desc(AuditLog.timestamp))
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    total_pages = (total + page_size - 1) // page_size
+
+    return AuditLogListResponse(
+        items=[AuditLogResponse.model_validate(log) for log in logs],
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
+
+
+@router.get("/tenant/stats", response_model=AuditStats)
+async def get_tenant_activity_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get activity log statistics for the current tenant.
+    Accessible by tenant_admin, manager, and user roles.
+    """
+    # Only allow tenant users (not superadmin or clients)
+    if current_user.role == UserRole.superadmin:
+        raise HTTPException(
+            status_code=403,
+            detail="Superadmin should use the main audit stats endpoint"
+        )
+
+    if current_user.role == UserRole.client:
+        raise HTTPException(
+            status_code=403,
+            detail="Clients cannot access activity stats"
+        )
+
+    if not current_user.tenant_id:
+        raise HTTPException(
+            status_code=400,
+            detail="User does not belong to a tenant"
+        )
+
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # All queries filtered by tenant_id
+    tenant_filter = AuditLog.tenant_id == current_user.tenant_id
+
+    # Total logs for this tenant
+    total_logs = db.query(func.count(AuditLog.id)).filter(tenant_filter).scalar()
+
+    # Logins today
+    logins_today = (
+        db.query(func.count(AuditLog.id))
+        .filter(
+            and_(
+                tenant_filter,
+                AuditLog.action == AuditAction.LOGIN_SUCCESS,
+                AuditLog.timestamp >= today_start,
+            )
+        )
+        .scalar()
+    )
+
+    # Failed logins today
+    failed_logins_today = (
+        db.query(func.count(AuditLog.id))
+        .filter(
+            and_(
+                tenant_filter,
+                AuditLog.action == AuditAction.LOGIN_FAILED,
+                AuditLog.timestamp >= today_start,
+            )
+        )
+        .scalar()
+    )
+
+    # Actions by category
+    category_counts = (
+        db.query(AuditLog.category, func.count(AuditLog.id))
+        .filter(tenant_filter)
+        .group_by(AuditLog.category)
+        .all()
+    )
+    actions_by_category = {cat: count for cat, count in category_counts}
+
+    # Recent important actions (last 10) - exclude some superadmin-only actions
+    important_actions = [
+        AuditAction.USER_CREATED,
+        AuditAction.USER_DELETED,
+        AuditAction.USER_ACTIVATED,
+        AuditAction.USER_DEACTIVATED,
+        AuditAction.PASSWORD_CHANGED,
+        AuditAction.LOGIN_FAILED,  # Security concern
+    ]
+    recent_important = (
+        db.query(AuditLog)
+        .filter(
+            and_(
+                tenant_filter,
+                AuditLog.action.in_(important_actions)
+            )
+        )
+        .order_by(desc(AuditLog.timestamp))
+        .limit(10)
+        .all()
+    )
+
+    return AuditStats(
+        total_logs=total_logs or 0,
+        logins_today=logins_today or 0,
+        failed_logins_today=failed_logins_today or 0,
+        actions_by_category=actions_by_category,
+        recent_critical_actions=[AuditLogResponse.model_validate(log) for log in recent_important],
+    )
