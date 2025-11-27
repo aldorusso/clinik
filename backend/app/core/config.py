@@ -24,6 +24,9 @@ class Settings(BaseSettings):
         "http://frontend:3000",
     ]
 
+    # Frontend URL for email links (password reset, invitations, etc.)
+    FRONTEND_URL: str = "http://localhost:3002"
+
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def parse_allowed_origins(cls, v):

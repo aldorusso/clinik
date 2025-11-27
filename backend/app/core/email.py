@@ -109,7 +109,7 @@ async def send_reset_password_email(
     template = await get_email_template_from_db(db, EmailTemplateType.PASSWORD_RESET)
 
     # Prepare context
-    reset_url = f"http://localhost:3002/reset-password?token={token}"
+    reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
     context = {
         "project_name": settings.PROJECT_NAME,
         "user_name": user_name,
@@ -241,8 +241,7 @@ async def send_invitation_email(
     template = await get_email_template_from_db(db, EmailTemplateType.USER_INVITATION)
 
     # Build invitation link
-    frontend_url = settings.ALLOWED_ORIGINS[0] if settings.ALLOWED_ORIGINS else "http://localhost:3000"
-    invitation_link = f"{frontend_url}/accept-invitation?token={invitation_token}"
+    invitation_link = f"{settings.FRONTEND_URL}/accept-invitation?token={invitation_token}"
 
     # Role translation
     role_translations = {
