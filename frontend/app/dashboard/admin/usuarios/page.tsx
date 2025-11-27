@@ -45,6 +45,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   Users,
   UserPlus,
+  Mail,
   Pencil,
   Trash2,
   CheckCircle,
@@ -52,7 +53,6 @@ import {
   Briefcase,
   User as UserIcon,
   Filter,
-  Mail,
 } from "lucide-react"
 import { api, User, UserRole } from "@/lib/api"
 import { auth } from "@/lib/auth"
@@ -473,6 +473,7 @@ export default function TenantAdminUsuariosPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Stats Cards */}
