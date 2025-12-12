@@ -43,6 +43,7 @@ import {
   Stethoscope,
   UserPlus,
   CalendarCheck,
+  CheckCircle2,
   PhoneCall,
   RefreshCw,
   X
