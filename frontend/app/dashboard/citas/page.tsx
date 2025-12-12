@@ -166,6 +166,45 @@ export default function CitasPage() {
     }
   }
 
+  const handleQuickCheckIn = async (appointmentId: string) => {
+    const token = auth.getToken()
+    if (!token) {
+      toast({
+        title: "Error de autenticación",
+        description: "No se encontró un token válido. Por favor, inicia sesión nuevamente.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      // Primero confirmar, luego check-in directo
+      await api.updateAppointmentStatus(token, appointmentId, 'in_progress')
+      
+      toast({
+        title: "✓ Check-in Rápido",
+        description: "🟣 Paciente confirmado e iniciando consulta",
+      })
+      
+      reloadAppointments()
+    } catch (error: any) {
+      console.error('Error in quick check-in:', error)
+      
+      let errorMessage = "Error en check-in rápido"
+      if (error.message?.includes('Failed to fetch')) {
+        errorMessage = "Error de conexión. Verifica tu internet."
+      } else if (error.message && error.message !== '[object Object]') {
+        errorMessage = error.message
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleStatusUpdate = async (appointmentId: string, newStatus: AppointmentStatus) => {
     const token = auth.getToken()
     if (!token) {
@@ -181,10 +220,12 @@ export default function CitasPage() {
       await api.updateAppointmentStatus(token, appointmentId, newStatus)
       
       let message = "Estado actualizado correctamente"
-      if (newStatus === 'confirmed') message = "Cita confirmada"
-      else if (newStatus === 'in_progress') message = "Paciente en consulta"
-      else if (newStatus === 'completed') message = "Cita completada"
-      else if (newStatus === 'no_show') message = "Marcada como no show"
+      if (newStatus === 'confirmed') message = "✅ Cita confirmada por teléfono"
+      else if (newStatus === 'in_progress') message = "🟣 Paciente iniciando consulta"
+      else if (newStatus === 'completed') message = "✅ Cita completada exitosamente"
+      else if (newStatus === 'no_show') message = "❌ Paciente marcado como No Show"
+      else if (newStatus === 'cancelled_by_patient') message = "❌ Cita cancelada por paciente"
+      else if (newStatus === 'cancelled_by_clinic') message = "❌ Cita cancelada por clínica"
 
       toast({
         title: "✓ Éxito",
@@ -354,9 +395,20 @@ export default function CitasPage() {
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString)
-    const isToday = new Date().toDateString() === date.toDateString()
+    const now = new Date()
+    const isToday = now.toDateString() === date.toDateString()
     
     if (isToday) {
+      const hoursUntil = (date.getTime() - now.getTime()) / (1000 * 60 * 60)
+      const minutesUntil = (date.getTime() - now.getTime()) / (1000 * 60)
+      
+      if (minutesUntil <= 15 && minutesUntil > 0) {
+        return `🔥 Hoy ${formatTime(dateString)} (En ${Math.round(minutesUntil)} min)`
+      } else if (hoursUntil <= 1 && hoursUntil > 0) {
+        return `⏰ Hoy ${formatTime(dateString)} (En ${Math.round(hoursUntil * 60)} min)`
+      } else if (minutesUntil <= 0 && minutesUntil > -30) {
+        return `🕐 Hoy ${formatTime(dateString)} (AHORA)`
+      }
       return `Hoy ${formatTime(dateString)}`
     }
     return `${formatDate(dateString)} ${formatTime(dateString)}`
@@ -771,26 +823,57 @@ export default function CitasPage() {
 
                             {/* Action Buttons */}
                             <div className="flex flex-col gap-2 ml-4">
+                              {/* Primary Action Buttons - Estado de la cita */}
                               {cita.status === 'scheduled' && (
-                                <Button 
-                                  size="sm"
-                                  onClick={() => handleStatusUpdate(cita.id, 'confirmed')}
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Confirmar
-                                </Button>
+                                <>
+                                  <Button 
+                                    size="sm"
+                                    onClick={() => handleStatusUpdate(cita.id, 'confirmed')}
+                                    className="bg-green-600 hover:bg-green-700"
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Confirmar
+                                  </Button>
+                                  {cita.is_today && (
+                                    <Button 
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleStatusUpdate(cita.id, 'no_show')}
+                                      className="border-red-300 text-red-600 hover:bg-red-50"
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      No Show
+                                    </Button>
+                                  )}
+                                </>
                               )}
-                              {cita.status === 'confirmed' && !cita.is_past_due && (
-                                <Button 
-                                  size="sm"
-                                  onClick={() => handleStatusUpdate(cita.id, 'in_progress')}
-                                  className="bg-purple-600 hover:bg-purple-700"
-                                >
-                                  <UserPlus className="h-4 w-4 mr-1" />
-                                  Check-in
-                                </Button>
+                              
+                              {cita.status === 'confirmed' && (
+                                <>
+                                  {cita.is_today && !cita.is_past_due && (
+                                    <Button 
+                                      size="sm"
+                                      onClick={() => handleStatusUpdate(cita.id, 'in_progress')}
+                                      className="bg-purple-600 hover:bg-purple-700"
+                                    >
+                                      <UserPlus className="h-4 w-4 mr-1" />
+                                      Iniciar Cita
+                                    </Button>
+                                  )}
+                                  {cita.is_today && (
+                                    <Button 
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleStatusUpdate(cita.id, 'no_show')}
+                                      className="border-red-300 text-red-600 hover:bg-red-50"
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      No Show
+                                    </Button>
+                                  )}
+                                </>
                               )}
+                              
                               {cita.status === 'in_progress' && (
                                 <Button 
                                   size="sm"
@@ -798,11 +881,25 @@ export default function CitasPage() {
                                   className="bg-emerald-600 hover:bg-emerald-700"
                                 >
                                   <CheckCircle2 className="h-4 w-4 mr-1" />
-                                  Finalizar
+                                  Finalizar Cita
+                                </Button>
+                              )}
+
+                              {/* Quick Actions para citas de hoy */}
+                              {cita.is_today && cita.status === 'scheduled' && (
+                                <Button 
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleQuickCheckIn(cita.id)}
+                                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                                >
+                                  <CalendarCheck className="h-4 w-4 mr-1" />
+                                  Llegó (Directo)
                                 </Button>
                               )}
                               
-                              <div className="flex gap-1">
+                              {/* Secondary Action Buttons */}
+                              <div className="flex gap-1 mt-2 pt-2 border-t border-gray-200">
                                 <Button 
                                   variant="outline" 
                                   size="sm"
@@ -810,6 +907,7 @@ export default function CitasPage() {
                                     setSelectedAppointment(cita)
                                     setIsDetailsOpen(true)
                                   }}
+                                  title="Ver detalles"
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
@@ -821,10 +919,20 @@ export default function CitasPage() {
                                       setSelectedAppointment(cita)
                                       setIsEditOpen(true)
                                     }}
+                                    title="Editar cita"
                                   >
                                     <Edit className="h-4 w-4" />
                                   </Button>
                                 )}
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => window.open(`tel:${cita.patient_phone}`, '_self')}
+                                  title="Llamar paciente"
+                                  className="text-green-600 hover:bg-green-50"
+                                >
+                                  <PhoneCall className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
                           </div>
