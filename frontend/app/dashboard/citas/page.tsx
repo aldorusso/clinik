@@ -602,12 +602,12 @@ export default function CitasPage() {
                 className="pl-10"
               />
             </div>
-            <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+            <Select value={selectedProvider || "all"} onValueChange={(value) => setSelectedProvider(value === "all" ? "" : value)}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filtrar por médico" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los médicos</SelectItem>
+                <SelectItem value="all">Todos los médicos</SelectItem>
                 {availableProviders.map((provider) => (
                   <SelectItem key={provider.id} value={provider.id}>
                     <div className="flex items-center gap-2">
