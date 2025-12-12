@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { LeadFormModal } from "@/components/leads/lead-form-modal"
+import { ConvertToPatientForm } from "@/components/leads/convert-to-patient-form"
 import { 
   Users, 
   Plus, 
@@ -47,6 +48,8 @@ export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingLead, setEditingLead] = useState<Lead | null>(null)
+  const [convertingLead, setConvertingLead] = useState<Lead | null>(null)
+  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
   const [assigningLead, setAssigningLead] = useState<Lead | null>(null)
   const [doctors, setDoctors] = useState<User[]>([])
@@ -223,6 +226,38 @@ export default function LeadsPage() {
 
   const handleShowAssignModal = (lead: Lead) => {
     setAssigningLead(lead)
+  }
+
+  const handleShowConvertModal = (lead: Lead) => {
+    setConvertingLead(lead)
+    setIsConvertModalOpen(true)
+  }
+
+  const handleConvertToPatient = async (conversionData: any) => {
+    if (!convertingLead) return
+
+    const token = auth.getToken()
+    if (!token) return
+
+    try {
+      await api.convertLeadToPatient(token, convertingLead.id, conversionData)
+      
+      toast({
+        title: "Éxito",
+        description: `Lead ${convertingLead.first_name} ${convertingLead.last_name} convertido en paciente`,
+      })
+      
+      setIsConvertModalOpen(false)
+      setConvertingLead(null)
+      fetchLeads() // Refresh leads list
+    } catch (error: any) {
+      console.error('Error converting lead:', error)
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Error al convertir el lead en paciente",
+        variant: "destructive",
+      })
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -421,6 +456,18 @@ export default function LeadsPage() {
                           Asignar
                         </Button>
                       )}
+                      {/* Botón para convertir en paciente */}
+                      {lead.status !== 'en_tratamiento' && lead.status !== 'completado' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleShowConvertModal(lead)}
+                          className="text-green-600 hover:text-green-700"
+                        >
+                          <UserCheck className="h-3 w-3 mr-1" />
+                          Convertir
+                        </Button>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -505,6 +552,25 @@ export default function LeadsPage() {
           lead={editingLead}
           mode={modalMode}
         />
+
+        {/* Modal para convertir lead en paciente */}
+        <Dialog open={isConvertModalOpen} onOpenChange={setIsConvertModalOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Convertir Lead en Paciente</DialogTitle>
+              <DialogDescription>
+                Vas a convertir a {convertingLead?.first_name} {convertingLead?.last_name} en paciente.
+                Esto cambiará su estado a "En Tratamiento" y opcionalmente creará una cuenta de usuario.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <ConvertToPatientForm
+              lead={convertingLead}
+              onSubmit={handleConvertToPatient}
+              onCancel={() => setIsConvertModalOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   )

@@ -336,3 +336,26 @@ class LeadSourcePerformance(BaseModel):
     cost_per_lead: Optional[float] = None
     cost_per_conversion: Optional[float] = None
     roi: Optional[float] = None
+
+
+# ============================================
+# LEAD TO PATIENT CONVERSION SCHEMAS
+# ============================================
+
+class LeadToPatientConversion(BaseModel):
+    """Schema para convertir lead en paciente"""
+    create_user_account: bool = Field(default=True, description="Crear cuenta de usuario para el paciente")
+    send_welcome_email: bool = Field(default=True, description="Enviar email de bienvenida")
+    password: Optional[str] = Field(None, min_length=8, description="Contraseña para el paciente (opcional, se genera automática)")
+    conversion_notes: Optional[str] = Field(None, description="Notas sobre la conversión")
+    initial_service_id: Optional[UUID] = Field(None, description="Servicio inicial que tomará el paciente")
+
+
+class LeadConversionResponse(BaseModel):
+    """Respuesta de conversión de lead a paciente"""
+    success: bool
+    message: str
+    patient_user_id: Optional[UUID] = None
+    patient_email: Optional[str] = None
+    conversion_date: datetime
+    generated_password: Optional[str] = None  # Solo si se genera automáticamente

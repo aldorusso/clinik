@@ -1629,12 +1629,14 @@ export const api = {
   /**
    * Convierte un lead en paciente.
    */
-  async convertLeadToPatient(token: string, leadId: string): Promise<{ message: string; patient_id: string }> {
+  async convertLeadToPatient(token: string, leadId: string, conversionData: LeadToPatientConversion): Promise<LeadConversionResponse> {
     const response = await fetch(`${API_URL}/api/v1/leads/${leadId}/convert-to-patient`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(conversionData),
     });
 
     if (!response.ok) {
@@ -1804,4 +1806,25 @@ export interface NotificationListResponse {
  */
 export interface NotificationCountResponse {
   unread_count: number;
+}
+
+// ============================================
+// LEAD TO PATIENT CONVERSION INTERFACES
+// ============================================
+
+export interface LeadToPatientConversion {
+  create_user_account?: boolean;
+  send_welcome_email?: boolean;
+  password?: string;
+  conversion_notes?: string;
+  initial_service_id?: string;
+}
+
+export interface LeadConversionResponse {
+  success: boolean;
+  message: string;
+  patient_user_id?: string;
+  patient_email?: string;
+  conversion_date: string;
+  generated_password?: string;
 }

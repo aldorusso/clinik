@@ -147,6 +147,11 @@ class Lead(Base):
     last_contact_at = Column(DateTime, nullable=True)
     conversion_date = Column(DateTime, nullable=True)  # Fecha de conversión a paciente
     
+    # Información de conversión a paciente
+    patient_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # Usuario paciente creado
+    converted_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # Quién hizo la conversión
+    conversion_notes = Column(Text, nullable=True)  # Notas sobre la conversión
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -158,6 +163,10 @@ class Lead(Base):
     interactions = relationship("LeadInteraction", back_populates="lead", cascade="all, delete-orphan")
     appointments = relationship("Appointment", back_populates="lead", cascade="all, delete-orphan")
     original_lead = relationship("Lead", remote_side=[id])  # Para duplicados
+    
+    # Relaciones para conversión a paciente
+    patient_user = relationship("User", foreign_keys=[patient_user_id])
+    converted_by = relationship("User", foreign_keys=[converted_by_id])
 
     def __repr__(self):
         return f"<Lead {self.first_name} {self.last_name} ({self.status.value})>"
@@ -186,6 +195,11 @@ class Lead(Base):
             LeadStatus.en_tratamiento,
             LeadStatus.completado
         ]
+    
+    @property
+    def has_patient_account(self) -> bool:
+        """Verifica si el lead ya tiene una cuenta de paciente creada"""
+        return self.patient_user_id is not None and self.conversion_date is not None
 
     @property
     def is_lost(self) -> bool:

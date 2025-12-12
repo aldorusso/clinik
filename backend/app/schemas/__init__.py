@@ -40,6 +40,8 @@ from app.schemas.lead import (
     LeadFunnelStats,
     LeadSourcePerformance,
     LeadListResponse,
+    LeadToPatientConversion,
+    LeadConversionResponse,
 )
 
 from app.schemas.service import (
@@ -147,6 +149,8 @@ __all__ = [
     "LeadFunnelStats",
     "LeadSourcePerformance",
     "LeadListResponse",
+    "LeadToPatientConversion",
+    "LeadConversionResponse",
     
     # Service Schemas
     "Service",
