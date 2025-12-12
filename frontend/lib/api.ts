@@ -1433,7 +1433,7 @@ export const api = {
     if (params?.assigned_to_id) searchParams.append('assigned_to_id', params.assigned_to_id);
     if (params?.search) searchParams.append('search', params.search);
 
-    const url = `${API_URL}/api/v1/leads${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const url = `${API_URL}/api/v1/leads/${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
     const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1485,7 +1485,7 @@ export const api = {
    * Crea un nuevo lead.
    */
   async createLead(token: string, data: LeadCreate): Promise<Lead> {
-    const response = await fetch(`${API_URL}/api/v1/leads`, {
+    const response = await fetch(`${API_URL}/api/v1/leads/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
