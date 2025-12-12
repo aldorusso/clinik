@@ -6,6 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { 
   UserCheck, 
   Plus, 
@@ -14,56 +22,118 @@ import {
   Calendar,
   Phone,
   Mail,
-  Heart
+  Heart,
+  Edit,
+  Trash2,
+  Eye,
+  FileText
 } from "lucide-react"
+import { User, api } from "@/lib/api"
+import { auth } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
 
 export default function PacientesPage() {
-  const [pacientes, setPacientes] = useState([])
+  const { toast } = useToast()
+  const [pacientes, setPacientes] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedPatient, setSelectedPatient] = useState<User | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
-  // Datos de ejemplo para mostrar la estructura
-  useEffect(() => {
-    // Simulamos una carga de datos
-    setTimeout(() => {
-      setPacientes([
-        {
-          id: "1",
-          name: "Ana Martínez",
-          email: "ana.martinez@example.com",
-          phone: "+52 555 1111111",
-          status: "activo",
-          last_visit: "2025-12-10",
-          next_appointment: "2025-12-15",
-          treatments_count: 3,
-          created_at: "2024-11-15T10:30:00Z"
-        },
-        {
-          id: "2", 
-          name: "Carlos López",
-          email: "carlos.lopez@example.com",
-          phone: "+52 555 2222222",
-          status: "completado", 
-          last_visit: "2025-11-28",
-          next_appointment: null,
-          treatments_count: 1,
-          created_at: "2024-10-20T15:45:00Z"
-        }
-      ])
+  // Cargar pacientes desde la API
+  const fetchPacientes = async () => {
+    setLoading(true)
+    const token = auth.getToken()
+    if (!token) {
       setLoading(false)
-    }, 1000)
+      return
+    }
+
+    try {
+      const patientsData = await api.getMyTenantClients(token)
+      setPacientes(patientsData)
+    } catch (error: any) {
+      console.error('Error fetching patients:', error)
+      toast({
+        title: "Error",
+        description: "Error al cargar los pacientes",
+        variant: "destructive",
+      })
+      setPacientes([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPacientes()
   }, [])
 
-  const getStatusBadge = (status: string) => {
-    const statusMap = {
-      activo: { label: "Activo", variant: "default" as const },
-      completado: { label: "Completado", variant: "secondary" as const },
-      pausado: { label: "Pausado", variant: "outline" as const },
-      inactivo: { label: "Inactivo", variant: "destructive" as const }
+  // Función para eliminar paciente
+  const handleDeletePatient = async (patientId: string) => {
+    const token = auth.getToken()
+    if (!token) return
+
+    try {
+      await api.deleteMyTenantClient(token, patientId)
+      toast({
+        title: "Éxito",
+        description: "Paciente eliminado correctamente",
+      })
+      fetchPacientes() // Recargar lista
+    } catch (error: any) {
+      console.error('Error deleting patient:', error)
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Error al eliminar el paciente",
+        variant: "destructive",
+      })
     }
+  }
+
+  // Función para mostrar detalles del paciente
+  const handleViewPatient = (patient: User) => {
+    setSelectedPatient(patient)
+    setIsDetailModalOpen(true)
+  }
+
+  // Filtrar pacientes según búsqueda
+  const filteredPacientes = pacientes.filter(patient => {
+    if (!searchTerm) return true
+    const name = `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase()
+    const email = patient.email?.toLowerCase() || ""
+    const phone = patient.phone?.toLowerCase() || ""
+    const search = searchTerm.toLowerCase()
     
-    const statusInfo = statusMap[status as keyof typeof statusMap] || { label: status, variant: "default" as const }
-    return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+    return name.includes(search) || email.includes(search) || phone.includes(search)
+  })
+
+  // Estadísticas calculadas
+  const stats = {
+    total: pacientes.length,
+    activos: pacientes.filter(p => p.is_active).length,
+    inactivos: pacientes.filter(p => !p.is_active).length,
+    nuevos_este_mes: pacientes.filter(p => {
+      const created = new Date(p.created_at)
+      const now = new Date()
+      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
+    }).length
+  }
+
+  const getStatusBadge = (isActive: boolean) => {
+    if (isActive) {
+      return <Badge variant="default">Activo</Badge>
+    } else {
+      return <Badge variant="destructive">Inactivo</Badge>
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
   }
 
   if (loading) {
@@ -99,9 +169,9 @@ export default function PacientesPage() {
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2</div>
+            <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-muted-foreground">
-              Clientes registrados
+              Pacientes registrados
             </p>
           </CardContent>
         </Card>
@@ -112,7 +182,7 @@ export default function PacientesPage() {
             <Heart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1</div>
+            <div className="text-2xl font-bold">{stats.activos}</div>
             <p className="text-xs text-muted-foreground">
               En tratamiento actual
             </p>
@@ -121,29 +191,30 @@ export default function PacientesPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Citas Programadas</CardTitle>
+            <CardTitle className="text-sm font-medium">Nuevos Este Mes</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1</div>
+            <div className="text-2xl font-bold">{stats.nuevos_este_mes}</div>
             <p className="text-xs text-muted-foreground">
-              Próximas citas
+              Registrados este mes
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completados</CardTitle>
+            <CardTitle className="text-sm font-medium">Inactivos</CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1</div>
+            <div className="text-2xl font-bold">{stats.inactivos}</div>
             <p className="text-xs text-muted-foreground">
-              Tratamientos finalizados
+              Pacientes dados de baja
             </p>
           </CardContent>
         </Card>
+
       </div>
 
       {/* Search and Filters */}
@@ -173,63 +244,157 @@ export default function PacientesPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {pacientes.map((paciente: any) => (
-              <div key={paciente.id} className="border rounded-lg p-4 hover:bg-muted/50">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{paciente.name}</h3>
-                      {getStatusBadge(paciente.status)}
-                      <Badge variant="outline">
-                        {paciente.treatments_count} tratamientos
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {paciente.email}
+            {filteredPacientes.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchTerm ? "No se encontraron pacientes con ese criterio de búsqueda" : "No hay pacientes registrados"}
+              </div>
+            ) : (
+              filteredPacientes.map((paciente: User) => (
+                <div key={paciente.id} className="border rounded-lg p-4 hover:bg-muted/50">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">
+                          {paciente.full_name || `${paciente.first_name || ''} ${paciente.last_name || ''}`.trim() || paciente.email}
+                        </h3>
+                        {getStatusBadge(paciente.is_active)}
+                        {paciente.client_company_name && (
+                          <Badge variant="outline">
+                            {paciente.client_company_name}
+                          </Badge>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        {paciente.phone}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {paciente.email}
+                        </div>
+                        {paciente.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {paciente.phone}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          Registrado: {formatDate(paciente.created_at)}
+                        </div>
                       </div>
-                      {paciente.last_visit && (
-                        <div>
-                          Última visita: {new Date(paciente.last_visit).toLocaleDateString()}
+                      {paciente.client_tax_id && (
+                        <div className="text-xs text-muted-foreground">
+                          RFC/Tax ID: {paciente.client_tax_id}
                         </div>
                       )}
-                      {paciente.next_appointment && (
-                        <div className="text-green-600">
-                          Próxima cita: {new Date(paciente.next_appointment).toLocaleDateString()}
-                        </div>
-                      )}
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      Ver Historial
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Calendar className="h-3 w-3 mr-1" />
-                      Cita
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewPatient(paciente)}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Ver Detalles
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <FileText className="h-3 w-3 mr-1" />
+                        Historial
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-3 w-3 mr-1" />
+                        Editar
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeletePatient(paciente.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
-          
-          {pacientes.length === 0 && (
-            <div className="text-center py-8">
-              <UserCheck className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-semibold">No hay pacientes</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Los leads convertidos aparecerán aquí como pacientes.
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {/* Modal de detalles del paciente */}
+      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Detalles del Paciente</DialogTitle>
+            <DialogDescription>
+              Información completa del paciente seleccionado
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPatient && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Nombre Completo</label>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedPatient.full_name || `${selectedPatient.first_name || ''} ${selectedPatient.last_name || ''}`.trim() || 'No especificado'}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Estado</label>
+                  <p className="text-sm text-muted-foreground">
+                    {getStatusBadge(selectedPatient.is_active)}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Email</label>
+                  <p className="text-sm text-muted-foreground">{selectedPatient.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Teléfono</label>
+                  <p className="text-sm text-muted-foreground">{selectedPatient.phone || 'No especificado'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Empresa</label>
+                  <p className="text-sm text-muted-foreground">{selectedPatient.client_company_name || 'No especificado'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">RFC/Tax ID</label>
+                  <p className="text-sm text-muted-foreground">{selectedPatient.client_tax_id || 'No especificado'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Fecha de Registro</label>
+                  <p className="text-sm text-muted-foreground">{formatDate(selectedPatient.created_at)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Última Actualización</label>
+                  <p className="text-sm text-muted-foreground">{formatDate(selectedPatient.updated_at)}</p>
+                </div>
+              </div>
+              
+              {(selectedPatient.city || selectedPatient.country) && (
+                <div>
+                  <label className="text-sm font-medium">Ubicación</label>
+                  <p className="text-sm text-muted-foreground">
+                    {[selectedPatient.city, selectedPatient.country].filter(Boolean).join(', ') || 'No especificado'}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDetailModalOpen(false)}>
+              Cerrar
+            </Button>
+            <Button onClick={() => {
+              // TODO: Implementar edición
+              setIsDetailModalOpen(false)
+            }}>
+              Editar Paciente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
     </DashboardLayout>
   )
