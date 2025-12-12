@@ -206,7 +206,7 @@ export default function EstadisticasPage() {
                     <div key={stage} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="text-sm font-medium">{stageNames[stage]}</div>
-                        <Badge variant="outline">{count}</Badge>
+                        <Badge variant="outline">{String(count)}</Badge>
                       </div>
                       <div className="text-sm text-muted-foreground">{percentage}%</div>
                     </div>
@@ -235,14 +235,14 @@ export default function EstadisticasPage() {
                     google: "Google",
                     otros: "Otros"
                   }
-                  const total = Object.values(stats.sources).reduce((a: any, b: any) => a + b, 0)
+                  const total = Object.values(stats.sources).reduce((a: any, b: any) => a + b, 0) as number
                   const percentage = (count as number / total * 100).toFixed(1)
                   
                   return (
                     <div key={source} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="text-sm font-medium">{sourceNames[source]}</div>
-                        <Badge variant="outline">{count}</Badge>
+                        <Badge variant="outline">{String(count)}</Badge>
                       </div>
                       <div className="text-sm text-muted-foreground">{percentage}%</div>
                     </div>

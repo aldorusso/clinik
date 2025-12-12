@@ -157,6 +157,21 @@ export function ComercialSidebar({ user }: ComercialSidebarProps) {
             <Target className="mr-2 h-4 w-4" />
             Mis Objetivos
           </Button>
+
+          <Separator className="my-4" />
+
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+            👥 Organización
+          </p>
+
+          <Button
+            variant={pathname.startsWith("/dashboard/directorio") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/directorio")}
+          >
+            <Users className="mr-2 h-4 w-4" />
+            Directorio
+          </Button>
         </nav>
       </div>
 

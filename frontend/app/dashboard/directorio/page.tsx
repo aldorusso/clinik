@@ -4,6 +4,14 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { 
   Users, 
@@ -15,7 +23,14 @@ import {
   UserCog,
   Stethoscope,
   Briefcase,
-  HeadphonesIcon
+  HeadphonesIcon,
+  Building,
+  Calendar,
+  MapPin,
+  MessageCircle,
+  FileText,
+  Filter,
+  X
 } from "lucide-react"
 import { User as UserType, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
@@ -26,6 +41,7 @@ export default function DirectorioPage() {
   const [users, setUsers] = useState<UserType[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedRole, setSelectedRole] = useState<string>("all")
 
   // Cargar usuarios desde la API
   const fetchUsers = async () => {
@@ -141,13 +157,19 @@ export default function DirectorioPage() {
   }
 
   const filteredUsers = users.filter(user => {
+    // Filtro por rol
+    if (selectedRole !== "all" && user.role !== selectedRole) return false
+    
+    // Filtro por búsqueda
     if (!searchTerm) return true
     const name = getDisplayName(user).toLowerCase()
     const email = user.email?.toLowerCase() || ""
     const role = getRoleInfo(user.role).label.toLowerCase()
+    const phone = user.phone?.toLowerCase() || ""
+    const company = user.client_company_name?.toLowerCase() || ""
     const search = searchTerm.toLowerCase()
     
-    return name.includes(search) || email.includes(search) || role.includes(search)
+    return name.includes(search) || email.includes(search) || role.includes(search) || phone.includes(search) || company.includes(search)
   })
 
   // Agrupar usuarios por rol
@@ -187,15 +209,71 @@ export default function DirectorioPage() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre, email o rol..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        {/* Search and Filters */}
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nombre, email, rol, teléfono o empresa..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrar por rol" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los roles</SelectItem>
+                <SelectItem value="tenant_admin">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Administrador
+                  </div>
+                </SelectItem>
+                <SelectItem value="manager">
+                  <div className="flex items-center gap-2">
+                    <UserCog className="h-4 w-4" />
+                    Gestor de Leads
+                  </div>
+                </SelectItem>
+                <SelectItem value="user">
+                  <div className="flex items-center gap-2">
+                    <Stethoscope className="h-4 w-4" />
+                    Médico
+                  </div>
+                </SelectItem>
+                <SelectItem value="client">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Comercial
+                  </div>
+                </SelectItem>
+                <SelectItem value="recepcionista">
+                  <div className="flex items-center gap-2">
+                    <HeadphonesIcon className="h-4 w-4" />
+                    Recepcionista
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            {(searchTerm || selectedRole !== "all") && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("")
+                  setSelectedRole("all")
+                }}
+              >
+                <X className="h-3 w-3 mr-1" />
+                Limpiar
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Users by Role */}
@@ -216,20 +294,28 @@ export default function DirectorioPage() {
                 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {roleUsers.map((user) => (
-                    <Card key={user.id} className="hover:shadow-md transition-shadow">
+                    <Card key={user.id} className="hover:shadow-md transition-shadow overflow-hidden">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           {/* Avatar */}
-                          <div className={`w-12 h-12 rounded-full ${roleInfo.bgColor} flex items-center justify-center`}>
-                            <span className={`font-semibold ${roleInfo.color}`}>
-                              {getInitials(user)}
-                            </span>
+                          <div className={`w-14 h-14 rounded-full ${roleInfo.bgColor} flex items-center justify-center flex-shrink-0`}>
+                            {user.profile_photo ? (
+                              <img 
+                                src={user.profile_photo} 
+                                alt={getDisplayName(user)}
+                                className="w-14 h-14 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className={`font-semibold text-lg ${roleInfo.color}`}>
+                                {getInitials(user)}
+                              </span>
+                            )}
                           </div>
                           
                           {/* User Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-sm truncate">
+                              <h3 className="font-semibold text-base truncate">
                                 {getDisplayName(user)}
                               </h3>
                               {!user.is_active && (
@@ -243,16 +329,100 @@ export default function DirectorioPage() {
                               {roleInfo.label}
                             </Badge>
                             
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Mail className="h-3 w-3" />
-                                <span className="truncate">{user.email}</span>
+                            <div className="space-y-1.5 mt-3">
+                              {/* Email - always show */}
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3 flex-shrink-0" />
+                                <a href={`mailto:${user.email}`} className="truncate hover:text-primary transition-colors">
+                                  {user.email}
+                                </a>
                               </div>
+                              
+                              {/* Phone */}
                               {user.phone && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Phone className="h-3 w-3" />
-                                  <span>{user.phone}</span>
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <Phone className="h-3 w-3 flex-shrink-0" />
+                                  <a href={`tel:${user.phone}`} className="hover:text-primary transition-colors">
+                                    {user.phone}
+                                  </a>
                                 </div>
+                              )}
+                              
+                              {/* Job title for medical staff */}
+                              {user.role === "user" && user.job_title && (
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <Stethoscope className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">Especialidad: {user.job_title}</span>
+                                </div>
+                              )}
+                              
+                              {/* Company name for clients */}
+                              {user.client_company_name && (
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <Building className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">{user.client_company_name}</span>
+                                </div>
+                              )}
+                              
+                              {/* Location */}
+                              {(user.city || user.country) && (
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <MapPin className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {[user.city, user.country].filter(Boolean).join(", ")}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Member since */}
+                              {user.created_at && (
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <Calendar className="h-3 w-3 flex-shrink-0" />
+                                  <span>Miembro desde {new Date(user.created_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'short' })}</span>
+                                </div>
+                              )}
+                              
+                              {/* Status indicator */}
+                              <div className="flex items-center gap-1.5 text-xs">
+                                <div className={`h-2 w-2 rounded-full ${user.is_active ? 'bg-green-500' : 'bg-gray-400'} flex-shrink-0`} />
+                                <span className={user.is_active ? 'text-green-600' : 'text-gray-500'}>
+                                  {user.is_active ? 'Activo' : 'Inactivo'}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex flex-wrap gap-1.5 mt-4 pt-2 border-t border-border">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={() => window.open(`mailto:${user.email}`, '_blank')}
+                              >
+                                <MessageCircle className="h-3 w-3 mr-1" />
+                                Email
+                              </Button>
+                              {user.phone && (
+                                <Button
+                                  variant="outline"
+                                  size="sm" 
+                                  className="h-7 text-xs"
+                                  onClick={() => window.open(`tel:${user.phone}`, '_self')}
+                                >
+                                  <Phone className="h-3 w-3 mr-1" />
+                                  Llamar
+                                </Button>
+                              )}
+                              {user.phone && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-xs"
+                                  onClick={() => window.open(`https://wa.me/${user.phone?.replace(/\D/g, '')}`, '_blank')}
+                                >
+                                  <MessageCircle className="h-3 w-3 mr-1" />
+                                  WhatsApp
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -271,11 +441,24 @@ export default function DirectorioPage() {
             <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No se encontraron usuarios</h3>
             <p className="text-muted-foreground">
-              {searchTerm 
-                ? "Intenta con otros términos de búsqueda"
+              {searchTerm || selectedRole !== "all"
+                ? "Intenta con otros términos de búsqueda o filtros"
                 : "No hay usuarios registrados en la organización"
               }
             </p>
+            {(searchTerm || selectedRole !== "all") && (
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => {
+                  setSearchTerm("")
+                  setSelectedRole("all")
+                }}
+              >
+                <X className="h-3 w-3 mr-1" />
+                Limpiar filtros
+              </Button>
+            )}
           </div>
         )}
       </div>

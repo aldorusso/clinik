@@ -383,10 +383,10 @@ async def list_my_tenant_users(
     current_user: User = Depends(get_current_tenant_member)
 ):
     """
-    List all users in my tenant. Accessible by tenant admins and managers.
+    List all users in my tenant. Accessible by all tenant members.
     """
-    # Check permissions - only tenant_admin, manager, and recepcionista can list users
-    if current_user.role not in [UserRole.superadmin, UserRole.tenant_admin, UserRole.manager, UserRole.recepcionista]:
+    # Check permissions - all tenant members can see the directory
+    if current_user.role not in [UserRole.superadmin, UserRole.tenant_admin, UserRole.manager, UserRole.user, UserRole.client, UserRole.recepcionista]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para ver la lista de usuarios"

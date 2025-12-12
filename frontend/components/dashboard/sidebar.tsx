@@ -198,24 +198,22 @@ export function Sidebar({ user }: SidebarProps) {
           </>
         )}
 
-        {/* Organización - Para gestores, recepcionistas y comerciales */}
-        {(isManager || isReceptionist || isCommercial) && (
-          <>
-            <Separator className="my-4" />
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              👥 Organización
-            </p>
+        {/* Organización - Para TODOS los usuarios del tenant */}
+        <>
+          <Separator className="my-4" />
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+            👥 Organización
+          </p>
 
-            <Button
-              variant={pathname.startsWith("/dashboard/directorio") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => router.push("/dashboard/directorio")}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Directorio
-            </Button>
-          </>
-        )}
+          <Button
+            variant={pathname.startsWith("/dashboard/directorio") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/directorio")}
+          >
+            <Users className="mr-2 h-4 w-4" />
+            Directorio
+          </Button>
+        </>
 
         {/* Configuración - Solo para gestores y recepcionistas */}
         {(isManager || isReceptionist) && (

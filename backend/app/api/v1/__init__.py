@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications, leads
+from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications, leads, appointments, patients
 
 api_router = APIRouter()
 
@@ -29,6 +29,12 @@ api_router.include_router(notifications.router, prefix="/notifications", tags=["
 
 # Include leads router (lead management system)
 api_router.include_router(leads.router, prefix="/leads", tags=["leads"])
+
+# Include appointments router (appointment management system)
+api_router.include_router(appointments.router, prefix="/appointments", tags=["appointments"])
+
+# Include patients router (patient management with role-based access)
+api_router.include_router(patients.router, prefix="/patients", tags=["patients"])
 
 
 @api_router.get("/")
