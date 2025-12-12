@@ -1830,6 +1830,55 @@ export const api = {
 
     return response.json();
   },
+
+  // ============================================
+  // PATIENT MANAGEMENT
+  // ============================================
+
+  async getPatients(token: string, search?: string): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    
+    const response = await fetch(`${API_URL}/api/v1/patients/?${params.toString()}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch patients');
+    }
+
+    return response.json();
+  },
+
+  async getPatientDetails(token: string, patientId: string): Promise<any> {
+    const response = await fetch(`${API_URL}/api/v1/patients/${patientId}/details`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch patient details');
+    }
+
+    return response.json();
+  },
+
+  async getPatientBasic(token: string, patientId: string): Promise<any> {
+    const response = await fetch(`${API_URL}/api/v1/patients/${patientId}/basic`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch basic patient info');
+    }
+
+    return response.json();
+  },
 };
 
 // ============================================
