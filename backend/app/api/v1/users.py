@@ -1,5 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
+from datetime import datetime, timedelta
+import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,7 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.user import User, UserRole
+from app.models.tenant import Tenant
 from app.models.notification import NotificationType
 from app.schemas.user import UserCreate, UserUpdate, User as UserSchema, ClientCreate, UserInvite
 from app.core.email import send_welcome_email, send_invitation_email
@@ -105,6 +108,101 @@ async def create_user(
         print(f"Error enviando email de bienvenida: {e}")
 
     return db_user
+
+
+@router.post("/invite", response_model=dict, status_code=status.HTTP_201_CREATED)
+async def invite_user_as_superadmin(
+    invitation: UserInvite,
+    tenant_id: Optional[UUID] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superadmin)
+):
+    """
+    Invite a new user via email. Only accessible by superadmins.
+    The user will receive an email to set their password.
+
+    - For non-superadmin roles, tenant_id is required.
+    - For superadmin role, tenant_id must be None.
+    """
+    # Check if user already exists
+    existing_user = db.query(User).filter(User.email == invitation.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El email ya esta registrado"
+        )
+
+    # Validate tenant_id requirement
+    if invitation.role != UserRole.superadmin and not tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="tenant_id es requerido para usuarios no superadmin"
+        )
+
+    if invitation.role == UserRole.superadmin and tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Los superadmins no pueden pertenecer a un tenant"
+        )
+
+    # Verify tenant exists if provided
+    tenant = None
+    if tenant_id:
+        tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+        if not tenant:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Tenant no encontrado"
+            )
+
+    # Generate invitation token
+    invitation_token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(hours=72)  # 3 days
+
+    # Create user with pending invitation
+    db_user = User(
+        email=invitation.email,
+        hashed_password="",  # Will be set when accepting invitation
+        first_name=invitation.first_name,
+        last_name=invitation.last_name,
+        role=invitation.role,
+        tenant_id=tenant_id if invitation.role != UserRole.superadmin else None,
+        is_active=False,  # Inactive until invitation is accepted
+        invitation_token=invitation_token,
+        invitation_token_expires=expires_at,
+        invited_by_id=current_user.id
+    )
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    # Send invitation email
+    try:
+        inviter_name = current_user.full_name or current_user.first_name or current_user.email
+        tenant_name = tenant.name if tenant else "la plataforma"
+
+        await send_invitation_email(
+            db=db,
+            email_to=invitation.email,
+            invitation_token=invitation_token,
+            inviter_name=inviter_name,
+            tenant_name=tenant_name,
+            role=invitation.role.value
+        )
+    except Exception as e:
+        print(f"Error enviando email de invitacion: {e}")
+        # Don't fail the request, but notify user
+        return {
+            "message": f"Usuario creado pero hubo un error enviando el email de invitacion a {invitation.email}",
+            "expires_at": expires_at.isoformat(),
+            "warning": "El email no pudo ser enviado. Contacte al administrador."
+        }
+
+    return {
+        "message": f"Invitacion enviada a {invitation.email}",
+        "expires_at": expires_at.isoformat()
+    }
 
 
 @router.get("/{user_id}", response_model=UserSchema)

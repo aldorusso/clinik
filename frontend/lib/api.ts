@@ -578,6 +578,32 @@ export const api = {
     return response.json();
   },
 
+  async inviteUserAsSuperadmin(
+    token: string,
+    data: { email: string; role: UserRole; first_name?: string; last_name?: string },
+    tenant_id?: string
+  ): Promise<{ message: string; expires_at: string; warning?: string }> {
+    const url = tenant_id
+      ? `${API_URL}/api/v1/users/invite?tenant_id=${tenant_id}`
+      : `${API_URL}/api/v1/users/invite`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to invite user');
+    }
+
+    return response.json();
+  },
+
   async createMyTenantUser(token: string, data: UserCreate): Promise<User> {
     const response = await fetch(`${API_URL}/api/v1/users/my-tenant/users`, {
       method: 'POST',

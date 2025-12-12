@@ -42,6 +42,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import {
   Users,
   UserPlus,
@@ -56,6 +57,8 @@ import {
   UserCheck,
   Building2,
   Filter,
+  Mail,
+  Key,
 } from "lucide-react"
 import { api, User, UserRole, TenantWithStats } from "@/lib/api"
 import { auth } from "@/lib/auth"
@@ -93,6 +96,10 @@ export default function SuperadminUsuariosPage() {
     role: "superadmin" as UserRole,
     tenant_id: "",
   })
+
+  // Toggle for invitation mode
+  const [sendInvitation, setSendInvitation] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
 
   // Form data for editing users
   const [editFormData, setEditFormData] = useState({
@@ -142,23 +149,47 @@ export default function SuperadminUsuariosPage() {
     const token = auth.getToken()
     if (!token) return
 
+    setIsCreating(true)
+
     try {
-      const createData: any = {
-        email: formData.email,
-        password: formData.password,
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        phone: formData.phone,
-        role: formData.role,
+      if (sendInvitation) {
+        // Send invitation via email
+        const inviteData = {
+          email: formData.email,
+          role: formData.role,
+          first_name: formData.first_name || undefined,
+          last_name: formData.last_name || undefined,
+        }
+
+        const tenantId = formData.role !== "superadmin" ? formData.tenant_id : undefined
+
+        const result = await api.inviteUserAsSuperadmin(token, inviteData, tenantId)
+
+        if (result.warning) {
+          toast.warning(result.message)
+        } else {
+          toast.success(result.message)
+        }
+      } else {
+        // Create user directly with password
+        const createData: any = {
+          email: formData.email,
+          password: formData.password,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          phone: formData.phone,
+          role: formData.role,
+        }
+
+        // Only include tenant_id if not superadmin
+        if (formData.role !== "superadmin" && formData.tenant_id) {
+          createData.tenant_id = formData.tenant_id
+        }
+
+        await api.createUser(token, createData)
+        toast.success("Usuario creado exitosamente")
       }
 
-      // Only include tenant_id if not superadmin
-      if (formData.role !== "superadmin" && formData.tenant_id) {
-        createData.tenant_id = formData.tenant_id
-      }
-
-      await api.createUser(token, createData)
-      toast.success("Usuario creado exitosamente")
       setIsCreateDialogOpen(false)
       setFormData({
         email: "",
@@ -169,9 +200,12 @@ export default function SuperadminUsuariosPage() {
         role: "superadmin",
         tenant_id: "",
       })
+      setSendInvitation(false)
       loadData()
     } catch (error: any) {
       toast.error(error.message || "Error al crear usuario")
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -297,6 +331,32 @@ export default function SuperadminUsuariosPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
+                {/* Switch para elegir metodo de creacion */}
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      {sendInvitation ? (
+                        <Mail className="h-4 w-4 text-blue-500" />
+                      ) : (
+                        <Key className="h-4 w-4 text-amber-500" />
+                      )}
+                      <Label htmlFor="send-invitation" className="font-medium">
+                        {sendInvitation ? "Enviar invitacion por email" : "Crear con contrasena"}
+                      </Label>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {sendInvitation
+                        ? "El usuario recibira un email para crear su contrasena"
+                        : "Tu defines la contrasena del usuario"}
+                    </p>
+                  </div>
+                  <Switch
+                    id="send-invitation"
+                    checked={sendInvitation}
+                    onCheckedChange={setSendInvitation}
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="first_name">Nombre</Label>
@@ -327,25 +387,29 @@ export default function SuperadminUsuariosPage() {
                     placeholder="usuario@ejemplo.com"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Contrasena *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Minimo 6 caracteres"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefono</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+1 234 567 890"
-                  />
-                </div>
+                {!sendInvitation && (
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Contrasena *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      placeholder="Minimo 6 caracteres"
+                    />
+                  </div>
+                )}
+                {!sendInvitation && (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefono</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+1 234 567 890"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="role">Rol *</Label>
                   <Select
@@ -417,7 +481,28 @@ export default function SuperadminUsuariosPage() {
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleCreate}>Crear Usuario</Button>
+                <Button onClick={handleCreate} disabled={isCreating}>
+                  {isCreating ? (
+                    <>
+                      <span className="animate-spin mr-2">&#9696;</span>
+                      {sendInvitation ? "Enviando..." : "Creando..."}
+                    </>
+                  ) : (
+                    <>
+                      {sendInvitation ? (
+                        <>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Enviar Invitacion
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Crear Usuario
+                        </>
+                      )}
+                    </>
+                  )}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
