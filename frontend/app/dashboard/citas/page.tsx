@@ -45,6 +45,7 @@ import {
   CalendarCheck,
   CheckCircle2,
   PhoneCall,
+  MessageSquare,
   RefreshCw,
   X
 } from "lucide-react"
