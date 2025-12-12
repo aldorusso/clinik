@@ -1,176 +1,171 @@
 #!/usr/bin/env python3
 """
-Script to create test users for development.
-Creates users with different roles: superadmin, tenant_admin, manager, user, client.
-
-Usage:
-    python create_test_users.py
-
-Or with Docker:
-    docker compose exec backend python create_test_users.py
+Script para crear usuarios de prueba para el sistema de gestión de leads
 """
 
+import asyncio
 import sys
 import os
+from pathlib import Path
 
-# Add backend directory to path if running from project root
-sys.path.insert(0, os.path.dirname(__file__))
+# Add the app directory to the path
+sys.path.append(str(Path(__file__).parent / "app"))
 
-from app.db.session import SessionLocal
+from sqlalchemy.orm import Session
+from app.db.session import engine
 from app.models.user import User, UserRole
 from app.models.tenant import Tenant
 from app.core.security import get_password_hash
 
-
-DEFAULT_PASSWORD = "admin123"
-
-# Test users to create
-TEST_USERS = [
-    {
-        "email": "superadmin@example.com",
-        "full_name": "Super Admin",
-        "role": UserRole.superadmin,
-        "tenant_slug": None,  # Superadmin has no tenant
-    },
-    {
-        "email": "admin@example.com",
-        "full_name": "Tenant Admin",
-        "role": UserRole.tenant_admin,
-        "tenant_slug": "demo-company",
-    },
-    {
-        "email": "manager@example.com",
-        "full_name": "Manager User",
-        "role": UserRole.manager,
-        "tenant_slug": "demo-company",
-    },
-    {
-        "email": "user@example.com",
-        "full_name": "Regular User",
-        "role": UserRole.user,
-        "tenant_slug": "demo-company",
-    },
-    {
-        "email": "client@example.com",
-        "full_name": "Client User",
-        "role": UserRole.client,
-        "tenant_slug": "demo-company",
-        "client_company_name": "Client Company S.A.",
-        "client_tax_id": "12345678901",
-    },
-]
-
-# Demo tenant to create
-DEMO_TENANT = {
-    "name": "Demo Company",
-    "slug": "demo-company",
-    "email": "contact@demo-company.com",
-    "phone": "+1234567890",
-    "country": "Peru",
-    "city": "Lima",
-    "plan": "professional",
-}
-
-
-def get_or_create_tenant(db, tenant_data: dict) -> Tenant:
-    """Get existing tenant or create a new one."""
-    tenant = db.query(Tenant).filter(Tenant.slug == tenant_data["slug"]).first()
-
-    if tenant:
-        print(f"   Tenant '{tenant.name}' already exists")
-        return tenant
-
-    tenant = Tenant(**tenant_data)
-    db.add(tenant)
-    db.commit()
-    db.refresh(tenant)
-    print(f"   Tenant '{tenant.name}' created")
-    return tenant
-
-
-def create_user(db, user_data: dict, tenant: Tenant = None) -> bool:
-    """Create a single user if it doesn't exist."""
-    email = user_data["email"]
-
-    # Check if user already exists
-    existing_user = db.query(User).filter(User.email == email).first()
-    if existing_user:
-        print(f"   [{user_data['role'].value:12}] {email} - already exists")
-        return False
-
-    # Create user
-    hashed_password = get_password_hash(DEFAULT_PASSWORD)
-
-    new_user = User(
-        email=email,
-        hashed_password=hashed_password,
-        full_name=user_data["full_name"],
-        role=user_data["role"],
-        is_active=True,
-        tenant_id=tenant.id if tenant else None,
-        client_company_name=user_data.get("client_company_name"),
-        client_tax_id=user_data.get("client_tax_id"),
-    )
-
-    db.add(new_user)
-    db.commit()
-
-    print(f"   [{user_data['role'].value:12}] {email} - created")
-    return True
-
-
-def create_all_test_users():
-    """Create all test users and the demo tenant."""
-    db = SessionLocal()
-    created_count = 0
-
-    try:
-        print("\n" + "=" * 60)
-        print("Creating Test Users for Development")
+def create_test_users():
+    """Create test users for the lead management system"""
+    
+    with Session(engine) as db:
+        # First, let's check if we have a tenant, if not create one
+        tenant = db.query(Tenant).first()
+        
+        if not tenant:
+            print("🏥 Creando tenant de prueba...")
+            tenant = Tenant(
+                name="Clínica de Prueba",
+                slug="clinica-prueba",
+                is_active=True
+            )
+            db.add(tenant)
+            db.commit()
+            db.refresh(tenant)
+            print(f"✅ Tenant creado: {tenant.name}")
+        else:
+            print(f"🏥 Usando tenant existente: {tenant.name}")
+        
+        tenant_id = tenant.id
+        
+        # Define test users
+        test_users = [
+            {
+                "email": "admin.clinica@example.com",
+                "password": "admin123",
+                "first_name": "Ana",
+                "last_name": "García",
+                "role": UserRole.tenant_admin,
+                "description": "Administradora de la clínica"
+            },
+            {
+                "email": "gestor.leads@example.com", 
+                "password": "gestor123",
+                "first_name": "Carlos",
+                "last_name": "López",
+                "role": UserRole.manager,
+                "description": "Gestor de leads (manager)"
+            },
+            {
+                "email": "dr.martinez@example.com",
+                "password": "doctor123", 
+                "first_name": "Dr. Roberto",
+                "last_name": "Martínez",
+                "role": UserRole.user,
+                "description": "Médico especialista"
+            },
+            {
+                "email": "comercial@example.com",
+                "password": "comercial123",
+                "first_name": "María",
+                "last_name": "Rodríguez", 
+                "role": UserRole.client,
+                "description": "Ejecutiva comercial"
+            },
+            {
+                "email": "recepcion@example.com",
+                "password": "recepcion123",
+                "first_name": "Sofia",
+                "last_name": "Torres",
+                "role": UserRole.recepcionista,
+                "description": "Recepcionista"
+            }
+        ]
+        
+        print(f"\n👥 Creando usuarios de prueba para tenant: {tenant.name}")
         print("=" * 60)
-        print(f"\nDefault password for all users: {DEFAULT_PASSWORD}\n")
-
-        # Step 1: Create demo tenant
-        print("Step 1: Creating Demo Tenant")
-        print("-" * 40)
-        demo_tenant = get_or_create_tenant(db, DEMO_TENANT)
-
-        # Step 2: Create users
-        print("\nStep 2: Creating Users")
-        print("-" * 40)
-
-        for user_data in TEST_USERS:
-            tenant = None
-            if user_data["tenant_slug"]:
-                tenant = db.query(Tenant).filter(
-                    Tenant.slug == user_data["tenant_slug"]
-                ).first()
-
-            if create_user(db, user_data, tenant):
-                created_count += 1
-
-        # Summary
+        
+        created_users = []
+        
+        for user_data in test_users:
+            # Check if user already exists
+            existing_user = db.query(User).filter(User.email == user_data["email"]).first()
+            
+            if existing_user:
+                print(f"⚠️  Usuario ya existe: {user_data['email']} ({existing_user.role})")
+                created_users.append(existing_user)
+                continue
+            
+            # Create new user
+            hashed_password = get_password_hash(user_data["password"])
+            
+            new_user = User(
+                email=user_data["email"],
+                hashed_password=hashed_password,
+                first_name=user_data["first_name"],
+                last_name=user_data["last_name"],
+                full_name=f"{user_data['first_name']} {user_data['last_name']}",
+                role=user_data["role"],
+                tenant_id=tenant_id,
+                is_active=True
+            )
+            
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
+            created_users.append(new_user)
+            
+            print(f"✅ Creado: {user_data['email']} | {user_data['role'].value} | {user_data['description']}")
+        
         print("\n" + "=" * 60)
-        print("Summary")
+        print("🎉 USUARIOS DE PRUEBA CREADOS")
         print("=" * 60)
-        print(f"\nUsers created: {created_count}/{len(TEST_USERS)}")
-        print(f"Password: {DEFAULT_PASSWORD}")
-        print("\nTest accounts:")
+        print(f"🏥 Tenant: {tenant.name} (ID: {tenant.id})")
+        print(f"🌐 Slug: {tenant.slug}")
+        print()
+        print("👤 CREDENCIALES DE ACCESO:")
         print("-" * 40)
-        for user in TEST_USERS:
-            print(f"  {user['role'].value:12} -> {user['email']}")
-
-        print("\n" + "=" * 60)
-        return True
-
-    except Exception as e:
-        print(f"\nError: {e}")
-        db.rollback()
-        return False
-    finally:
-        db.close()
-
+        
+        role_descriptions = {
+            UserRole.tenant_admin: "👑 Admin Clínica - Acceso completo",
+            UserRole.manager: "📊 Gestor de Leads - Gestión de leads", 
+            UserRole.user: "👨‍⚕️ Médico - Leads asignados",
+            UserRole.client: "💼 Comercial - Leads asignados", 
+            UserRole.recepcionista: "📞 Recepcionista - Acceso completo"
+        }
+        
+        for user_data in test_users:
+            role_desc = role_descriptions.get(user_data["role"], user_data["role"].value)
+            print(f"Email: {user_data['email']}")
+            print(f"Password: {user_data['password']}")
+            print(f"Rol: {role_desc}")
+            print(f"Nombre: {user_data['first_name']} {user_data['last_name']}")
+            print("-" * 40)
+        
+        print("\n🚀 EMPEZAR A PROBAR:")
+        print("1. Ve a: http://localhost:3002 (Frontend)")
+        print("2. O usa la API: http://localhost:8002/docs")
+        print("3. Inicia sesión con cualquiera de las credenciales arriba")
+        print("4. El admin de clínica y gestor de leads pueden ver todos los leads")
+        print("5. Los médicos y comerciales solo ven leads asignados a ellos")
+        print("6. La recepcionista puede ver todos los leads")
+        
+        print(f"\n📝 Total usuarios creados: {len(created_users)}")
+        
+        return created_users
 
 if __name__ == "__main__":
-    success = create_all_test_users()
-    sys.exit(0 if success else 1)
+    print("🔧 Iniciando creación de usuarios de prueba...")
+    print("=" * 60)
+    
+    try:
+        users = create_test_users()
+        print(f"\n✅ ¡Proceso completado exitosamente!")
+        
+    except Exception as e:
+        print(f"\n❌ Error durante la creación: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)

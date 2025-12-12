@@ -10,18 +10,20 @@ from app.db.session import Base
 
 class UserRole(str, enum.Enum):
     """
-    Roles del sistema multi-tenant:
+    Roles del sistema de gestión de leads médicos:
     - superadmin: Administrador global de la plataforma (sin tenant)
-    - tenant_admin: Administrador de un tenant específico
-    - manager: Gestor/supervisor dentro de un tenant
-    - user: Usuario/empleado regular de un tenant
-    - client: Cliente externo de un tenant (acceso limitado al portal)
+    - tenant_admin: Administrador de clínica/centro médico (admin_clinica)
+    - manager: Gestor de leads y supervisor comercial
+    - user: Médico/especialista (recibe leads asignados)
+    - client: Comercial (primer contacto con leads)
+    - recepcionista: Personal de recepción (agenda, registro manual)
     """
     superadmin = "superadmin"
     tenant_admin = "tenant_admin"
     manager = "manager"
     user = "user"
     client = "client"
+    recepcionista = "recepcionista"
 
 
 class User(Base):
@@ -103,5 +105,30 @@ class User(Base):
         return self.role == UserRole.client
 
     @property
+    def is_recepcionista(self) -> bool:
+        return self.role == UserRole.recepcionista
+
+    @property
     def belongs_to_tenant(self) -> bool:
         return self.tenant_id is not None
+
+    # Propiedades de conveniencia para el sistema de leads médicos
+    @property
+    def is_admin_clinica(self) -> bool:
+        """Alias para tenant_admin en contexto médico"""
+        return self.role == UserRole.tenant_admin
+
+    @property
+    def is_gestor_leads(self) -> bool:
+        """Alias para manager en contexto médico"""
+        return self.role == UserRole.manager
+
+    @property
+    def is_medico(self) -> bool:
+        """Alias para user en contexto médico"""
+        return self.role == UserRole.user
+
+    @property
+    def is_comercial(self) -> bool:
+        """Alias para client en contexto médico"""
+        return self.role == UserRole.client

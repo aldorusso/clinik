@@ -13,7 +13,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { LogOut, User as UserIcon, Lock, LayoutDashboard, Building2 } from "lucide-react"
+import { 
+  LogOut, 
+  User as UserIcon, 
+  Lock, 
+  LayoutDashboard, 
+  Building2, 
+  Users, 
+  UserCheck, 
+  Calendar,
+  Stethoscope,
+  TrendingUp,
+  Target,
+  BarChart3,
+  PhoneCall
+} from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -53,15 +67,187 @@ export function Sidebar({ user }: SidebarProps) {
     return "U"
   }
 
+  const getRoleName = (role: string) => {
+    switch (role) {
+      case "manager":
+        return "Gestor de Leads"
+      case "user":
+        return "Médico"
+      case "client":
+        return "Comercial"
+      case "recepcionista":
+        return "Recepcionista"
+      default:
+        return "Usuario"
+    }
+  }
+
+  const renderNavigation = () => {
+    if (!user) return null
+
+    const isManager = user.role === "manager"
+    const isDoctor = user.role === "user"
+    const isCommercial = user.role === "client"
+    const isReceptionist = user.role === "recepcionista"
+
+    return (
+      <nav className="space-y-2">
+        <Button
+          variant={pathname === "/dashboard" ? "secondary" : "ghost"}
+          className="w-full justify-start"
+          onClick={() => router.push("/dashboard")}
+        >
+          <LayoutDashboard className="mr-2 h-4 w-4" />
+          Dashboard
+        </Button>
+
+        <Separator className="my-4" />
+
+        {/* Gestión de Leads - Todos excepto doctores ven todos los leads */}
+        {(isManager || isCommercial || isReceptionist) && (
+          <>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              {isManager ? "🎯 Gestión de Leads" : isCommercial ? "💼 Mi Gestión Comercial" : "📞 Gestión de Leads"}
+            </p>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/leads") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/leads")}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              {isCommercial ? "Mis Leads" : "Leads"}
+            </Button>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/pacientes") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/pacientes")}
+            >
+              <UserCheck className="mr-2 h-4 w-4" />
+              {isCommercial ? "Mis Pacientes" : "Pacientes"}
+            </Button>
+          </>
+        )}
+
+        {/* Para médicos - solo sus leads asignados */}
+        {isDoctor && (
+          <>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              👨‍⚕️ Mi Consulta
+            </p>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/mis-leads") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/mis-leads")}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Mis Leads Asignados
+            </Button>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/mis-pacientes") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/mis-pacientes")}
+            >
+              <UserCheck className="mr-2 h-4 w-4" />
+              Mis Pacientes
+            </Button>
+          </>
+        )}
+
+        {/* Citas - Para todos */}
+        <Button
+          variant={pathname.startsWith("/dashboard/citas") ? "secondary" : "ghost"}
+          className="w-full justify-start"
+          onClick={() => router.push("/dashboard/citas")}
+        >
+          <Calendar className="mr-2 h-4 w-4" />
+          {isDoctor ? "Mis Citas" : isCommercial ? "Mis Citas" : "Citas"}
+        </Button>
+
+
+        {/* Estadísticas - Para gestores y comerciales */}
+        {(isManager || isCommercial) && (
+          <>
+            <Separator className="my-4" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              📊 Reportes
+            </p>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/estadisticas") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/estadisticas")}
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              {isCommercial ? "Mi Performance" : "Estadísticas"}
+            </Button>
+
+            {isCommercial && (
+              <Button
+                variant={pathname.startsWith("/dashboard/objetivos") ? "secondary" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => router.push("/dashboard/objetivos")}
+              >
+                <Target className="mr-2 h-4 w-4" />
+                Mis Objetivos
+              </Button>
+            )}
+          </>
+        )}
+
+        {/* Organización - Para gestores, recepcionistas y comerciales */}
+        {(isManager || isReceptionist || isCommercial) && (
+          <>
+            <Separator className="my-4" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              👥 Organización
+            </p>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/directorio") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/directorio")}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Directorio
+            </Button>
+          </>
+        )}
+
+        {/* Configuración - Solo para gestores y recepcionistas */}
+        {(isManager || isReceptionist) && (
+          <>
+            <Separator className="my-4" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              ⚙️ Configuración
+            </p>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/servicios") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/servicios")}
+            >
+              <Building2 className="mr-2 h-4 w-4" />
+              Servicios
+            </Button>
+          </>
+        )}
+      </nav>
+    )
+  }
+
   return (
     <div className="flex h-screen w-64 flex-col border-r bg-card">
       {/* Logo Section */}
       <div className="flex h-16 items-center justify-between border-b px-4">
         <div className="flex items-center space-x-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">E</span>
+            <span className="text-primary-foreground font-bold text-lg">🏥</span>
           </div>
-          <span className="font-bold text-xl">User</span>
+          <span className="font-bold text-xl">Leads CRM</span>
         </div>
         <div className="flex items-center gap-1">
           <NotificationBell />
@@ -76,7 +262,7 @@ export function Sidebar({ user }: SidebarProps) {
             <Building2 className="h-4 w-4 text-muted-foreground" />
             <div className="flex flex-col min-w-0 flex-1">
               <span className="text-xs text-muted-foreground uppercase tracking-wide">
-                Organizacion
+                Clínica
               </span>
               <span className="text-sm font-medium truncate">
                 {user.tenant_name}
@@ -88,31 +274,7 @@ export function Sidebar({ user }: SidebarProps) {
 
       {/* Navigation Section */}
       <div className="flex-1 overflow-y-auto p-4">
-        <nav className="space-y-2">
-          <Button
-            variant={pathname === "/dashboard" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard")}
-          >
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
-          </Button>
-
-          <Separator className="my-4" />
-
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            Gestion
-          </p>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/clientes") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/clientes")}
-          >
-            <Building2 className="mr-2 h-4 w-4" />
-            Clientes
-          </Button>
-        </nav>
+        {renderNavigation()}
       </div>
 
       {/* User Section */}
@@ -135,7 +297,7 @@ export function Sidebar({ user }: SidebarProps) {
                     {user?.first_name || user?.full_name || "Usuario"}
                   </span>
                   <span className="text-xs text-muted-foreground truncate w-full text-left">
-                    {user?.email}
+                    {user ? getRoleName(user.role) : "Usuario"}
                   </span>
                 </div>
               </div>

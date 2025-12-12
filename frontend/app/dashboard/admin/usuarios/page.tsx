@@ -53,15 +53,19 @@ import {
   Briefcase,
   User as UserIcon,
   Filter,
+  Stethoscope,
+  HeadphonesIcon,
 } from "lucide-react"
 import { api, User, UserRole } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { toast } from "sonner"
 
-// Only manager and user roles for tenant admin
+// Configuration for all roles available in tenant admin
 const roleConfig: Record<string, { label: string; icon: any; variant: "default" | "secondary" | "outline" | "destructive" }> = {
-  manager: { label: "Manager", icon: Briefcase, variant: "secondary" },
-  user: { label: "Usuario", icon: UserIcon, variant: "outline" },
+  manager: { label: "Gestor de Leads", icon: Briefcase, variant: "secondary" },
+  user: { label: "Médico", icon: Stethoscope, variant: "outline" },
+  client: { label: "Comercial", icon: UserIcon, variant: "default" },
+  recepcionista: { label: "Recepcionista", icon: HeadphonesIcon, variant: "outline" },
 }
 
 export default function TenantAdminUsuariosPage() {
@@ -114,9 +118,9 @@ export default function TenantAdminUsuariosPage() {
 
     try {
       const usersData = await api.getMyTenantUsers(token)
-      // Filter to only show managers and users (not clients, not tenant_admin)
+      // Show all users in the tenant (except superadmin and tenant_admin)
       const filteredUsers = usersData.filter(
-        (u) => u.role === "manager" || u.role === "user"
+        (u) => u.role !== "superadmin" && u.role !== "tenant_admin"
       )
       setUsers(filteredUsers)
     } catch (error: any) {
@@ -354,13 +358,25 @@ export default function TenantAdminUsuariosPage() {
                         <SelectItem value="manager">
                           <div className="flex items-center gap-2">
                             <Briefcase className="h-4 w-4" />
-                            Manager
+                            Gestor de Leads
                           </div>
                         </SelectItem>
                         <SelectItem value="user">
                           <div className="flex items-center gap-2">
                             <UserIcon className="h-4 w-4" />
-                            Usuario
+                            Médico
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="client">
+                          <div className="flex items-center gap-2">
+                            <UserIcon className="h-4 w-4" />
+                            Comercial
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="recepcionista">
+                          <div className="flex items-center gap-2">
+                            <UserIcon className="h-4 w-4" />
+                            Recepcionista
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -452,13 +468,25 @@ export default function TenantAdminUsuariosPage() {
                       <SelectItem value="manager">
                         <div className="flex items-center gap-2">
                           <Briefcase className="h-4 w-4" />
-                          Manager
+                          Gestor de Leads
                         </div>
                       </SelectItem>
                       <SelectItem value="user">
                         <div className="flex items-center gap-2">
                           <UserIcon className="h-4 w-4" />
-                          Usuario
+                          Médico
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="client">
+                        <div className="flex items-center gap-2">
+                          <UserIcon className="h-4 w-4" />
+                          Comercial
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="recepcionista">
+                        <div className="flex items-center gap-2">
+                          <UserIcon className="h-4 w-4" />
+                          Recepcionista
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -477,10 +505,10 @@ export default function TenantAdminUsuariosPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Managers</CardTitle>
+              <CardTitle className="text-sm font-medium">Gestores</CardTitle>
               <Briefcase className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -491,12 +519,34 @@ export default function TenantAdminUsuariosPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Usuarios</CardTitle>
-              <UserIcon className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Médicos</CardTitle>
+              <Stethoscope className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {users.filter((u) => u.role === "user").length}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Comerciales</CardTitle>
+              <UserIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {users.filter((u) => u.role === "client").length}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Recepcionistas</CardTitle>
+              <HeadphonesIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {users.filter((u) => u.role === "recepcionista").length}
               </div>
             </CardContent>
           </Card>
@@ -520,8 +570,10 @@ export default function TenantAdminUsuariosPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos los roles</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="user">Usuario</SelectItem>
+                    <SelectItem value="manager">Gestor de Leads</SelectItem>
+                    <SelectItem value="user">Médico</SelectItem>
+                    <SelectItem value="client">Comercial</SelectItem>
+                    <SelectItem value="recepcionista">Recepcionista</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -672,8 +724,10 @@ export default function TenantAdminUsuariosPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="user">Usuario</SelectItem>
+                  <SelectItem value="manager">Gestor de Leads</SelectItem>
+                  <SelectItem value="user">Médico</SelectItem>
+                  <SelectItem value="client">Comercial</SelectItem>
+                  <SelectItem value="recepcionista">Recepcionista</SelectItem>
                 </SelectContent>
               </Select>
             </div>

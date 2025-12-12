@@ -169,7 +169,7 @@ async def get_current_manager_or_above(
 async def get_current_tenant_member(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
-    """Get any internal tenant member (tenant_admin, manager, or user - NOT client)."""
+    """Get any internal tenant member (tenant_admin, manager, user, or recepcionista - NOT client)."""
     if current_user.role == UserRole.superadmin:
         return current_user  # Superadmin can access everything
     if current_user.role == UserRole.client:

@@ -53,6 +53,17 @@ class Tenant(Base):
     # Relationships
     users = relationship("User", back_populates="tenant", lazy="dynamic")
     notifications = relationship("Notification", back_populates="tenant", cascade="all, delete-orphan")
+    
+    # Lead Management System Relationships
+    leads = relationship("Lead", back_populates="tenant", cascade="all, delete-orphan")
+    service_categories = relationship("ServiceCategory", cascade="all, delete-orphan")
+    services = relationship("Service", cascade="all, delete-orphan")
+    service_packages = relationship("ServicePackage", cascade="all, delete-orphan")
+    appointments = relationship("Appointment", cascade="all, delete-orphan")
+    treatments = relationship("Treatment", cascade="all, delete-orphan")
+    appointment_availability = relationship("AppointmentAvailability", cascade="all, delete-orphan")
+    appointment_blocks = relationship("AppointmentBlock", cascade="all, delete-orphan")
+    medical_records = relationship("MedicalRecord", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Tenant {self.name} ({self.slug})>"

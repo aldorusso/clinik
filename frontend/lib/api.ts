@@ -19,8 +19,147 @@ export interface ResetPasswordRequest {
   new_password: string;
 }
 
-// User roles for multi-tenant system (5 roles)
-export type UserRole = 'superadmin' | 'tenant_admin' | 'manager' | 'user' | 'client';
+// User roles for medical leads management system (6 roles)
+export type UserRole = 'superadmin' | 'tenant_admin' | 'manager' | 'user' | 'client' | 'recepcionista';
+
+// ============================================
+// LEAD TYPES
+// ============================================
+
+export type LeadSource = 'website' | 'facebook' | 'instagram' | 'google' | 'referidos' | 'llamada_directa' | 'otros';
+export type LeadStatus = 'nuevo' | 'contactado' | 'calificado' | 'cita_agendada' | 'en_tratamiento' | 'completado' | 'no_califica' | 'perdido' | 'recontactar' | 'seguimiento' | 'cotizando' | 'negociando' | 'cerrado';
+export type LeadPriority = 'baja' | 'media' | 'alta' | 'urgente';
+
+export interface Lead {
+  id: string;
+  tenant_id: string;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  source: LeadSource;
+  status: LeadStatus;
+  priority: LeadPriority;
+  assigned_to_id?: string;
+  assigned_to_name?: string;
+  conversion_probability?: number;
+  estimated_value?: number;
+  notes?: string;
+  initial_notes?: string;
+  tags?: string[];
+  address?: string;
+  city?: string;
+  age?: number;
+  gender?: 'masculino' | 'femenino' | 'otro';
+  occupation?: string;
+  medical_history?: string;
+  treatment_interest?: string;
+  budget_range?: string;
+  preferred_contact_method?: 'phone' | 'email' | 'whatsapp';
+  preferred_contact_time?: string;
+  how_did_find_us?: string;
+  referral_source?: string;
+  last_contact_date?: string;
+  next_follow_up_date?: string;
+  consultation_date?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LeadCreate {
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  source: LeadSource;
+  status?: LeadStatus;
+  priority?: LeadPriority;
+  assigned_to_id?: string;
+  conversion_probability?: number;
+  estimated_value?: number;
+  notes?: string;
+  tags?: string[];
+  address?: string;
+  city?: string;
+  age?: number;
+  gender?: 'masculino' | 'femenino' | 'otro';
+  occupation?: string;
+  medical_history?: string;
+  treatment_interest?: string;
+  budget_range?: string;
+  preferred_contact_method?: 'phone' | 'email' | 'whatsapp';
+  preferred_contact_time?: string;
+  how_did_find_us?: string;
+  referral_source?: string;
+  next_follow_up_date?: string;
+  consultation_date?: string;
+}
+
+export interface LeadUpdate {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  source?: LeadSource;
+  status?: LeadStatus;
+  priority?: LeadPriority;
+  assigned_to_id?: string;
+  conversion_probability?: number;
+  estimated_value?: number;
+  notes?: string;
+  tags?: string[];
+  address?: string;
+  city?: string;
+  age?: number;
+  gender?: 'masculino' | 'femenino' | 'otro';
+  occupation?: string;
+  medical_history?: string;
+  treatment_interest?: string;
+  budget_range?: string;
+  preferred_contact_method?: 'phone' | 'email' | 'whatsapp';
+  preferred_contact_time?: string;
+  how_did_find_us?: string;
+  referral_source?: string;
+  last_contact_date?: string;
+  next_follow_up_date?: string;
+  consultation_date?: string;
+}
+
+export interface LeadStats {
+  total_leads: number;
+  new_leads_today: number;
+  new_leads_this_week: number;
+  new_leads_this_month: number;
+  leads_by_status: Record<LeadStatus, number>;
+  leads_by_source: Record<LeadSource, number>;
+  leads_by_priority: Record<LeadPriority, number>;
+  conversion_rate: number;
+  average_conversion_time_days: number | null;
+  unassigned_leads: number;
+  overdue_follow_ups: number;
+  leads_trend_last_30_days: Array<{ date: string; count: number }>;
+}
+
+export interface LeadListResponse {
+  items: Lead[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface LeadInteraction {
+  id: string;
+  lead_id: string;
+  user_id: string;
+  user_name: string;
+  interaction_type: 'call' | 'email' | 'whatsapp' | 'meeting' | 'note';
+  description: string;
+  outcome?: string;
+  next_action?: string;
+  next_action_date?: string;
+  created_at: string;
+}
 
 export interface User {
   id: string;
@@ -1261,6 +1400,246 @@ export const api = {
 
     if (!response.ok) {
       throw new Error('Failed to delete notification');
+    }
+
+    return response.json();
+  },
+
+  // ============================================
+  // LEAD MANAGEMENT
+  // ============================================
+
+  /**
+   * Obtiene la lista de leads del tenant.
+   */
+  async getLeads(
+    token: string,
+    params?: {
+      page?: number;
+      page_size?: number;
+      status?: LeadStatus;
+      source?: LeadSource;
+      priority?: LeadPriority;
+      assigned_to_id?: string;
+      search?: string;
+    }
+  ): Promise<LeadListResponse> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.page_size) searchParams.append('page_size', params.page_size.toString());
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.source) searchParams.append('source', params.source);
+    if (params?.priority) searchParams.append('priority', params.priority);
+    if (params?.assigned_to_id) searchParams.append('assigned_to_id', params.assigned_to_id);
+    if (params?.search) searchParams.append('search', params.search);
+
+    const url = `${API_URL}/api/v1/leads${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch leads');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene estadísticas de leads del tenant.
+   */
+  async getLeadStats(token: string): Promise<LeadStats> {
+    const response = await fetch(`${API_URL}/api/v1/leads/stats/overview`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch lead stats');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene un lead específico por ID.
+   */
+  async getLead(token: string, leadId: string): Promise<Lead> {
+    const response = await fetch(`${API_URL}/api/v1/leads/${leadId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch lead');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Crea un nuevo lead.
+   */
+  async createLead(token: string, data: LeadCreate): Promise<Lead> {
+    const response = await fetch(`${API_URL}/api/v1/leads`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create lead');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Actualiza un lead existente.
+   */
+  async updateLead(token: string, leadId: string, data: LeadUpdate): Promise<Lead> {
+    const response = await fetch(`${API_URL}/api/v1/leads/${leadId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update lead');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Elimina un lead.
+   */
+  async deleteLead(token: string, leadId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/v1/leads/${leadId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete lead');
+    }
+  },
+
+  /**
+   * Asigna un lead a un médico.
+   */
+  async assignLead(token: string, leadId: string, userId: string): Promise<Lead> {
+    const response = await fetch(`${API_URL}/api/v1/leads/${leadId}/assign`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ assigned_to_id: userId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to assign lead');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene las interacciones de un lead.
+   */
+  async getLeadInteractions(token: string, leadId: string): Promise<LeadInteraction[]> {
+    const response = await fetch(`${API_URL}/api/v1/leads/${leadId}/interactions`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch lead interactions');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Crea una nueva interacción para un lead.
+   */
+  async createLeadInteraction(
+    token: string, 
+    leadId: string, 
+    data: {
+      interaction_type: 'call' | 'email' | 'whatsapp' | 'meeting' | 'note';
+      description: string;
+      outcome?: string;
+      next_action?: string;
+      next_action_date?: string;
+    }
+  ): Promise<LeadInteraction> {
+    const response = await fetch(`${API_URL}/api/v1/leads/${leadId}/interactions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create lead interaction');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene los leads asignados al usuario actual (para médicos).
+   */
+  async getMyAssignedLeads(token: string): Promise<Lead[]> {
+    const response = await fetch(`${API_URL}/api/v1/leads/my-assigned`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch assigned leads');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Convierte un lead en paciente.
+   */
+  async convertLeadToPatient(token: string, leadId: string): Promise<{ message: string; patient_id: string }> {
+    const response = await fetch(`${API_URL}/api/v1/leads/${leadId}/convert-to-patient`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to convert lead to patient');
     }
 
     return response.json();
