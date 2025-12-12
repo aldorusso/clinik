@@ -42,6 +42,7 @@ import {
   CreditCard,
   Stethoscope,
   UserPlus,
+  CalendarCheck,
   PhoneCall,
   RefreshCw,
   X
