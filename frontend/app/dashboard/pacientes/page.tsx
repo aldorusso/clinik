@@ -2,399 +2,288 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { PatientCard } from "@/components/patients/patient-card"
 import { 
-  UserCheck, 
-  Plus, 
+  Users, 
   Search, 
-  Filter,
-  Calendar,
-  Phone,
-  Mail,
-  Heart,
-  Edit,
-  Trash2,
+  Shield,
   Eye,
-  FileText
+  EyeOff,
+  UserCheck,
+  AlertTriangle
 } from "lucide-react"
-import { User, api } from "@/lib/api"
+import { api, User } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
+interface Patient {
+  id: string
+  full_name: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  access_level: "full" | "limited" | "basic"
+  can_view_details: boolean
+  can_schedule: boolean
+  is_active: boolean
+}
+
 export default function PacientesPage() {
   const { toast } = useToast()
-  const [pacientes, setPacientes] = useState<User[]>([])
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedPatient, setSelectedPatient] = useState<User | null>(null)
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
-  // Cargar pacientes desde la API
-  const fetchPacientes = async () => {
-    setLoading(true)
-    const token = auth.getToken()
-    if (!token) {
-      setLoading(false)
-      return
+  // Load current user and patients
+  useEffect(() => {
+    const loadData = async () => {
+      const token = auth.getToken()
+      if (!token) return
+
+      try {
+        // Get current user to determine access level
+        const userData = await api.getCurrentUser(token)
+        setCurrentUser(userData)
+
+        // Get patients with role-based access
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/patients/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const patientsData = await response.json()
+          setPatients(patientsData)
+        } else {
+          throw new Error('Error loading patients')
+        }
+      } catch (error: any) {
+        console.error('Error loading data:', error)
+        toast({
+          title: "Error",
+          description: "Error al cargar la información de pacientes",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
     }
 
-    try {
-      const patientsData = await api.getMyTenantClients(token)
-      setPacientes(patientsData)
-    } catch (error: any) {
-      console.error('Error fetching patients:', error)
-      toast({
-        title: "Error",
-        description: "Error al cargar los pacientes",
-        variant: "destructive",
-      })
-      setPacientes([])
-    } finally {
-      setLoading(false)
-    }
+    loadData()
+  }, [toast])
+
+  const filteredPatients = patients.filter(patient => {
+    if (!searchTerm) return true
+    const search = searchTerm.toLowerCase()
+    return patient.full_name.toLowerCase().includes(search) ||
+           patient.first_name.toLowerCase().includes(search) ||
+           patient.last_name.toLowerCase().includes(search)
+  })
+
+  const handleScheduleAppointment = (patientId: string) => {
+    toast({
+      title: "Agendar Cita",
+      description: "Funcionalidad de agendamiento en desarrollo",
+    })
+    // TODO: Navigate to appointment scheduling
   }
 
-  useEffect(() => {
-    fetchPacientes()
-  }, [])
-
-  // Función para eliminar paciente
-  const handleDeletePatient = async (patientId: string) => {
+  const handleViewDetails = async (patientId: string) => {
     const token = auth.getToken()
     if (!token) return
 
     try {
-      await api.deleteMyTenantClient(token, patientId)
-      toast({
-        title: "Éxito",
-        description: "Paciente eliminado correctamente",
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/patients/${patientId}/details`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
-      fetchPacientes() // Recargar lista
-    } catch (error: any) {
-      console.error('Error deleting patient:', error)
+
+      if (response.ok) {
+        const patientDetails = await response.json()
+        toast({
+          title: "Detalles del Paciente",
+          description: `Cargando información médica de ${patientDetails.full_name}`,
+        })
+        // TODO: Open patient details modal or navigate to details page
+      } else {
+        throw new Error('No authorized to view patient details')
+      }
+    } catch (error) {
       toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Error al eliminar el paciente",
+        title: "Sin Autorización",
+        description: "Solo los médicos pueden ver detalles completos de pacientes",
         variant: "destructive",
       })
     }
   }
 
-  // Función para mostrar detalles del paciente
-  const handleViewPatient = (patient: User) => {
-    setSelectedPatient(patient)
-    setIsDetailModalOpen(true)
-  }
-
-  // Filtrar pacientes según búsqueda
-  const filteredPacientes = pacientes.filter(patient => {
-    if (!searchTerm) return true
-    const name = `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase()
-    const email = patient.email?.toLowerCase() || ""
-    const phone = patient.phone?.toLowerCase() || ""
-    const search = searchTerm.toLowerCase()
+  const getAccessLevelStats = () => {
+    const fullAccess = patients.filter(p => p.access_level === "full").length
+    const limitedAccess = patients.filter(p => p.access_level === "limited").length
+    const basicAccess = patients.filter(p => p.access_level === "basic").length
     
-    return name.includes(search) || email.includes(search) || phone.includes(search)
-  })
-
-  // Estadísticas calculadas
-  const stats = {
-    total: pacientes.length,
-    activos: pacientes.filter(p => p.is_active).length,
-    inactivos: pacientes.filter(p => !p.is_active).length,
-    nuevos_este_mes: pacientes.filter(p => {
-      const created = new Date(p.created_at)
-      const now = new Date()
-      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
-    }).length
+    return { fullAccess, limitedAccess, basicAccess }
   }
 
-  const getStatusBadge = (isActive: boolean) => {
-    if (isActive) {
-      return <Badge variant="default">Activo</Badge>
-    } else {
-      return <Badge variant="destructive">Inactivo</Badge>
-    }
-  }
+  const stats = getAccessLevelStats()
+  const isDoctor = currentUser?.role === "user"
+  const isAdmin = currentUser?.role === "tenant_admin"
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
     )
   }
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">👥 Pacientes</h1>
-          <p className="text-muted-foreground">
-            Gestiona todos los pacientes de la clínica que ya son clientes
-          </p>
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <UserCheck className="h-8 w-8" />
+              Gestión de Pacientes
+            </h1>
+            <p className="text-muted-foreground">
+              Sistema con protección de datos médicos según rol de usuario
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            {patients.length} pacientes
+          </div>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo Paciente
-        </Button>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pacientes</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              Pacientes registrados
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Activos</CardTitle>
-            <Heart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activos}</div>
-            <p className="text-xs text-muted-foreground">
-              En tratamiento actual
-            </p>
+        {/* Access Level Warning */}
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Shield className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-amber-800">Protección de Datos Médicos</h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  {isDoctor || isAdmin ? (
+                    "✓ Tienes acceso completo a la información médica de los pacientes."
+                  ) : (
+                    "⚠️ Tu rol permite ver solo información básica. Los detalles médicos están protegidos."
+                  )}
+                </p>
+                <div className="mt-2 flex items-center gap-4 text-xs">
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-3 w-3" />
+                    Médicos: Acceso completo
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <EyeOff className="h-3 w-3" />
+                    Otros: Solo nombres + agendamiento
+                  </span>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Nuevos Este Mes</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.nuevos_este_mes}</div>
-            <p className="text-xs text-muted-foreground">
-              Registrados este mes
-            </p>
-          </CardContent>
-        </Card>
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Pacientes</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{patients.length}</div>
+              <p className="text-xs text-muted-foreground">En el sistema</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Acceso Completo</CardTitle>
+              <Shield className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.fullAccess}</div>
+              <p className="text-xs text-muted-foreground">Para tu rol</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactivos</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.inactivos}</div>
-            <p className="text-xs text-muted-foreground">
-              Pacientes dados de baja
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Acceso Limitado</CardTitle>
+              <EyeOff className="h-4 w-4 text-amber-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-amber-600">{stats.limitedAccess}</div>
+              <p className="text-xs text-muted-foreground">Datos protegidos</p>
+            </CardContent>
+          </Card>
 
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Puede Agendar</CardTitle>
+              <UserCheck className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {patients.filter(p => p.can_schedule).length}
+              </div>
+              <p className="text-xs text-muted-foreground">Citas disponibles</p>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-4">
-        <div className="relative flex-1">
+        {/* Search */}
+        <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar pacientes por nombre, email o teléfono..."
+            placeholder="Buscar pacientes por nombre..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Filtros
-        </Button>
-      </div>
 
-      {/* Pacientes Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Pacientes</CardTitle>
-          <CardDescription>
-            Pacientes que ya son clientes de la clínica
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredPacientes.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {searchTerm ? "No se encontraron pacientes con ese criterio de búsqueda" : "No hay pacientes registrados"}
-              </div>
-            ) : (
-              filteredPacientes.map((paciente: User) => (
-                <div key={paciente.id} className="border rounded-lg p-4 hover:bg-muted/50">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">
-                          {paciente.full_name || `${paciente.first_name || ''} ${paciente.last_name || ''}`.trim() || paciente.email}
-                        </h3>
-                        {getStatusBadge(paciente.is_active)}
-                        {paciente.client_company_name && (
-                          <Badge variant="outline">
-                            {paciente.client_company_name}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {paciente.email}
-                        </div>
-                        {paciente.phone && (
-                          <div className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
-                            {paciente.phone}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Registrado: {formatDate(paciente.created_at)}
-                        </div>
-                      </div>
-                      {paciente.client_tax_id && (
-                        <div className="text-xs text-muted-foreground">
-                          RFC/Tax ID: {paciente.client_tax_id}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleViewPatient(paciente)}
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        Ver Detalles
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <FileText className="h-3 w-3 mr-1" />
-                        Historial
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-3 w-3 mr-1" />
-                        Editar
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDeletePatient(paciente.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Modal de detalles del paciente */}
-      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Detalles del Paciente</DialogTitle>
-            <DialogDescription>
-              Información completa del paciente seleccionado
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedPatient && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Nombre Completo</label>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedPatient.full_name || `${selectedPatient.first_name || ''} ${selectedPatient.last_name || ''}`.trim() || 'No especificado'}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Estado</label>
-                  <p className="text-sm text-muted-foreground">
-                    {getStatusBadge(selectedPatient.is_active)}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Email</label>
-                  <p className="text-sm text-muted-foreground">{selectedPatient.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Teléfono</label>
-                  <p className="text-sm text-muted-foreground">{selectedPatient.phone || 'No especificado'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Empresa</label>
-                  <p className="text-sm text-muted-foreground">{selectedPatient.client_company_name || 'No especificado'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">RFC/Tax ID</label>
-                  <p className="text-sm text-muted-foreground">{selectedPatient.client_tax_id || 'No especificado'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Fecha de Registro</label>
-                  <p className="text-sm text-muted-foreground">{formatDate(selectedPatient.created_at)}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Última Actualización</label>
-                  <p className="text-sm text-muted-foreground">{formatDate(selectedPatient.updated_at)}</p>
-                </div>
-              </div>
-              
-              {(selectedPatient.city || selectedPatient.country) && (
-                <div>
-                  <label className="text-sm font-medium">Ubicación</label>
-                  <p className="text-sm text-muted-foreground">
-                    {[selectedPatient.city, selectedPatient.country].filter(Boolean).join(', ') || 'No especificado'}
-                  </p>
-                </div>
-              )}
+        {/* Patients List */}
+        <div className="space-y-4">
+          {filteredPatients.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No se encontraron pacientes</h3>
+              <p className="text-muted-foreground">
+                {searchTerm 
+                  ? "Intenta con otros términos de búsqueda"
+                  : "No hay pacientes registrados en el sistema"
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredPatients.map((patient) => (
+                <PatientCard
+                  key={patient.id}
+                  patient={patient}
+                  currentUserRole={currentUser?.role || ""}
+                  onScheduleAppointment={handleScheduleAppointment}
+                  onViewDetails={handleViewDetails}
+                />
+              ))}
             </div>
           )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDetailModalOpen(false)}>
-              Cerrar
-            </Button>
-            <Button onClick={() => {
-              // TODO: Implementar edición
-              setIsDetailModalOpen(false)
-            }}>
-              Editar Paciente
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
       </div>
     </DashboardLayout>
   )

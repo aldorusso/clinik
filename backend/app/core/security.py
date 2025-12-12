@@ -169,10 +169,11 @@ async def get_current_manager_or_above(
 async def get_current_tenant_member(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
-    """Get any internal tenant member (tenant_admin, manager, user, or recepcionista - NOT client)."""
+    """Get any internal tenant member (tenant_admin, manager, user, client/comercial, or recepcionista)."""
     if current_user.role == UserRole.superadmin:
         return current_user  # Superadmin can access everything
-    if current_user.role == UserRole.client:
+    # In our medical leads system, 'client' role represents internal comercials, not external clients
+    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.user, UserRole.client, UserRole.recepcionista]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Internal access only"
@@ -202,6 +203,49 @@ async def get_current_client(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Client must belong to a tenant"
+        )
+    return current_user
+
+
+# ============================================
+# MEDICAL ACCESS: For patient medical information
+# ============================================
+
+async def get_current_medical_staff(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    """Get current user with medical staff access (tenant_admin, manager, or user/médico only)."""
+    if current_user.role == UserRole.superadmin:
+        return current_user  # Superadmin can access everything
+    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.user]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Medical staff access required"
+        )
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must belong to a tenant"
+        )
+    return current_user
+
+async def get_current_doctor_only(
+    current_user: User = Depends(get_current_active_user)
+) -> User:
+    """Get current user with doctor-only access (user role = médico)."""
+    if current_user.role == UserRole.superadmin:
+        return current_user  # Superadmin can access everything
+    if current_user.role == UserRole.tenant_admin:
+        return current_user  # Tenant admin can access patient details
+    if current_user.role != UserRole.user:  # user = médico in our system
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Doctor access required for detailed patient information"
+        )
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must belong to a tenant"
         )
     return current_user
 

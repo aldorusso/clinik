@@ -1646,7 +1646,327 @@ export const api = {
 
     return response.json();
   },
+
+  // ============================================
+  // APPOINTMENTS MANAGEMENT
+  // ============================================
+
+  /**
+   * Obtiene la lista de citas del tenant.
+   */
+  async getAppointments(
+    token: string,
+    params?: {
+      page?: number;
+      page_size?: number;
+      status?: AppointmentStatus[];
+      type?: AppointmentType[];
+      provider_id?: string;
+      service_id?: string;
+      patient_id?: string;
+      lead_id?: string;
+      date_from?: string;
+      date_to?: string;
+      is_today?: boolean;
+      search?: string;
+      order_by?: 'scheduled_at' | 'created_at' | 'patient_name' | 'provider_name';
+      order_direction?: 'asc' | 'desc';
+    }
+  ): Promise<Appointment[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.page_size) searchParams.append('page_size', params.page_size.toString());
+    if (params?.status) params.status.forEach(s => searchParams.append('status', s));
+    if (params?.type) params.type.forEach(t => searchParams.append('type', t));
+    if (params?.provider_id) searchParams.append('provider_id', params.provider_id);
+    if (params?.service_id) searchParams.append('service_id', params.service_id);
+    if (params?.patient_id) searchParams.append('patient_id', params.patient_id);
+    if (params?.lead_id) searchParams.append('lead_id', params.lead_id);
+    if (params?.date_from) searchParams.append('date_from', params.date_from);
+    if (params?.date_to) searchParams.append('date_to', params.date_to);
+    if (params?.is_today) searchParams.append('is_today', 'true');
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.order_by) searchParams.append('order_by', params.order_by);
+    if (params?.order_direction) searchParams.append('order_direction', params.order_direction);
+
+    const url = `${API_URL}/api/v1/appointments/${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch appointments');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene una cita específica por ID.
+   */
+  async getAppointment(token: string, appointmentId: string): Promise<AppointmentDetailed> {
+    const response = await fetch(`${API_URL}/api/v1/appointments/${appointmentId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch appointment');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Crea una nueva cita médica.
+   */
+  async createAppointment(token: string, data: AppointmentCreate): Promise<Appointment> {
+    const response = await fetch(`${API_URL}/api/v1/appointments/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create appointment');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Actualiza una cita existente.
+   */
+  async updateAppointment(token: string, appointmentId: string, data: AppointmentUpdate): Promise<Appointment> {
+    const response = await fetch(`${API_URL}/api/v1/appointments/${appointmentId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update appointment');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Actualiza solo el estado de una cita.
+   */
+  async updateAppointmentStatus(
+    token: string, 
+    appointmentId: string, 
+    status: AppointmentStatus, 
+    notes?: string
+  ): Promise<Appointment> {
+    const response = await fetch(`${API_URL}/api/v1/appointments/${appointmentId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status, notes }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update appointment status');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Elimina una cita (la cancela).
+   */
+  async deleteAppointment(token: string, appointmentId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/v1/appointments/${appointmentId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete appointment');
+    }
+  },
+
+  /**
+   * Obtiene estadísticas de citas del tenant.
+   */
+  async getAppointmentStats(
+    token: string,
+    date_from?: string,
+    date_to?: string
+  ): Promise<AppointmentStats> {
+    const searchParams = new URLSearchParams();
+    if (date_from) searchParams.append('date_from', date_from);
+    if (date_to) searchParams.append('date_to', date_to);
+
+    const url = `${API_URL}/api/v1/appointments/stats/summary${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch appointment stats');
+    }
+
+    return response.json();
+  },
 };
+
+// ============================================
+// APPOINTMENT TYPES
+// ============================================
+
+export type AppointmentStatus = 
+  | 'scheduled'        // Cita programada
+  | 'confirmed'        // Cita confirmada por el paciente
+  | 'in_progress'      // Cita en curso
+  | 'completed'        // Cita completada
+  | 'no_show'         // Paciente no se presentó
+  | 'cancelled_by_patient'  // Cancelada por el paciente
+  | 'cancelled_by_clinic'   // Cancelada por la clínica
+  | 'rescheduled';     // Reprogramada
+
+export type AppointmentType = 
+  | 'consultation'     // Consulta inicial/valoración
+  | 'treatment'        // Sesión de tratamiento
+  | 'follow_up'        // Seguimiento post-tratamiento
+  | 'emergency';       // Emergencia o urgencia
+
+export interface Appointment {
+  id: string;
+  tenant_id: string;
+  lead_id?: string;
+  patient_id?: string;
+  provider_id: string;
+  service_id?: string;  // Made optional to match backend
+  type: AppointmentType;
+  status: AppointmentStatus;
+  scheduled_at: string;
+  duration_minutes: number;
+  title?: string;
+  notes?: string;
+  internal_notes?: string;
+  patient_name: string;
+  patient_phone: string;
+  patient_email?: string;
+  estimated_cost?: number;
+  quoted_price?: number;
+  deposit_required?: number;
+  deposit_paid?: number;
+  confirmed_at?: string;
+  checked_in_at?: string;
+  checked_out_at?: string;
+  actual_duration_minutes?: number;
+  cancelled_at?: string;
+  cancellation_reason?: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Información relacionada
+  service_name: string;
+  service_duration: number;
+  provider_name: string;
+  provider_email: string;
+  lead_full_name?: string;
+  patient_full_name?: string;
+  cancelled_by_name?: string;
+  
+  // Campos computados
+  scheduled_end_at: string;
+  is_today: boolean;
+  is_past_due: boolean;
+  is_upcoming: boolean;
+  is_active: boolean;
+  can_be_cancelled: boolean;
+  can_be_rescheduled: boolean;
+  needs_confirmation: boolean;
+  needs_reminder: boolean;
+  status_color: string;
+}
+
+export interface AppointmentDetailed extends Appointment {
+  patient_details?: any;
+  provider_details?: any;
+  service_details?: any;
+  lead_details?: any;
+  status_history: any[];
+  attachments: any[];
+}
+
+export interface AppointmentCreate {
+  lead_id?: string;
+  patient_id?: string;
+  provider_id: string;
+  service_id?: string;  // Made optional to match backend
+  type?: AppointmentType;
+  scheduled_at: string;
+  duration_minutes?: number;
+  title?: string;
+  notes?: string;
+  patient_name: string;
+  patient_phone: string;
+  patient_email?: string;
+  estimated_cost?: number;
+  quoted_price?: number;
+  deposit_required?: number;
+}
+
+export interface AppointmentUpdate {
+  lead_id?: string;
+  patient_id?: string;
+  provider_id?: string;
+  service_id?: string;
+  type?: AppointmentType;
+  status?: AppointmentStatus;
+  scheduled_at?: string;
+  duration_minutes?: number;
+  title?: string;
+  notes?: string;
+  internal_notes?: string;
+  patient_name?: string;
+  patient_phone?: string;
+  patient_email?: string;
+  estimated_cost?: number;
+  quoted_price?: number;
+  deposit_required?: number;
+  deposit_paid?: number;
+}
+
+export interface AppointmentStats {
+  total_appointments: number;
+  today_appointments: number;
+  upcoming_appointments: number;
+  completed_appointments: number;
+  cancelled_appointments: number;
+  no_show_appointments: number;
+  appointments_by_status: Record<string, number>;
+  appointments_by_type: Record<string, number>;
+  appointments_by_provider: Record<string, number>;
+  show_up_rate: number;
+  on_time_rate: number;
+  average_duration: number;
+  appointments_trend: any[];
+}
 
 // ============================================
 // PLAN TYPES

@@ -60,7 +60,7 @@ class Appointment(Base):
     lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True)  # Lead original
     patient_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # Paciente (puede ser diferente del lead)
     provider_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)  # Médico/especialista
-    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id"), nullable=False)
+    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id"), nullable=True)
     
     # Información de la cita
     type = Column(SQLEnum(AppointmentType), nullable=False, default=AppointmentType.consultation)

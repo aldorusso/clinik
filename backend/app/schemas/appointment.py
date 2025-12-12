@@ -14,7 +14,7 @@ class AppointmentBase(BaseModel):
     lead_id: Optional[UUID] = Field(None, description="ID del lead original")
     patient_id: Optional[UUID] = Field(None, description="ID del paciente (usuario)")
     provider_id: UUID = Field(..., description="ID del médico/proveedor")
-    service_id: UUID = Field(..., description="ID del servicio")
+    service_id: Optional[UUID] = Field(None, description="ID del servicio")
     type: AppointmentType = Field(AppointmentType.consultation, description="Tipo de cita")
     scheduled_at: datetime = Field(..., description="Fecha y hora programada")
     duration_minutes: int = Field(60, gt=0, le=480, description="Duración en minutos")
