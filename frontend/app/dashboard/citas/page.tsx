@@ -61,6 +61,7 @@ export default function CitasPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("hoy")
+  const [selectedProvider, setSelectedProvider] = useState<string>("")  // New: filter by doctor
   const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
@@ -167,7 +168,14 @@ export default function CitasPage() {
 
   const handleStatusUpdate = async (appointmentId: string, newStatus: AppointmentStatus) => {
     const token = auth.getToken()
-    if (!token) return
+    if (!token) {
+      toast({
+        title: "Error de autenticación",
+        description: "No se encontró un token válido. Por favor, inicia sesión nuevamente.",
+        variant: "destructive",
+      })
+      return
+    }
 
     try {
       await api.updateAppointmentStatus(token, appointmentId, newStatus)
@@ -186,9 +194,19 @@ export default function CitasPage() {
       reloadAppointments()
     } catch (error: any) {
       console.error('Error updating appointment status:', error)
+      
+      let errorMessage = "Error al actualizar el estado"
+      if (error.message?.includes('CORS')) {
+        errorMessage = "Error de conexión. Intenta recargar la página."
+      } else if (error.message?.includes('Failed to fetch')) {
+        errorMessage = "Error de conexión con el servidor. Verifica tu internet."
+      } else if (error.message && error.message !== '[object Object]') {
+        errorMessage = error.message
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Error al actualizar el estado",
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -270,7 +288,7 @@ export default function CitasPage() {
     }
   }
 
-  // Filter appointments based on tab and search
+  // Filter appointments based on tab, search, and doctor
   const getFilteredAppointments = () => {
     let filtered = citas
 
@@ -283,6 +301,11 @@ export default function CitasPage() {
       filtered = citas.filter(cita => cita.status === 'confirmed')
     } else if (selectedTab === "consulta") {
       filtered = citas.filter(cita => cita.status === 'in_progress')
+    }
+
+    // Apply doctor filter
+    if (selectedProvider) {
+      filtered = filtered.filter(cita => cita.provider_id === selectedProvider)
     }
 
     // Apply search filter
@@ -567,7 +590,7 @@ export default function CitasPage() {
           </Card>
         </div>
 
-        {/* Search and Tabs */}
+        {/* Search, Filters and Tabs */}
         <div className="flex flex-col space-y-4">
           <div className="flex gap-4">
             <div className="relative flex-1">
@@ -579,6 +602,22 @@ export default function CitasPage() {
                 className="pl-10"
               />
             </div>
+            <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filtrar por médico" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos los médicos</SelectItem>
+                {availableProviders.map((provider) => (
+                  <SelectItem key={provider.id} value={provider.id}>
+                    <div className="flex items-center gap-2">
+                      <Stethoscope className="h-4 w-4" />
+                      {provider.full_name || `${provider.first_name} ${provider.last_name}`}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button variant="outline" onClick={reloadAppointments}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Actualizar

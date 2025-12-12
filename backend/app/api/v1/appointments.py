@@ -354,8 +354,8 @@ async def update_appointment(
     
     result = {
         **appointment_with_relations.__dict__,
-        "service_name": appointment_with_relations.service.name,
-        "service_duration": appointment_with_relations.service.duration_minutes,
+        "service_name": appointment_with_relations.service.name if appointment_with_relations.service else "Consulta General",
+        "service_duration": appointment_with_relations.service.duration_minutes if appointment_with_relations.service else appointment_with_relations.duration_minutes,
         "provider_name": appointment_with_relations.provider.full_name,
         "provider_email": appointment_with_relations.provider.email,
         "scheduled_end_at": appointment_with_relations.scheduled_end_at,
@@ -423,8 +423,8 @@ async def update_appointment_status(
     
     result = {
         **appointment_with_relations.__dict__,
-        "service_name": appointment_with_relations.service.name,
-        "service_duration": appointment_with_relations.service.duration_minutes,
+        "service_name": appointment_with_relations.service.name if appointment_with_relations.service else "Consulta General",
+        "service_duration": appointment_with_relations.service.duration_minutes if appointment_with_relations.service else appointment_with_relations.duration_minutes,
         "provider_name": appointment_with_relations.provider.full_name,
         "provider_email": appointment_with_relations.provider.email,
         "scheduled_end_at": appointment_with_relations.scheduled_end_at,
