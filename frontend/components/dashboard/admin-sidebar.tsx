@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { LogOut, User as UserIcon, Lock, LayoutDashboard, Users, Building2, Activity, Stethoscope, Target } from "lucide-react"
+import { LogOut, User as UserIcon, Lock, LayoutDashboard, Users, Building2, Activity, Stethoscope, Target, CalendarDays } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -138,6 +138,21 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           >
             <Target className="mr-2 h-4 w-4" />
             Objetivos Comerciales
+          </Button>
+
+          <Separator className="my-4" />
+
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+            Agenda
+          </p>
+
+          <Button
+            variant={pathname.startsWith("/dashboard/calendario") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/calendario")}
+          >
+            <CalendarDays className="mr-2 h-4 w-4" />
+            📅 Calendario
           </Button>
 
           <Separator className="my-4" />

@@ -22,6 +22,7 @@ import {
   Users, 
   UserCheck, 
   Calendar,
+  CalendarDays,
   Stethoscope,
   TrendingUp,
   Target,
@@ -156,6 +157,16 @@ export function Sidebar({ user }: SidebarProps) {
         >
           <Calendar className="mr-2 h-4 w-4" />
           {isDoctor ? "Mis Citas" : isCommercial ? "Mis Citas" : "Citas"}
+        </Button>
+
+        {/* Calendario - Para todos */}
+        <Button
+          variant={pathname.startsWith("/dashboard/calendario") ? "secondary" : "ghost"}
+          className="w-full justify-start"
+          onClick={() => router.push("/dashboard/calendario")}
+        >
+          <CalendarDays className="mr-2 h-4 w-4" />
+          📅 Calendario
         </Button>
 
 

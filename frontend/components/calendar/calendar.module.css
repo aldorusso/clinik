@@ -1,0 +1,200 @@
+/* Calendar Grid Styles */
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+}
+
+.calendarDay {
+  border: 1px solid hsl(var(--border));
+  min-height: 120px;
+  padding: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.calendarDay:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.calendarDay.today {
+  background-color: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary));
+}
+
+.calendarDay.otherMonth {
+  background-color: hsl(var(--muted) / 0.2);
+  color: hsl(var(--muted-foreground));
+}
+
+.dayNumber {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.dayNumber.today {
+  color: hsl(var(--primary));
+  font-weight: 700;
+}
+
+.appointmentItem {
+  font-size: 0.75rem;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  border: 1px solid;
+}
+
+.appointmentItem:hover {
+  opacity: 0.8;
+}
+
+.appointmentItem.scheduled {
+  background-color: hsl(45 93% 89%);
+  color: hsl(25 95% 53%);
+  border-color: hsl(45 93% 76%);
+}
+
+.appointmentItem.confirmed {
+  background-color: hsl(214 95% 93%);
+  color: hsl(213 94% 68%);
+  border-color: hsl(214 95% 80%);
+}
+
+.appointmentItem.inProgress {
+  background-color: hsl(262 83% 96%);
+  color: hsl(263 69% 42%);
+  border-color: hsl(262 83% 83%);
+}
+
+.appointmentItem.completed {
+  background-color: hsl(142 76% 93%);
+  color: hsl(142 69% 58%);
+  border-color: hsl(142 76% 80%);
+}
+
+.appointmentItem.cancelled {
+  background-color: hsl(0 84% 95%);
+  color: hsl(0 84% 60%);
+  border-color: hsl(0 84% 82%);
+}
+
+/* Week View Styles */
+.weekGrid {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  gap: 0;
+}
+
+.timeSlot {
+  border: 1px solid hsl(var(--border));
+  padding: 4px;
+  font-size: 0.75rem;
+  text-align: center;
+  background-color: hsl(var(--muted) / 0.3);
+  color: hsl(var(--muted-foreground));
+}
+
+.daySlot {
+  border: 1px solid hsl(var(--border));
+  min-height: 60px;
+  padding: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.daySlot:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.daySlot.today {
+  background-color: hsl(var(--primary) / 0.05);
+}
+
+.weekHeader {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  gap: 0;
+  border-bottom: 2px solid hsl(var(--border));
+}
+
+.weekHeaderDay {
+  padding: 16px 12px;
+  text-align: center;
+  border-left: 1px solid hsl(var(--border));
+}
+
+.weekHeaderDay.today {
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+.weekHeaderLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.weekHeaderDate {
+  font-size: 1.125rem;
+}
+
+.weekHeaderDate.today {
+  font-weight: 700;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .calendarDay {
+    min-height: 80px;
+    padding: 4px;
+  }
+  
+  .dayNumber {
+    font-size: 0.75rem;
+  }
+  
+  .appointmentItem {
+    font-size: 0.6875rem;
+    padding: 1px 2px;
+  }
+  
+  .weekGrid {
+    grid-template-columns: 60px repeat(7, 1fr);
+  }
+  
+  .timeSlot {
+    font-size: 0.6875rem;
+    padding: 2px;
+  }
+  
+  .daySlot {
+    min-height: 40px;
+    padding: 2px;
+  }
+}
+
+/* Animation for loading states */
+.loadingShimmer {
+  background: linear-gradient(90deg, 
+    hsl(var(--muted)) 25%, 
+    hsl(var(--muted) / 0.5) 50%, 
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
