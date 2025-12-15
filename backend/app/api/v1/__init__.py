@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications, leads, appointments, patients
+from app.api.v1.endpoints import medical_history
 
 api_router = APIRouter()
 
@@ -35,6 +36,9 @@ api_router.include_router(appointments.router, prefix="/appointments", tags=["ap
 
 # Include patients router (patient management with role-based access)
 api_router.include_router(patients.router, prefix="/patients", tags=["patients"])
+
+# Include medical history router
+api_router.include_router(medical_history.router, prefix="/medical", tags=["medical-history"])
 
 
 @api_router.get("/")

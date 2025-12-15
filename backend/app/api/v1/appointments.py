@@ -69,6 +69,10 @@ async def get_appointments(
         Appointment.tenant_id == current_user.tenant_id
     )
     
+    # Si el usuario es médico (role = "user"), solo mostrar sus citas
+    if current_user.role == "user":
+        query = query.filter(Appointment.provider_id == current_user.id)
+    
     # Aplicar filtros
     if status:
         query = query.filter(Appointment.status.in_(status))
@@ -273,7 +277,13 @@ async def get_appointment(
     ).filter(
         Appointment.id == appointment_id,
         Appointment.tenant_id == current_user.tenant_id
-    ).first()
+    )
+    
+    # Si el usuario es médico, solo puede ver sus propias citas
+    if current_user.role == "user":
+        appointment = appointment.filter(Appointment.provider_id == current_user.id)
+    
+    appointment = appointment.first()
     
     if not appointment:
         raise HTTPException(status_code=404, detail="Cita no encontrada")
@@ -321,10 +331,16 @@ async def update_appointment(
     Actualizar una cita existente.
     """
     
-    appointment = db.query(Appointment).filter(
+    query = db.query(Appointment).filter(
         Appointment.id == appointment_id,
         Appointment.tenant_id == current_user.tenant_id
-    ).first()
+    )
+    
+    # Si el usuario es médico, solo puede editar sus propias citas
+    if current_user.role == "user":
+        query = query.filter(Appointment.provider_id == current_user.id)
+    
+    appointment = query.first()
     
     if not appointment:
         raise HTTPException(status_code=404, detail="Cita no encontrada")
@@ -384,10 +400,16 @@ async def update_appointment_status(
     Actualizar solo el estado de una cita.
     """
     
-    appointment = db.query(Appointment).filter(
+    query = db.query(Appointment).filter(
         Appointment.id == appointment_id,
         Appointment.tenant_id == current_user.tenant_id
-    ).first()
+    )
+    
+    # Si el usuario es médico, solo puede actualizar sus propias citas
+    if current_user.role == "user":
+        query = query.filter(Appointment.provider_id == current_user.id)
+    
+    appointment = query.first()
     
     if not appointment:
         raise HTTPException(status_code=404, detail="Cita no encontrada")
@@ -452,10 +474,16 @@ async def delete_appointment(
     Eliminar una cita (soft delete).
     """
     
-    appointment = db.query(Appointment).filter(
+    query = db.query(Appointment).filter(
         Appointment.id == appointment_id,
         Appointment.tenant_id == current_user.tenant_id
-    ).first()
+    )
+    
+    # Si el usuario es médico, solo puede eliminar sus propias citas
+    if current_user.role == "user":
+        query = query.filter(Appointment.provider_id == current_user.id)
+    
+    appointment = query.first()
     
     if not appointment:
         raise HTTPException(status_code=404, detail="Cita no encontrada")

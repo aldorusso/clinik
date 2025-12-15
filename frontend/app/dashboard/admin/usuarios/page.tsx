@@ -87,7 +87,13 @@ export default function TenantAdminUsuariosPage() {
     password: "",
     first_name: "",
     last_name: "",
+    full_name: "",
     phone: "",
+    country: "",
+    city: "",
+    office_address: "",
+    company_name: "",
+    job_title: "",
     role: "user" as UserRole,
   })
 
@@ -149,7 +155,13 @@ export default function TenantAdminUsuariosPage() {
         password: formData.password,
         first_name: formData.first_name,
         last_name: formData.last_name,
+        full_name: formData.full_name || `${formData.first_name} ${formData.last_name}`.trim(),
         phone: formData.phone,
+        country: formData.country,
+        city: formData.city,
+        office_address: formData.office_address,
+        company_name: formData.company_name,
+        job_title: formData.job_title,
         role: formData.role,
       })
       toast.success("Usuario creado exitosamente")
@@ -159,7 +171,13 @@ export default function TenantAdminUsuariosPage() {
         password: "",
         first_name: "",
         last_name: "",
+        full_name: "",
         phone: "",
+        country: "",
+        city: "",
+        office_address: "",
+        company_name: "",
+        job_title: "",
         role: "user",
       })
       loadData()
@@ -398,11 +416,11 @@ export default function TenantAdminUsuariosPage() {
                   Nuevo Usuario
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Crear Nuevo Usuario</DialogTitle>
                 <DialogDescription>
-                  Crea un manager o usuario para tu organizacion
+                  Crea un usuario para tu organización con toda la información necesaria
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -446,13 +464,53 @@ export default function TenantAdminUsuariosPage() {
                     placeholder="Minimo 6 caracteres"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Teléfono</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+52 55 1234 5678"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="job_title">Cargo/Posición</Label>
+                    <Input
+                      id="job_title"
+                      value={formData.job_title}
+                      onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
+                      placeholder="Ej: Cirujano plástico, Gestor comercial"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">Ciudad</Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      placeholder="México, Guadalajara, etc."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country">País</Label>
+                    <Input
+                      id="country"
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      placeholder="México, Colombia, etc."
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefono</Label>
+                  <Label htmlFor="office_address">Dirección de Oficina</Label>
                   <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+1 234 567 890"
+                    id="office_address"
+                    value={formData.office_address}
+                    onChange={(e) => setFormData({ ...formData, office_address: e.target.value })}
+                    placeholder="Dirección completa del lugar de trabajo"
                   />
                 </div>
                 <div className="space-y-2">
@@ -473,7 +531,7 @@ export default function TenantAdminUsuariosPage() {
                       </SelectItem>
                       <SelectItem value="user">
                         <div className="flex items-center gap-2">
-                          <UserIcon className="h-4 w-4" />
+                          <Stethoscope className="h-4 w-4" />
                           Médico
                         </div>
                       </SelectItem>
@@ -485,7 +543,7 @@ export default function TenantAdminUsuariosPage() {
                       </SelectItem>
                       <SelectItem value="recepcionista">
                         <div className="flex items-center gap-2">
-                          <UserIcon className="h-4 w-4" />
+                          <HeadphonesIcon className="h-4 w-4" />
                           Recepcionista
                         </div>
                       </SelectItem>

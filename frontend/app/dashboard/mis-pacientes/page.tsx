@@ -34,6 +34,7 @@ import {
 import { api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
+import { MedicalHistory } from "@/components/medical/medical-history"
 
 export default function MisPacientesPage() {
   const [pacientes, setPacientes] = useState<any[]>([])
@@ -253,7 +254,7 @@ export default function MisPacientesPage() {
                     </div>
 
                     {/* Medical Actions */}
-                    <div className="flex flex-col gap-2 ml-4">
+                    <div className="ml-4">
                       {paciente.can_view_details && (
                         <Button 
                           onClick={() => loadPatientDetails(paciente.id)}
@@ -264,18 +265,6 @@ export default function MisPacientesPage() {
                           Ver Expediente Médico
                         </Button>
                       )}
-                      
-                      <div className="flex gap-1">
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <Calendar className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <Phone className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -376,24 +365,11 @@ export default function MisPacientesPage() {
                   </CardContent>
                 </Card>
 
-                {/* Medical History Section - Placeholder for future implementation */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Heart className="h-5 w-5 text-red-500" />
-                      Historial Médico
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FileText className="mx-auto h-12 w-12 mb-4" />
-                      <p>Sistema de historial médico en desarrollo</p>
-                      <p className="text-sm">
-                        Próximamente: alergias, medicamentos, tratamientos previos, notas médicas
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Medical History Section */}
+                <MedicalHistory 
+                  patientId={patientDetails.id} 
+                  patientName={patientDetails.full_name || patientDetails.email}
+                />
 
                 {/* Access Control Notice */}
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">

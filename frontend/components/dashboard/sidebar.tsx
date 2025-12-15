@@ -130,21 +130,12 @@ export function Sidebar({ user }: SidebarProps) {
           </>
         )}
 
-        {/* Para médicos - solo sus leads asignados */}
+        {/* Para médicos - solo pacientes */}
         {isDoctor && (
           <>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
               👨‍⚕️ Mi Consulta
             </p>
-
-            <Button
-              variant={pathname.startsWith("/dashboard/mis-leads") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => router.push("/dashboard/mis-leads")}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Mis Leads Asignados
-            </Button>
 
             <Button
               variant={pathname.startsWith("/dashboard/mis-pacientes") ? "secondary" : "ghost"}

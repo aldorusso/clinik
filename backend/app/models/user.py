@@ -80,6 +80,8 @@ class User(Base):
     # Relationships
     tenant = relationship("Tenant", back_populates="users")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    patient_histories = relationship("MedicalHistory", foreign_keys="MedicalHistory.patient_id", back_populates="patient")
+    medic_histories = relationship("MedicalHistory", foreign_keys="MedicalHistory.medic_id", back_populates="medic")
 
     def __repr__(self):
         return f"<User {self.email} ({self.role.value})>"

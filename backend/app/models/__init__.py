@@ -23,6 +23,9 @@ from app.models.appointment import (
 from app.models.treatment import (
     Treatment, TreatmentStatus, TreatmentSession, MedicalRecord
 )
+from app.models.medical_history import (
+    MedicalHistory, MedicalAttachment
+)
 
 __all__ = [
     # Base
@@ -68,4 +71,8 @@ __all__ = [
     "TreatmentStatus",
     "TreatmentSession",
     "MedicalRecord",
+    
+    # Medical History Models
+    "MedicalHistory",
+    "MedicalAttachment",
 ]

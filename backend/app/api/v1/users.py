@@ -430,13 +430,13 @@ async def create_my_tenant_user(
             detail="El email ya esta registrado"
         )
 
-    # Tenant admins can only create managers, users, and clients (not tenant_admins or superadmins)
-    allowed_roles = [UserRole.manager, UserRole.user, UserRole.client]
+    # Tenant admins can create all roles except superadmin and other tenant_admins
+    allowed_roles = [UserRole.manager, UserRole.user, UserRole.client, UserRole.recepcionista]
     role = user_in.role or UserRole.user
     if role not in allowed_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo puedes crear usuarios con rol 'manager', 'user' o 'client'"
+            detail="Solo puedes crear usuarios con rol 'manager', 'user', 'client' o 'recepcionista'"
         )
 
     # Create new user in the same tenant
@@ -447,6 +447,13 @@ async def create_my_tenant_user(
         first_name=user_in.first_name,
         last_name=user_in.last_name,
         full_name=user_in.full_name,
+        phone=user_in.phone,
+        country=user_in.country,
+        city=user_in.city,
+        office_address=user_in.office_address,
+        company_name=user_in.company_name,
+        job_title=user_in.job_title,
+        profile_photo=user_in.profile_photo,
         role=role,
         tenant_id=current_user.tenant_id,
         is_active=True

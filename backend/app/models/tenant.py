@@ -64,6 +64,8 @@ class Tenant(Base):
     appointment_availability = relationship("AppointmentAvailability", cascade="all, delete-orphan")
     appointment_blocks = relationship("AppointmentBlock", cascade="all, delete-orphan")
     medical_records = relationship("MedicalRecord", cascade="all, delete-orphan")
+    medical_histories = relationship("MedicalHistory", back_populates="tenant", cascade="all, delete-orphan")
+    medical_attachments = relationship("MedicalAttachment", back_populates="tenant", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Tenant {self.name} ({self.slug})>"

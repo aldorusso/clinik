@@ -389,20 +389,25 @@ export default function CitasPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Calendar className="h-8 w-8 text-blue-600" />
-              Panel de Recepción
+              {currentUser?.role === 'user' ? '📅 Mis Citas' : 'Panel de Recepción'}
             </h1>
             <p className="text-muted-foreground">
-              Gestión integral de citas médicas • {currentUser?.role === 'recepcionista' ? 'Recepcionista' : 'Personal clínico'}
+              {currentUser?.role === 'user' 
+                ? 'Agenda médica personal - Solo mis consultas' 
+                : `Gestión integral de citas médicas • ${currentUser?.role === 'recepcionista' ? 'Recepcionista' : 'Personal clínico'}`
+              }
             </p>
           </div>
           <div className="flex gap-2">
-            <Dialog open={isNewAppointmentOpen} onOpenChange={setIsNewAppointmentOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nueva Cita
-                </Button>
-              </DialogTrigger>
+            {/* Solo mostrar botón de nueva cita para no médicos */}
+            {currentUser?.role !== 'user' && (
+              <Dialog open={isNewAppointmentOpen} onOpenChange={setIsNewAppointmentOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nueva Cita
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
@@ -533,6 +538,7 @@ export default function CitasPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            )}
           </div>
         </div>
 

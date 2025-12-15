@@ -208,7 +208,13 @@ export interface UserCreate {
   password: string;
   first_name?: string;
   last_name?: string;
+  full_name?: string;
   phone?: string;
+  country?: string;
+  city?: string;
+  office_address?: string;
+  company_name?: string;
+  job_title?: string;
   role?: UserRole;
   tenant_id?: string;
 }
