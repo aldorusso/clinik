@@ -115,12 +115,24 @@ export function ConvertToPatientForm({ lead, onSubmit, onCancel }: ConvertToPati
         </div>
       </div>
 
-      {/* Advertencia si no hay email */}
+      {/* Advertencias */}
       {createUserAccount && !lead.email && (
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
             ⚠️ Este lead no tiene email. No se podrá crear la cuenta de usuario.
           </p>
+        </div>
+      )}
+      
+      {createUserAccount && lead.email && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            ℹ️ <strong>Importante:</strong> Si el email {lead.email} ya está registrado en el sistema, puedes:
+          </p>
+          <ul className="text-xs text-blue-700 mt-1 ml-4 space-y-1">
+            <li>• Desactivar la creación de cuenta de usuario (recomendado)</li>
+            <li>• O actualizar el email del lead antes de convertir</li>
+          </ul>
         </div>
       )}
 

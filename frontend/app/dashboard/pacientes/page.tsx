@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { PatientCard } from "@/components/patients/patient-card"
+import { ScheduleAppointmentModal } from "@/components/patients/schedule-appointment-modal"
 import { 
   Users, 
   Search, 
@@ -39,6 +40,8 @@ export default function PacientesPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
 
   // Load current user and patients
   useEffect(() => {
@@ -88,11 +91,20 @@ export default function PacientesPage() {
   })
 
   const handleScheduleAppointment = (patientId: string) => {
+    const patient = patients.find(p => p.id === patientId)
+    if (patient) {
+      setSelectedPatient(patient)
+      setIsScheduleModalOpen(true)
+    }
+  }
+
+  const handleScheduleSuccess = () => {
     toast({
-      title: "Agendar Cita",
-      description: "Funcionalidad de agendamiento en desarrollo",
+      title: "Cita agendada",
+      description: "La cita ha sido agendada exitosamente",
     })
-    // TODO: Navigate to appointment scheduling
+    setIsScheduleModalOpen(false)
+    setSelectedPatient(null)
   }
 
   const handleViewDetails = async (patientId: string) => {
@@ -284,6 +296,14 @@ export default function PacientesPage() {
             </div>
           )}
         </div>
+
+        {/* Schedule Appointment Modal */}
+        <ScheduleAppointmentModal
+          isOpen={isScheduleModalOpen}
+          onClose={() => setIsScheduleModalOpen(false)}
+          onSuccess={handleScheduleSuccess}
+          patient={selectedPatient}
+        />
       </div>
     </DashboardLayout>
   )

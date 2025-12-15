@@ -217,24 +217,22 @@ export function Sidebar({ user }: SidebarProps) {
           </Button>
         </>
 
-        {/* Ver Servicios - Solo para gestores, médicos y recepcionistas (no pueden editar) */}
-        {(isManager || isDoctor || isReceptionist) && (
-          <>
-            <Separator className="my-4" />
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              🏥 Información
-            </p>
+        {/* Ver Servicios - Para TODOS los roles (solo pueden consultar, no editar) */}
+        <>
+          <Separator className="my-4" />
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+            🏥 Información de la Clínica
+          </p>
 
-            <Button
-              variant={pathname.startsWith("/dashboard/servicios") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => router.push("/dashboard/servicios")}
-            >
-              <Stethoscope className="mr-2 h-4 w-4" />
-              Ver Servicios
-            </Button>
-          </>
-        )}
+          <Button
+            variant={pathname.startsWith("/dashboard/servicios") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/servicios")}
+          >
+            <Stethoscope className="mr-2 h-4 w-4" />
+            Servicios Médicos
+          </Button>
+        </>
       </nav>
     )
   }

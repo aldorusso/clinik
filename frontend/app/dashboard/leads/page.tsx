@@ -252,11 +252,29 @@ export default function LeadsPage() {
       fetchLeads() // Refresh leads list
     } catch (error: any) {
       console.error('Error converting lead:', error)
-      toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Error al convertir el lead en paciente",
-        variant: "destructive",
-      })
+      
+      // Handle specific error cases
+      const errorMessage = error.message || error.response?.data?.detail || "Error al convertir el lead en paciente"
+      
+      if (errorMessage.includes("ya existe") && errorMessage.includes("email")) {
+        toast({
+          title: "Email ya registrado",
+          description: `El email ${convertingLead.email} ya está registrado en el sistema. Puedes convertir el lead sin crear cuenta de usuario, o usar un email diferente.`,
+          variant: "destructive",
+        })
+      } else if (errorMessage.includes("no puede convertir") && errorMessage.includes("perdido")) {
+        toast({
+          title: "Lead no convertible",
+          description: "Este lead no se puede convertir porque está marcado como perdido, rechazado o no califica.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        })
+      }
     }
   }
 

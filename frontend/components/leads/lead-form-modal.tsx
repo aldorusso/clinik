@@ -99,7 +99,7 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFo
     age: undefined,
     gender: 'none',
     occupation: '',
-    treatment_interest: '',
+    treatment_interest: 'none',
     budget_range: '',
     preferred_contact_method: 'none',
     preferred_contact_time: '',
@@ -154,7 +154,7 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFo
         age: lead.age,
         gender: lead.gender || 'none',
         occupation: lead.occupation || '',
-        treatment_interest: lead.treatment_interest || '',
+        treatment_interest: lead.treatment_interest || 'none',
         budget_range: lead.budget_range || '',
         preferred_contact_method: lead.preferred_contact_method || 'none',
         preferred_contact_time: lead.preferred_contact_time || '',
@@ -180,7 +180,7 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFo
         age: undefined,
         gender: 'none',
         occupation: '',
-        treatment_interest: '',
+        treatment_interest: 'none',
         budget_range: '',
         preferred_contact_method: 'none',
         preferred_contact_time: '',
@@ -223,6 +223,9 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFo
       }
       if (cleanedData.preferred_contact_method === 'none') {
         delete cleanedData.preferred_contact_method
+      }
+      if (cleanedData.treatment_interest === 'none') {
+        delete cleanedData.treatment_interest
       }
       if (cleanedData.assigned_to_id === '') {
         delete cleanedData.assigned_to_id
@@ -489,7 +492,7 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFo
                   <SelectValue placeholder="Seleccionar categoría de tratamiento" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin especificar</SelectItem>
+                  <SelectItem value="none">Sin especificar</SelectItem>
                   {serviceCategories.map((category) => (
                     <SelectItem key={category.id} value={category.name}>
                       {category.name}

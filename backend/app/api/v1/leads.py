@@ -922,6 +922,7 @@ async def convert_lead_to_patient(
     # Get the lead with tenant filtering
     lead = filter_by_tenant(
         db.query(LeadModel).filter(LeadModel.id == lead_id),
+        LeadModel,
         current_user
     ).first()
     
