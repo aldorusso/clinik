@@ -147,9 +147,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           </p>
 
           <Button
-            variant={pathname.startsWith("/dashboard/calendario") ? "secondary" : "ghost"}
+            variant={pathname.startsWith("/dashboard/admin/calendario") ? "secondary" : "ghost"}
             className="w-full justify-start"
-            onClick={() => router.push("/dashboard/calendario")}
+            onClick={() => router.push("/dashboard/admin/calendario")}
           >
             <CalendarDays className="mr-2 h-4 w-4" />
             📅 Calendario
