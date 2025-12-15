@@ -114,6 +114,15 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           </Button>
 
           <Button
+            variant={pathname.startsWith("/dashboard/admin/directorio") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/admin/directorio")}
+          >
+            <Users className="mr-2 h-4 w-4" />
+            📋 Directorio
+          </Button>
+
+          <Button
             variant={pathname.startsWith("/dashboard/admin/clientes") ? "secondary" : "ghost"}
             className="w-full justify-start"
             onClick={() => router.push("/dashboard/admin/clientes")}
