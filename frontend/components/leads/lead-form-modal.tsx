@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Lead, LeadCreate, LeadUpdate, LeadSource, LeadStatus, LeadPriority, User, api } from "@/lib/api"
+import { Lead, LeadCreate, LeadUpdate, LeadSource, LeadStatus, LeadPriority, User, ServiceCategory, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
@@ -81,6 +81,7 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFo
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [doctors, setDoctors] = useState<User[]>([])
+  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([])
 
   // Form state
   const [formData, setFormData] = useState<LeadCreate>({
@@ -108,24 +109,30 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFo
     consultation_date: '',
   })
 
-  // Load doctors for assignment
+  // Load doctors and service categories for assignment
   useEffect(() => {
-    const loadDoctors = async () => {
+    const loadData = async () => {
       const token = auth.getToken()
       if (!token) return
 
       try {
-        const doctorsData = await api.getMyTenantUsers(token, 'user')
+        // Load doctors and service categories in parallel
+        const [doctorsData, categoriesData] = await Promise.all([
+          api.getMyTenantUsers(token, 'user'),
+          api.getServiceCategories(token, true) // true = include all active categories
+        ])
         setDoctors(doctorsData)
+        setServiceCategories(categoriesData)
       } catch (error) {
-        console.warn('Could not load doctors:', error)
-        // Set empty doctors list - this is ok, user can assign later
+        console.warn('Could not load data:', error)
+        // Set empty lists - this is ok, user can assign later
         setDoctors([])
+        setServiceCategories([])
       }
     }
 
     if (isOpen) {
-      loadDoctors()
+      loadData()
     }
   }, [isOpen])
 
@@ -474,12 +481,22 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFo
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="treatment_interest">Interés en Tratamiento</Label>
-              <Input
-                id="treatment_interest"
+              <Select
                 value={formData.treatment_interest}
-                onChange={(e) => handleInputChange('treatment_interest', e.target.value)}
-                placeholder="Tipo de tratamiento de interés"
-              />
+                onValueChange={(value) => handleInputChange('treatment_interest', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar categoría de tratamiento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin especificar</SelectItem>
+                  {serviceCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
