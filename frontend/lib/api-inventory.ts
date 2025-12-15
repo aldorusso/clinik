@@ -173,7 +173,7 @@ export const getInventoryCategories = async (
   if (params?.is_active !== undefined) searchParams.append('is_active', params.is_active.toString())
   if (params?.search) searchParams.append('search', params.search)
 
-  return api.get(`/inventory/categories/?${searchParams.toString()}`, {
+  return api.get(`/api/v1/inventory/categories/?${searchParams.toString()}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -182,7 +182,7 @@ export const createInventoryCategory = async (
   token: string,
   category: InventoryCategoryCreate
 ): Promise<InventoryCategory> => {
-  return api.post('/inventory/categories/', category, {
+  return api.post('/api/v1/inventory/categories/', category, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -192,7 +192,7 @@ export const updateInventoryCategory = async (
   categoryId: string,
   category: Partial<InventoryCategoryCreate>
 ): Promise<InventoryCategory> => {
-  return api.put(`/inventory/categories/${categoryId}`, category, {
+  return api.put(`/api/v1/inventory/categories/${categoryId}`, category, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -217,7 +217,7 @@ export const getInventoryProducts = async (
   if (params?.low_stock_only !== undefined) searchParams.append('low_stock_only', params.low_stock_only.toString())
   if (params?.search) searchParams.append('search', params.search)
 
-  return api.get(`/inventory/products/?${searchParams.toString()}`, {
+  return api.get(`/api/v1/inventory/products/?${searchParams.toString()}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -226,7 +226,7 @@ export const getInventoryProduct = async (
   token: string,
   productId: string
 ): Promise<InventoryProductWithStats> => {
-  return api.get(`/inventory/products/${productId}`, {
+  return api.get(`/api/v1/inventory/products/${productId}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -235,7 +235,7 @@ export const createInventoryProduct = async (
   token: string,
   product: InventoryProductCreate
 ): Promise<InventoryProduct> => {
-  return api.post('/inventory/products/', product, {
+  return api.post('/api/v1/inventory/products/', product, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -245,7 +245,7 @@ export const updateInventoryProduct = async (
   productId: string,
   product: Partial<InventoryProductCreate>
 ): Promise<InventoryProduct> => {
-  return api.put(`/inventory/products/${productId}`, product, {
+  return api.put(`/api/v1/inventory/products/${productId}`, product, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -255,7 +255,7 @@ export const updateProductStock = async (
   productId: string,
   stockUpdate: InventoryProductStockUpdate
 ): Promise<InventoryProduct> => {
-  return api.put(`/inventory/products/${productId}/stock`, stockUpdate, {
+  return api.put(`/api/v1/inventory/products/${productId}/stock`, stockUpdate, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -280,7 +280,7 @@ export const getInventoryMovements = async (
   if (params?.start_date) searchParams.append('start_date', params.start_date)
   if (params?.end_date) searchParams.append('end_date', params.end_date)
 
-  return api.get(`/inventory/movements/?${searchParams.toString()}`, {
+  return api.get(`/api/v1/inventory/movements/?${searchParams.toString()}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -303,7 +303,7 @@ export const getInventoryAlerts = async (
   if (params?.is_acknowledged !== undefined) searchParams.append('is_acknowledged', params.is_acknowledged.toString())
   if (params?.alert_type) searchParams.append('alert_type', params.alert_type)
 
-  return api.get(`/inventory/alerts/?${searchParams.toString()}`, {
+  return api.get(`/api/v1/inventory/alerts/?${searchParams.toString()}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -312,7 +312,7 @@ export const acknowledgeAlert = async (
   token: string,
   alertId: string
 ): Promise<{ message: string }> => {
-  return api.put(`/inventory/alerts/${alertId}/acknowledge`, {}, {
+  return api.put(`/api/v1/inventory/alerts/${alertId}/acknowledge`, {}, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -321,7 +321,7 @@ export const acknowledgeAlert = async (
 export const getInventoryStats = async (
   token: string
 ): Promise<InventoryStats> => {
-  return api.get('/inventory/stats/', {
+  return api.get('/api/v1/inventory/stats/', {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -329,7 +329,7 @@ export const getInventoryStats = async (
 export const getLowStockAlerts = async (
   token: string
 ): Promise<LowStockAlert[]> => {
-  return api.get('/inventory/low-stock-alerts/', {
+  return api.get('/api/v1/inventory/low-stock-alerts/', {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -362,7 +362,7 @@ export const recordInventoryUsage = async (
     notes?: string
   }
 ): Promise<AppointmentInventoryUsage> => {
-  return api.post(`/inventory-usage/appointments/${appointmentId}/usage/`, usage, {
+  return api.post(`/api/v1/inventory-usage/appointments/${appointmentId}/usage/`, usage, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }
@@ -371,7 +371,7 @@ export const getAppointmentInventoryUsage = async (
   token: string,
   appointmentId: string
 ): Promise<AppointmentInventoryUsage[]> => {
-  return api.get(`/inventory-usage/appointments/${appointmentId}/usage/`, {
+  return api.get(`/api/v1/inventory-usage/appointments/${appointmentId}/usage/`, {
     headers: { Authorization: `Bearer ${token}` }
   })
 }

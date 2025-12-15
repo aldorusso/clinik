@@ -28,8 +28,10 @@ import {
   getInventoryCategories,
   createInventoryCategory,
   updateInventoryCategory,
+  getInventoryProducts,
   type InventoryCategory,
-  type InventoryCategoryCreate
+  type InventoryCategoryCreate,
+  type InventoryProductWithStats
 } from "@/lib/api-inventory"
 import { useToast } from "@/hooks/use-toast"
 
@@ -37,6 +39,7 @@ export default function InventoryCategoriesPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [categories, setCategories] = useState<InventoryCategory[]>([])
+  const [categoryProducts, setCategoryProducts] = useState<Record<string, number>>({})
   const [searchTerm, setSearchTerm] = useState("")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -55,8 +58,22 @@ export default function InventoryCategoriesPage() {
     if (!token) return
 
     try {
-      const data = await getInventoryCategories(token)
-      setCategories(data)
+      const [categoriesData, productsData] = await Promise.all([
+        getInventoryCategories(token),
+        getInventoryProducts(token, { is_active: true })
+      ])
+      
+      setCategories(categoriesData)
+      
+      // Count products per category
+      const productCounts: Record<string, number> = {}
+      productsData.forEach((product: InventoryProductWithStats) => {
+        if (product.category_id) {
+          productCounts[product.category_id] = (productCounts[product.category_id] || 0) + 1
+        }
+      })
+      setCategoryProducts(productCounts)
+      
     } catch (error: any) {
       toast({
         title: "Error",
@@ -160,14 +177,18 @@ export default function InventoryCategoriesPage() {
   ]
 
   const iconPresets = [
-    { name: "Medicamento", value: "pill" },
-    { name: "Jeringa", value: "syringe" },
-    { name: "Venda", value: "bandage" },
-    { name: "Corazón", value: "heart" },
-    { name: "Estetoscopio", value: "stethoscope" },
-    { name: "Termómetro", value: "thermometer" },
-    { name: "Microscopio", value: "microscope" },
-    { name: "Tubo", value: "test-tube" },
+    { name: "Medicamento", value: "pill", emoji: "💊" },
+    { name: "Jeringa", value: "syringe", emoji: "💉" },
+    { name: "Venda", value: "bandage", emoji: "🩹" },
+    { name: "Corazón", value: "heart", emoji: "❤️" },
+    { name: "Estetoscopio", value: "stethoscope", emoji: "🩺" },
+    { name: "Termómetro", value: "thermometer", emoji: "🌡️" },
+    { name: "Microscopio", value: "microscope", emoji: "🔬" },
+    { name: "Tubo", value: "test-tube", emoji: "🧪" },
+    { name: "Cápsula", value: "capsule", emoji: "💊" },
+    { name: "Máscara", value: "mask", emoji: "😷" },
+    { name: "Guantes", value: "gloves", emoji: "🧤" },
+    { name: "Tijeras", value: "scissors", emoji: "✂️" },
   ]
 
   if (loading) {
@@ -195,6 +216,53 @@ export default function InventoryCategoriesPage() {
             <Plus className="mr-2 h-4 w-4" />
             Nueva Categoría
           </Button>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Categorías</p>
+                  <p className="text-2xl font-bold">{categories.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-green-100 text-green-800 border-green-200">
+                  ✅ Activas: {categories.filter(c => c.is_active).length}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+                  ⏸️ Inactivas: {categories.filter(c => !c.is_active).length}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Archive className="h-5 w-5 text-purple-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Productos</p>
+                  <p className="text-2xl font-bold">{Object.values(categoryProducts).reduce((a, b) => a + b, 0)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Search */}
@@ -234,33 +302,31 @@ export default function InventoryCategoriesPage() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {category.color && (
-                        <div
-                          className="w-10 h-10 rounded-lg flex items-center justify-center"
-                          style={{ backgroundColor: category.color + "20", color: category.color }}
-                        >
-                          {category.icon ? (
-                            <span className="text-lg">
-                              {category.icon === "pill" && "💊"}
-                              {category.icon === "syringe" && "💉"}
-                              {category.icon === "bandage" && "🩹"}
-                              {category.icon === "heart" && "❤️"}
-                              {category.icon === "stethoscope" && "🩺"}
-                              {category.icon === "thermometer" && "🌡️"}
-                              {category.icon === "microscope" && "🔬"}
-                              {category.icon === "test-tube" && "🧪"}
-                              {!["pill", "syringe", "bandage", "heart", "stethoscope", "thermometer", "microscope", "test-tube"].includes(category.icon) && <Package className="h-5 w-5" />}
-                            </span>
-                          ) : (
-                            <Package className="h-5 w-5" />
-                          )}
-                        </div>
-                      )}
+                      <div
+                        className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ 
+                          backgroundColor: category.color ? category.color + "20" : "#f1f5f9", 
+                          color: category.color || "#64748b" 
+                        }}
+                      >
+                        {category.icon ? (
+                          <span className="text-xl">
+                            {iconPresets.find(icon => icon.value === category.icon)?.emoji || "📦"}
+                          </span>
+                        ) : (
+                          <Package className="h-6 w-6" />
+                        )}
+                      </div>
                       <div>
                         <CardTitle className="text-lg">{category.name}</CardTitle>
-                        <Badge variant={category.is_active ? "default" : "secondary"} className="mt-1">
-                          {category.is_active ? "Activa" : "Inactiva"}
-                        </Badge>
+                        <div className="flex gap-2 mt-1">
+                          <Badge variant={category.is_active ? "default" : "secondary"}>
+                            {category.is_active ? "Activa" : "Inactiva"}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {categoryProducts[category.id] || 0} productos
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                     <Button
@@ -283,6 +349,73 @@ export default function InventoryCategoriesPage() {
             ))
           )}
         </div>
+
+        {/* Top Categories by Product Count */}
+        {categories.length > 0 && Object.keys(categoryProducts).length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                📊 Categorías Más Utilizadas
+              </CardTitle>
+              <CardDescription>
+                Categorías con mayor número de productos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {categories
+                  .filter(cat => cat.is_active)
+                  .sort((a, b) => (categoryProducts[b.id] || 0) - (categoryProducts[a.id] || 0))
+                  .slice(0, 5)
+                  .map((category, index) => {
+                    const productCount = categoryProducts[category.id] || 0
+                    if (productCount === 0) return null
+                    
+                    return (
+                      <div key={category.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline">{index + 1}</Badge>
+                          <div
+                            className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
+                            style={{ 
+                              backgroundColor: category.color ? category.color + "20" : "#f1f5f9", 
+                              color: category.color || "#64748b" 
+                            }}
+                          >
+                            {category.icon ? (
+                              <span className="text-sm">
+                                {iconPresets.find(icon => icon.value === category.icon)?.emoji || "📦"}
+                              </span>
+                            ) : (
+                              <Package className="h-4 w-4" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">{category.name}</p>
+                            {category.description && (
+                              <p className="text-sm text-muted-foreground truncate max-w-xs">
+                                {category.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <Badge>
+                          {productCount} producto{productCount !== 1 ? 's' : ''}
+                        </Badge>
+                      </div>
+                    )
+                  })
+                  .filter(Boolean)}
+                
+                {categories.filter(cat => cat.is_active && (categoryProducts[cat.id] || 0) > 0).length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No hay categorías con productos asignados aún
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Create Dialog */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -312,51 +445,79 @@ export default function InventoryCategoriesPage() {
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Descripción de la categoría"
-                  rows={3}
+                  rows={2}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Color</Label>
-                <div className="flex flex-wrap gap-2">
-                  {colorPresets.map((preset) => (
-                    <button
-                      key={preset.value}
-                      type="button"
-                      className={`w-8 h-8 rounded-md border-2 ${
-                        formData.color === preset.value ? 'border-foreground' : 'border-transparent'
-                      }`}
-                      style={{ backgroundColor: preset.value }}
-                      onClick={() => setFormData(prev => ({ ...prev, color: preset.value }))}
-                      title={preset.name}
-                    />
-                  ))}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Color</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {colorPresets.map((preset) => (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${
+                          formData.color === preset.value ? 'border-foreground shadow-lg scale-110' : 'border-transparent'
+                        }`}
+                        style={{ backgroundColor: preset.value }}
+                        onClick={() => setFormData(prev => ({ ...prev, color: preset.value }))}
+                        title={preset.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Icono</Label>
+                  <div className="grid grid-cols-3 gap-1 max-h-24 overflow-y-auto">
+                    {iconPresets.map((preset) => (
+                      <Button
+                        key={preset.value}
+                        type="button"
+                        variant={formData.icon === preset.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setFormData(prev => ({ ...prev, icon: preset.value }))}
+                        className="h-12 flex flex-col gap-0 p-1"
+                        title={preset.name}
+                      >
+                        <span className="text-lg">{preset.emoji}</span>
+                        <span className="text-[10px] leading-none truncate">{preset.name.slice(0, 6)}</span>
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Icono</Label>
-                <div className="flex flex-wrap gap-2">
-                  {iconPresets.map((preset) => (
-                    <Button
-                      key={preset.value}
-                      type="button"
-                      variant={formData.icon === preset.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFormData(prev => ({ ...prev, icon: preset.value }))}
+              {/* Preview Section */}
+              {(formData.color || formData.icon) && (
+                <div className="space-y-2">
+                  <Label>Vista Previa</Label>
+                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/50">
+                    <div
+                      className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ 
+                        backgroundColor: formData.color ? formData.color + "20" : "#f1f5f9", 
+                        color: formData.color || "#64748b" 
+                      }}
                     >
-                      {preset.value === "pill" && "💊"}
-                      {preset.value === "syringe" && "💉"}
-                      {preset.value === "bandage" && "🩹"}
-                      {preset.value === "heart" && "❤️"}
-                      {preset.value === "stethoscope" && "🩺"}
-                      {preset.value === "thermometer" && "🌡️"}
-                      {preset.value === "microscope" && "🔬"}
-                      {preset.value === "test-tube" && "🧪"}
-                    </Button>
-                  ))}
+                      {formData.icon ? (
+                        <span className="text-xl">
+                          {iconPresets.find(icon => icon.value === formData.icon)?.emoji || "📦"}
+                        </span>
+                      ) : (
+                        <Package className="h-6 w-6" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">{formData.name || "Nombre de la categoría"}</p>
+                      {formData.description && (
+                        <p className="text-sm text-muted-foreground">{formData.description}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <DialogFooter>
@@ -398,51 +559,79 @@ export default function InventoryCategoriesPage() {
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Descripción de la categoría"
-                  rows={3}
+                  rows={2}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Color</Label>
-                <div className="flex flex-wrap gap-2">
-                  {colorPresets.map((preset) => (
-                    <button
-                      key={preset.value}
-                      type="button"
-                      className={`w-8 h-8 rounded-md border-2 ${
-                        formData.color === preset.value ? 'border-foreground' : 'border-transparent'
-                      }`}
-                      style={{ backgroundColor: preset.value }}
-                      onClick={() => setFormData(prev => ({ ...prev, color: preset.value }))}
-                      title={preset.name}
-                    />
-                  ))}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Color</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {colorPresets.map((preset) => (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        className={`w-8 h-8 rounded-md border-2 transition-all hover:scale-110 ${
+                          formData.color === preset.value ? 'border-foreground shadow-lg scale-110' : 'border-transparent'
+                        }`}
+                        style={{ backgroundColor: preset.value }}
+                        onClick={() => setFormData(prev => ({ ...prev, color: preset.value }))}
+                        title={preset.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Icono</Label>
+                  <div className="grid grid-cols-3 gap-1 max-h-24 overflow-y-auto">
+                    {iconPresets.map((preset) => (
+                      <Button
+                        key={preset.value}
+                        type="button"
+                        variant={formData.icon === preset.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setFormData(prev => ({ ...prev, icon: preset.value }))}
+                        className="h-12 flex flex-col gap-0 p-1"
+                        title={preset.name}
+                      >
+                        <span className="text-lg">{preset.emoji}</span>
+                        <span className="text-[10px] leading-none truncate">{preset.name.slice(0, 6)}</span>
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Icono</Label>
-                <div className="flex flex-wrap gap-2">
-                  {iconPresets.map((preset) => (
-                    <Button
-                      key={preset.value}
-                      type="button"
-                      variant={formData.icon === preset.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFormData(prev => ({ ...prev, icon: preset.value }))}
+              {/* Preview Section */}
+              {(formData.color || formData.icon) && (
+                <div className="space-y-2">
+                  <Label>Vista Previa</Label>
+                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/50">
+                    <div
+                      className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ 
+                        backgroundColor: formData.color ? formData.color + "20" : "#f1f5f9", 
+                        color: formData.color || "#64748b" 
+                      }}
                     >
-                      {preset.value === "pill" && "💊"}
-                      {preset.value === "syringe" && "💉"}
-                      {preset.value === "bandage" && "🩹"}
-                      {preset.value === "heart" && "❤️"}
-                      {preset.value === "stethoscope" && "🩺"}
-                      {preset.value === "thermometer" && "🌡️"}
-                      {preset.value === "microscope" && "🔬"}
-                      {preset.value === "test-tube" && "🧪"}
-                    </Button>
-                  ))}
+                      {formData.icon ? (
+                        <span className="text-xl">
+                          {iconPresets.find(icon => icon.value === formData.icon)?.emoji || "📦"}
+                        </span>
+                      ) : (
+                        <Package className="h-6 w-6" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">{formData.name || "Nombre de la categoría"}</p>
+                      {formData.description && (
+                        <p className="text-sm text-muted-foreground">{formData.description}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex items-center space-x-2">
                 <input

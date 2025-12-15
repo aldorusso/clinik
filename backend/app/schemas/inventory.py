@@ -6,6 +6,7 @@ from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
+from uuid import UUID
 
 
 # Enums
@@ -60,15 +61,15 @@ class InventoryCategoryUpdate(BaseModel):
 class InventoryCategory(InventoryCategoryBase):
     model_config = ConfigDict(from_attributes=True)
     
-    id: str
-    tenant_id: str
+    id: UUID
+    tenant_id: UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
 
 
 # InventoryProduct Schemas
 class InventoryProductBase(BaseModel):
-    category_id: str
+    category_id: UUID
     name: str = Field(..., max_length=200)
     description: Optional[str] = None
     sku: Optional[str] = Field(None, max_length=50)
@@ -93,7 +94,7 @@ class InventoryProductCreate(InventoryProductBase):
 
 
 class InventoryProductUpdate(BaseModel):
-    category_id: Optional[str] = None
+    category_id: Optional[UUID] = None
     name: Optional[str] = Field(None, max_length=200)
     description: Optional[str] = None
     sku: Optional[str] = Field(None, max_length=50)
@@ -125,8 +126,8 @@ class InventoryProductStockUpdate(BaseModel):
 class InventoryProduct(InventoryProductBase):
     model_config = ConfigDict(from_attributes=True)
     
-    id: str
-    tenant_id: str
+    id: UUID
+    tenant_id: UUID
     is_low_stock: bool
     stock_percentage: float
     created_at: datetime
@@ -146,12 +147,12 @@ class InventoryProductWithStats(InventoryProduct):
 
 # InventoryMovement Schemas
 class InventoryMovementBase(BaseModel):
-    product_id: str
+    product_id: UUID
     movement_type: MovementTypeEnum
     quantity: int = Field(..., ne=0)  # No puede ser 0
     unit_cost: Optional[float] = Field(None, ge=0)
     total_cost: Optional[float] = Field(None, ge=0)
-    appointment_id: Optional[str] = None
+    appointment_id: Optional[UUID] = None
     notes: Optional[str] = None
     reference_number: Optional[str] = Field(None, max_length=100)
     supplier: Optional[str] = Field(None, max_length=200)
@@ -164,9 +165,9 @@ class InventoryMovementCreate(InventoryMovementBase):
 class InventoryMovement(InventoryMovementBase):
     model_config = ConfigDict(from_attributes=True)
     
-    id: str
-    tenant_id: str
-    user_id: str
+    id: UUID
+    tenant_id: UUID
+    user_id: UUID
     stock_after: int
     created_at: datetime
     
@@ -176,8 +177,8 @@ class InventoryMovement(InventoryMovementBase):
 
 # ServiceProduct Schemas
 class ServiceProductBase(BaseModel):
-    service_id: str
-    product_id: str
+    service_id: UUID
+    product_id: UUID
     default_quantity: int = Field(1, gt=0)
     is_required: bool = False
     is_active: bool = True
@@ -196,8 +197,8 @@ class ServiceProductUpdate(BaseModel):
 class ServiceProduct(ServiceProductBase):
     model_config = ConfigDict(from_attributes=True)
     
-    id: str
-    tenant_id: str
+    id: UUID
+    tenant_id: UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
     
@@ -207,8 +208,8 @@ class ServiceProduct(ServiceProductBase):
 
 # AppointmentInventoryUsage Schemas
 class AppointmentInventoryUsageBase(BaseModel):
-    appointment_id: str
-    product_id: str
+    appointment_id: UUID
+    product_id: UUID
     quantity_used: int = Field(..., gt=0)
     notes: Optional[str] = None
 
@@ -225,9 +226,9 @@ class AppointmentInventoryUsageUpdate(BaseModel):
 class AppointmentInventoryUsage(AppointmentInventoryUsageBase):
     model_config = ConfigDict(from_attributes=True)
     
-    id: str
-    tenant_id: str
-    recorded_by_id: str
+    id: UUID
+    tenant_id: UUID
+    recorded_by_id: UUID
     created_at: datetime
     
     # Relaciones
@@ -236,7 +237,7 @@ class AppointmentInventoryUsage(AppointmentInventoryUsageBase):
 
 # InventoryAlert Schemas
 class InventoryAlertBase(BaseModel):
-    product_id: str
+    product_id: UUID
     alert_type: str = Field(..., max_length=50)
     title: str = Field(..., max_length=200)
     message: str
@@ -255,10 +256,10 @@ class InventoryAlertUpdate(BaseModel):
 class InventoryAlert(InventoryAlertBase):
     model_config = ConfigDict(from_attributes=True)
     
-    id: str
-    tenant_id: str
+    id: UUID
+    tenant_id: UUID
     is_acknowledged: bool
-    acknowledged_by_id: Optional[str] = None
+    acknowledged_by_id: Optional[UUID] = None
     acknowledged_at: Optional[datetime] = None
     created_at: datetime
     
@@ -282,7 +283,7 @@ class InventoryStats(BaseModel):
 
 class LowStockAlert(BaseModel):
     """Alerta de stock bajo"""
-    product_id: str
+    product_id: UUID
     product_name: str
     current_stock: int
     minimum_stock: int
@@ -293,7 +294,7 @@ class LowStockAlert(BaseModel):
 
 class ProductUsageReport(BaseModel):
     """Reporte de uso de producto"""
-    product_id: str
+    product_id: UUID
     product_name: str
     category_name: str
     total_used: int

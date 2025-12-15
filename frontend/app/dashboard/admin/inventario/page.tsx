@@ -347,6 +347,29 @@ export default function InventoryDashboardPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Categories Management Link */}
+        <Card className="border-dashed bg-muted/50 hover:bg-muted/70 transition-colors">
+          <CardContent className="p-6">
+            <Link href="/dashboard/admin/inventario/categorias" className="block">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Archive className="h-5 w-5" />
+                    Gestionar Categorías del Inventario
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Crea y personaliza categorías para organizar mejor tus productos médicos
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Nueva Categoría
+                </Button>
+              </div>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     </AdminDashboardLayout>
   )

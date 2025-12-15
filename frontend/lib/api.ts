@@ -2362,6 +2362,105 @@ export const api = {
 
     return response.json();
   },
+
+  // Generic HTTP methods for API calls
+  async get(url: string, options: RequestInit = {}): Promise<any> {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (e) {
+        // Error parsing response, use default message
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  async post(url: string, data: any, options: RequestInit = {}): Promise<any> {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      body: JSON.stringify(data),
+      ...options,
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (e) {
+        // Error parsing response, use default message
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  async put(url: string, data: any, options: RequestInit = {}): Promise<any> {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      body: JSON.stringify(data),
+      ...options,
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (e) {
+        // Error parsing response, use default message
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  async delete(url: string, options: RequestInit = {}): Promise<any> {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (e) {
+        // Error parsing response, use default message
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
 };
 
 // ============================================

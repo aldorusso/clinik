@@ -108,7 +108,7 @@ export default function NewProductPage() {
       return
     }
 
-    if (!formData.category_id) {
+    if (!formData.category_id || formData.category_id.trim() === "") {
       toast({
         title: "Error",
         description: "Debe seleccionar una categoría",
@@ -121,6 +121,17 @@ export default function NewProductPage() {
     try {
       // Limpiar datos antes de enviar
       const cleanedData = { ...formData }
+      
+      // Verificación final de category_id (no debería llegar aquí si hay validación)
+      if (!cleanedData.category_id || cleanedData.category_id.trim() === "") {
+        toast({
+          title: "Error crítico",
+          description: "ID de categoría inválido. Por favor, seleccione una categoría.",
+          variant: "destructive",
+        })
+        setLoading(false)
+        return
+      }
       
       // Convertir strings vacíos a undefined para campos opcionales
       if (cleanedData.description === "") cleanedData.description = undefined
