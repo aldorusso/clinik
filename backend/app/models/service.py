@@ -124,6 +124,7 @@ class Service(Base):
     treatments = relationship("Treatment", back_populates="service")
     packages = relationship("ServicePackage", back_populates="service")
     provider_services = relationship("ServiceProvider", back_populates="service")
+    service_products = relationship("ServiceProduct", back_populates="service")
 
     def __repr__(self):
         return f"<Service {self.name}>"

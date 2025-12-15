@@ -30,6 +30,10 @@ from app.models.commercial_objectives import (
     CommercialObjective, ObjectiveType, ObjectivePeriod, ObjectiveStatus,
     ObjectiveProgress, CommercialPerformance, ObjectiveTemplate
 )
+from app.models.inventory import (
+    InventoryCategory, InventoryProduct, UnitType, InventoryMovement, 
+    MovementType, ServiceProduct, AppointmentInventoryUsage, InventoryAlert
+)
 
 __all__ = [
     # Base
@@ -88,4 +92,14 @@ __all__ = [
     "ObjectiveProgress",
     "CommercialPerformance",
     "ObjectiveTemplate",
+    
+    # Inventory Models
+    "InventoryCategory",
+    "InventoryProduct",
+    "UnitType",
+    "InventoryMovement",
+    "MovementType",
+    "ServiceProduct",
+    "AppointmentInventoryUsage",
+    "InventoryAlert",
 ]
