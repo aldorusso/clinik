@@ -45,6 +45,12 @@ export function LoginForm() {
     setIsLoading(true)
 
     try {
+      // Basic validation
+      if (!email || !password) {
+        setError("Por favor ingrese email y contraseña")
+        return
+      }
+
       const response = await api.login({
         username: email,
         password: password,
@@ -58,7 +64,8 @@ export function LoginForm() {
 
       router.push(redirectPath)
     } catch (err: any) {
-      setError(err.message || "Credenciales invalidas")
+      console.error("Login error:", err)
+      setError(err.message || "Credenciales inválidas. Verifique su email y contraseña.")
     } finally {
       setIsLoading(false)
     }
@@ -84,6 +91,7 @@ export function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
+              autoComplete="email"
             />
           </div>
           <div className="space-y-2">
@@ -104,6 +112,7 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
+              autoComplete="current-password"
             />
           </div>
           {error && (

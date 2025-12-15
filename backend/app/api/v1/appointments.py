@@ -52,8 +52,8 @@ async def get_appointments(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     # Ordenamiento
-    order_by: str = Query("scheduled_at", regex="^(scheduled_at|created_at|patient_name|provider_name)$"),
-    order_direction: str = Query("asc", regex="^(asc|desc)$")
+    order_by: str = Query("scheduled_at", pattern="^(scheduled_at|created_at|patient_name|provider_name)$"),
+    order_direction: str = Query("asc", pattern="^(asc|desc)$")
 ):
     """
     Obtener lista de citas del tenant.

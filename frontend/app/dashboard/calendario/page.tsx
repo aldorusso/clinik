@@ -109,8 +109,8 @@ export default function CalendarioPage() {
         
         const appointmentsData = await api.getAppointments(token, {
           page_size: 500,
-          date_from: startDate.toISOString(),
-          date_to: endDate.toISOString(),
+          date_from: startDate.toISOString().split('T')[0],
+          date_to: endDate.toISOString().split('T')[0],
           order_by: 'scheduled_at',
           order_direction: 'asc'
         })
@@ -208,8 +208,8 @@ export default function CalendarioPage() {
       
       const appointmentsData = await api.getAppointments(token, {
         page_size: 500,
-        date_from: startDate.toISOString(),
-        date_to: endDate.toISOString(),
+        date_from: startDate.toISOString().split('T')[0],
+        date_to: endDate.toISOString().split('T')[0],
         order_by: 'scheduled_at',
         order_direction: 'asc'
       })
