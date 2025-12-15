@@ -1748,7 +1748,17 @@ export const api = {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to create appointment');
+      console.error('Appointment creation failed:', response.status, error);
+      
+      // Handle validation errors (422)
+      if (response.status === 422 && error.detail) {
+        if (Array.isArray(error.detail)) {
+          const messages = error.detail.map((err: any) => `${err.loc.join('.')}: ${err.msg}`).join(', ');
+          throw new Error(`Validation errors: ${messages}`);
+        }
+      }
+      
+      throw new Error(error.detail || `Failed to create appointment (${response.status})`);
     }
 
     return response.json();

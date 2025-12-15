@@ -41,8 +41,8 @@ export default function InventoryProductsPage() {
   const [products, setProducts] = useState<InventoryProductWithStats[]>([])
   const [categories, setCategories] = useState<InventoryCategory[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [stockFilter, setStockFilter] = useState<string>("")
+  const [selectedCategory, setSelectedCategory] = useState<string>("all")
+  const [stockFilter, setStockFilter] = useState<string>("all")
 
   useEffect(() => {
     const loadData = async () => {
@@ -79,10 +79,10 @@ export default function InventoryProductsPage() {
       product.barcode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.category?.name.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesCategory = !selectedCategory || product.category_id === selectedCategory
+    const matchesCategory = selectedCategory === "all" || product.category_id === selectedCategory
     
     const matchesStockFilter = 
-      !stockFilter ||
+      stockFilter === "all" ||
       (stockFilter === "low" && product.is_low_stock) ||
       (stockFilter === "out" && product.current_stock === 0) ||
       (stockFilter === "ok" && !product.is_low_stock && product.current_stock > 0)
@@ -165,7 +165,7 @@ export default function InventoryProductsPage() {
                   <SelectValue placeholder="Todas las categorías" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las categorías</SelectItem>
+                  <SelectItem value="all">Todas las categorías</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
@@ -180,7 +180,7 @@ export default function InventoryProductsPage() {
                   <SelectValue placeholder="Estado del stock" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="ok">Stock OK</SelectItem>
                   <SelectItem value="low">Stock Bajo</SelectItem>
                   <SelectItem value="out">Sin Stock</SelectItem>

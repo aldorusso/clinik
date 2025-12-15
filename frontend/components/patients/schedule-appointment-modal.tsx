@@ -25,6 +25,23 @@ import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { Calendar, Clock, User as UserIcon } from "lucide-react"
 
+// Email validation helper
+const isValidEmail = (email: string): boolean => {
+  if (!email || typeof email !== 'string') return false
+  
+  const trimmedEmail = email.trim()
+  
+  // Check for obviously invalid characters
+  if (trimmedEmail.includes('*') || trimmedEmail.includes('<') || trimmedEmail.includes('>') || trimmedEmail.includes(' ')) {
+    return false
+  }
+  
+  // Simple but effective email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  
+  return emailRegex.test(trimmedEmail) && trimmedEmail.indexOf('@') > 0 && trimmedEmail.lastIndexOf('.') > trimmedEmail.indexOf('@')
+}
+
 interface Patient {
   id: string
   full_name: string
@@ -99,10 +116,10 @@ export function ScheduleAppointmentModal({
       setFormData(prev => ({
         ...prev,
         patient_id: patient.id,
-        patient_name: patient.full_name,
-        patient_phone: patient.phone,
+        patient_name: patient.full_name || `${patient.first_name} ${patient.last_name}`,
+        patient_phone: patient.phone || "",
         patient_email: patient.email || "",
-        title: `Cita médica - ${patient.full_name}`
+        title: `Cita médica - ${patient.full_name || `${patient.first_name} ${patient.last_name}`}`
       }))
     }
   }, [patient])
@@ -144,7 +161,26 @@ export function ScheduleAppointmentModal({
         return
       }
 
-      await api.createAppointment(token, formData)
+      // Transform the data before sending
+      console.log('Original form data email:', formData.patient_email)
+      console.log('Email is valid:', formData.patient_email ? isValidEmail(formData.patient_email.trim()) : 'N/A')
+      
+      const appointmentData = {
+        ...formData,
+        // Convert datetime-local string to ISO datetime
+        scheduled_at: formData.scheduled_at ? new Date(formData.scheduled_at).toISOString() : null,
+        // Handle service_id - convert "none" or empty string to null
+        service_id: formData.service_id === "none" || formData.service_id === "" ? null : formData.service_id,
+        // Clean and validate email - remove if invalid
+        patient_email: (() => {
+          const email = formData.patient_email?.trim() || ''
+          return email && isValidEmail(email) ? email : null
+        })(),
+      }
+      
+      console.log('Sending appointment data:', appointmentData)
+      
+      await api.createAppointment(token, appointmentData)
       
       toast({
         title: "Cita agendada",
@@ -158,7 +194,7 @@ export function ScheduleAppointmentModal({
       console.error('Error creating appointment:', error)
       toast({
         title: "Error",
-        description: error.message || "Error al agendar la cita",
+        description: error.message || "Error al agendar la cita. Verifique los datos.",
         variant: "destructive",
       })
     } finally {
@@ -271,14 +307,14 @@ export function ScheduleAppointmentModal({
           <div className="space-y-2">
             <Label htmlFor="service">Servicio (opcional)</Label>
             <Select 
-              value={formData.service_id || ""} 
-              onValueChange={(value) => handleInputChange('service_id', value || undefined)}
+              value={formData.service_id || "none"} 
+              onValueChange={(value) => handleInputChange('service_id', value === "none" ? undefined : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar servicio" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin servicio específico</SelectItem>
+                <SelectItem value="none">Sin servicio específico</SelectItem>
                 {services.map((service) => (
                   <SelectItem key={service.id} value={service.id}>
                     {service.name} - {service.category_name}

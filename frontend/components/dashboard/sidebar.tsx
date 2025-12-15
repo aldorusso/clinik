@@ -104,11 +104,11 @@ export function Sidebar({ user }: SidebarProps) {
 
         <Separator className="my-4" />
 
-        {/* Gestión de Leads - Todos excepto doctores ven todos los leads */}
-        {(isManager || isCommercial || isReceptionist) && (
+        {/* Gestión de Leads - Solo Managers y Recepcionistas ven todos los leads */}
+        {(isManager || isReceptionist) && (
           <>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              {isManager ? "🎯 Gestión de Leads" : isCommercial ? "💼 Mi Gestión Comercial" : "📞 Gestión de Leads"}
+              {isManager ? "🎯 Gestión de Leads" : "📞 Gestión de Leads"}
             </p>
 
             <Button
@@ -117,7 +117,7 @@ export function Sidebar({ user }: SidebarProps) {
               onClick={() => router.push("/dashboard/leads")}
             >
               <Users className="mr-2 h-4 w-4" />
-              {isCommercial ? "Mis Leads" : "Leads"}
+              Leads
             </Button>
 
             <Button
@@ -126,7 +126,34 @@ export function Sidebar({ user }: SidebarProps) {
               onClick={() => router.push("/dashboard/pacientes")}
             >
               <UserCheck className="mr-2 h-4 w-4" />
-              {isCommercial ? "Mis Pacientes" : "Pacientes"}
+              Pacientes
+            </Button>
+          </>
+        )}
+
+        {/* Mi Gestión Comercial - Solo para Comerciales */}
+        {isCommercial && (
+          <>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              💼 Mi Gestión Comercial
+            </p>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/mis-leads") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/mis-leads")}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Mis Leads
+            </Button>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/mis-pacientes-comercial") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/mis-pacientes-comercial")}
+            >
+              <UserCheck className="mr-2 h-4 w-4" />
+              Mis Pacientes
             </Button>
           </>
         )}
@@ -149,29 +176,45 @@ export function Sidebar({ user }: SidebarProps) {
           </>
         )}
 
-        {/* Citas - Para todos */}
-        <Button
-          variant={pathname.startsWith("/dashboard/citas") ? "secondary" : "ghost"}
-          className="w-full justify-start"
-          onClick={() => router.push("/dashboard/citas")}
-        >
-          <Calendar className="mr-2 h-4 w-4" />
-          {isDoctor ? "Mis Citas" : isCommercial ? "Mis Citas" : "Citas"}
-        </Button>
+        {/* Citas - Managers y Recepcionistas ven todas */}
+        {(isManager || isReceptionist) && (
+          <Button
+            variant={pathname.startsWith("/dashboard/citas") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/citas")}
+          >
+            <Calendar className="mr-2 h-4 w-4" />
+            Citas
+          </Button>
+        )}
 
-        {/* Calendario - Para todos */}
-        <Button
-          variant={pathname.startsWith("/dashboard/calendario") ? "secondary" : "ghost"}
-          className="w-full justify-start"
-          onClick={() => router.push("/dashboard/calendario")}
-        >
-          <CalendarDays className="mr-2 h-4 w-4" />
-          📅 Calendario
-        </Button>
+        {/* Mis Citas - Solo para Comerciales y Médicos */}
+        {(isCommercial || isDoctor) && (
+          <Button
+            variant={pathname.startsWith("/dashboard/mis-citas") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/mis-citas")}
+          >
+            <Calendar className="mr-2 h-4 w-4" />
+            Mis Citas
+          </Button>
+        )}
+
+        {/* Calendario - Solo para Managers y Recepcionistas */}
+        {(isManager || isReceptionist) && (
+          <Button
+            variant={pathname.startsWith("/dashboard/calendario") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/calendario")}
+          >
+            <CalendarDays className="mr-2 h-4 w-4" />
+            📅 Calendario
+          </Button>
+        )}
 
 
-        {/* Estadísticas - Para gestores y comerciales */}
-        {(isManager || isCommercial) && (
+        {/* Reportes Generales - Solo para Managers */}
+        {isManager && (
           <>
             <Separator className="my-4" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
@@ -184,55 +227,66 @@ export function Sidebar({ user }: SidebarProps) {
               onClick={() => router.push("/dashboard/estadisticas")}
             >
               <BarChart3 className="mr-2 h-4 w-4" />
-              {isCommercial ? "Mi Performance" : "Estadísticas"}
+              Estadísticas
             </Button>
-
-            {isCommercial && (
-              <Button
-                variant={pathname.startsWith("/dashboard/objetivos") ? "secondary" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => router.push("/dashboard/objetivos")}
-              >
-                <Target className="mr-2 h-4 w-4" />
-                Mis Objetivos
-              </Button>
-            )}
           </>
         )}
 
-        {/* Organización - Para TODOS los usuarios del tenant */}
-        <>
-          <Separator className="my-4" />
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            👥 Organización
-          </p>
+        {/* Mi Performance - Solo para Comerciales */}
+        {isCommercial && (
+          <>
+            <Separator className="my-4" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              📊 Mi Performance
+            </p>
 
-          <Button
-            variant={pathname.startsWith("/dashboard/directorio") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/directorio")}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Directorio
-          </Button>
-        </>
+            <Button
+              variant={pathname.startsWith("/dashboard/mi-performance") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/mi-performance")}
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Mi Performance
+            </Button>
 
-        {/* Ver Servicios - Para TODOS los roles (solo pueden consultar, no editar) */}
-        <>
-          <Separator className="my-4" />
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            🏥 Información de la Clínica
-          </p>
+            <Button
+              variant={pathname.startsWith("/dashboard/mis-objetivos") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/mis-objetivos")}
+            >
+              <Target className="mr-2 h-4 w-4" />
+              Mis Objetivos
+            </Button>
+          </>
+        )}
 
-          <Button
-            variant={pathname.startsWith("/dashboard/servicios") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/servicios")}
-          >
-            <Stethoscope className="mr-2 h-4 w-4" />
-            Servicios Médicos
-          </Button>
-        </>
+        {/* Organización - Solo para Managers, Médicos y Recepcionistas */}
+        {(isManager || isDoctor || isReceptionist) && (
+          <>
+            <Separator className="my-4" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              👥 Organización
+            </p>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/directorio") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/directorio")}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Directorio
+            </Button>
+
+            <Button
+              variant={pathname.startsWith("/dashboard/servicios") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              onClick={() => router.push("/dashboard/servicios")}
+            >
+              <Stethoscope className="mr-2 h-4 w-4" />
+              Servicios Médicos
+            </Button>
+          </>
+        )}
       </nav>
     )
   }

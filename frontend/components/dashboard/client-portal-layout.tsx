@@ -45,16 +45,28 @@ export function ClientPortalLayout({ children }: ClientPortalLayoutProps) {
           router.push("/dashboard")
           return
         }
-        // En nuestro sistema de gestión de leads, el rol "client" es un comercial interno
-        // que debe usar el dashboard principal, no el portal de cliente externo
+        // En nuestro sistema de gestión de leads:
+        // - "client" = comercial interno → dashboard principal 
+        // - "patient" = paciente real → portal de pacientes
+        
         if (userData.role === "client") {
           router.push("/dashboard")
           return
         }
-        // Solo clientes externos reales pueden estar aquí (ninguno por ahora)
+        
+        if (userData.role === "recepcionista") {
+          router.push("/dashboard")
+          return
+        }
+        
+        if (userData.role === "patient") {
+          // Pacientes reales pueden acceder al portal
+          setLoading(false)
+          return
+        }
+        
+        // Otros roles no tienen acceso al portal
         router.push("/")
-        return
-        setLoading(false)
       } catch (error) {
         auth.removeToken()
         router.push("/")

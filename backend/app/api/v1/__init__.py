@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications, leads, appointments, patients, services, commercial_stats, inventory, inventory_usage
+from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications, leads, appointments, patients, services, commercial_stats, inventory, inventory_usage, patient_portal
 from app.api.v1.endpoints import medical_history, commercial_objectives
 
 api_router = APIRouter()
@@ -54,6 +54,9 @@ api_router.include_router(inventory.router, prefix="/inventory", tags=["inventor
 
 # Include inventory usage router (inventory usage in appointments)
 api_router.include_router(inventory_usage.router, prefix="/inventory-usage", tags=["inventory-usage"])
+
+# Include patient portal router (patient-specific endpoints)
+api_router.include_router(patient_portal.router, prefix="/patient-portal", tags=["patient-portal"])
 
 
 @api_router.get("/")

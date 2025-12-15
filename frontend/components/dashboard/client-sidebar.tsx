@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { Lock, LogOut, User as UserIcon, LayoutDashboard, FileText, MessageSquare, Building2 } from "lucide-react"
+import { Lock, LogOut, User as UserIcon, LayoutDashboard, FileText, MessageSquare, Building2, Calendar, HeartHandshake, CreditCard, Stethoscope, FileHeart } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -38,13 +38,10 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
     if (user?.first_name) {
       return user.first_name.slice(0, 2).toUpperCase()
     }
-    if (user?.client_company_name) {
-      return user.client_company_name.slice(0, 2).toUpperCase()
-    }
     if (user?.email) {
       return user.email.slice(0, 2).toUpperCase()
     }
-    return "CL"
+    return "P"  // P for Patient
   }
 
   return (
@@ -89,14 +86,62 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
             onClick={() => router.push("/portal")}
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
-            Inicio
+            Panel Principal
           </Button>
 
           <Separator className="my-4" />
 
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            Mis Documentos
+            📅 Mis Citas
           </p>
+
+          <Button
+            variant={pathname.startsWith("/portal/citas") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/portal/citas")}
+          >
+            <Calendar className="mr-2 h-4 w-4" />
+            Próximas Citas
+          </Button>
+
+          <Separator className="my-4" />
+
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+            🏥 Mi Información Médica
+          </p>
+
+          <Button
+            variant={pathname.startsWith("/portal/historial") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/portal/historial")}
+          >
+            <FileHeart className="mr-2 h-4 w-4" />
+            Historial Médico
+          </Button>
+
+          <Button
+            variant={pathname.startsWith("/portal/tratamientos") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/portal/tratamientos")}
+          >
+            <Stethoscope className="mr-2 h-4 w-4" />
+            Mis Tratamientos
+          </Button>
+
+          <Separator className="my-4" />
+
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+            💼 Administración
+          </p>
+
+          <Button
+            variant={pathname.startsWith("/portal/facturacion") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/portal/facturacion")}
+          >
+            <CreditCard className="mr-2 h-4 w-4" />
+            Facturación
+          </Button>
 
           <Button
             variant={pathname.startsWith("/portal/documentos") ? "secondary" : "ghost"}
@@ -104,16 +149,7 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
             onClick={() => router.push("/portal/documentos")}
           >
             <FileText className="mr-2 h-4 w-4" />
-            Documentos
-          </Button>
-
-          <Button
-            variant={pathname.startsWith("/portal/mensajes") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/portal/mensajes")}
-          >
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Mensajes
+            Mis Documentos
           </Button>
         </nav>
       </div>
@@ -135,7 +171,7 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
                 </Avatar>
                 <div className="flex flex-col items-start flex-1 min-w-0">
                   <span className="text-sm font-medium truncate w-full text-left">
-                    {user?.first_name || user?.client_company_name || "Cliente"}
+                    {user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : "Paciente"}
                   </span>
                   <span className="text-xs text-muted-foreground truncate w-full text-left">
                     {user?.email}

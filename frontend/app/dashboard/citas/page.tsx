@@ -99,6 +99,10 @@ export default function CitasPage() {
           order_direction: 'asc'
         })
         setCitas(appointmentsData)
+        
+        // Debug appointments data
+        console.log('Loaded appointments:', appointmentsData)
+        console.log('Sample appointment:', appointmentsData[0])
 
         // Load available providers (doctors)
         const directoryData = await api.getMyTenantUsers(token)
@@ -332,12 +336,20 @@ export default function CitasPage() {
   const stats = {
     total: citas.length,
     hoy: citas.filter(cita => cita.is_today).length,
-    pendientes: citas.filter(cita => cita.status === 'scheduled' && cita.is_today).length,
-    confirmadas: citas.filter(cita => cita.status === 'confirmed' && cita.is_today).length,
+    pendientes: citas.filter(cita => cita.status === 'scheduled').length, // All pending, not just today
+    confirmadas: citas.filter(cita => cita.status === 'confirmed').length, // All confirmed, not just today
     consulta: citas.filter(cita => cita.status === 'in_progress').length,
     completadas_hoy: citas.filter(cita => cita.status === 'completed' && cita.is_today).length,
-    proximas: citas.filter(cita => cita.is_upcoming && !cita.is_today).length,
+    proximas: citas.filter(cita => cita.is_upcoming || (cita.status === 'scheduled' || cita.status === 'confirmed')).length,
     necesitan_confirmacion: citas.filter(cita => cita.needs_confirmation).length
+  }
+  
+  // Debug stats
+  console.log('Appointments stats:', stats)
+  console.log('Total appointments:', citas.length)
+  if (citas.length > 0) {
+    console.log('First appointment status:', citas[0]?.status)
+    console.log('First appointment is_today:', citas[0]?.is_today)
   }
 
   const formatDate = (dateString: string) => {

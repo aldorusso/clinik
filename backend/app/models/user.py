@@ -17,6 +17,7 @@ class UserRole(str, enum.Enum):
     - user: Médico/especialista (recibe leads asignados)
     - client: Comercial (primer contacto con leads)
     - recepcionista: Personal de recepción (agenda, registro manual)
+    - patient: Paciente real que accede al portal de pacientes
     """
     superadmin = "superadmin"
     tenant_admin = "tenant_admin"
@@ -24,6 +25,7 @@ class UserRole(str, enum.Enum):
     user = "user"
     client = "client"
     recepcionista = "recepcionista"
+    patient = "patient"
 
 
 class User(Base):
@@ -114,6 +116,10 @@ class User(Base):
     @property
     def is_recepcionista(self) -> bool:
         return self.role == UserRole.recepcionista
+
+    @property
+    def is_patient(self) -> bool:
+        return self.role == UserRole.patient
 
     @property
     def belongs_to_tenant(self) -> bool:

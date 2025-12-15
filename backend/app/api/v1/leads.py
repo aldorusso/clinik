@@ -987,7 +987,7 @@ async def convert_lead_to_patient(
                 last_name=lead.last_name,
                 full_name=lead.full_name,
                 phone=lead.phone,
-                role=UserRole.client,  # Patients are stored as 'client' role
+                role=UserRole.patient,  # Patients now have dedicated patient role
                 tenant_id=current_user.tenant_id,
                 is_active=True
             )

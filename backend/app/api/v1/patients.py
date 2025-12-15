@@ -33,14 +33,11 @@ async def get_patients(
     - Comerciales/Recepcionistas: Limited info (name only + ability to schedule)
     """
     
-    # For now, we'll consider "patients" as users with role "client" who have been converted from leads
-    # Later this can be expanded to a dedicated Patient model
-    
-    # Base query for patients (users who were leads and are now patients)
-    # This is a simplified version - in production you'd have a dedicated patients table
+    # Query for actual patients (users with role "patient" who have been converted from leads)
+    # These are real patients who have been converted from leads and can access the patient portal
     query = db.query(User).filter(
         User.tenant_id == current_user.tenant_id,
-        User.role == UserRole.client,
+        User.role == UserRole.patient,
         User.is_active == True
     )
     
@@ -124,7 +121,7 @@ async def get_patient_details(
     patient = db.query(User).filter(
         User.id == patient_id,
         User.tenant_id == current_user.tenant_id,
-        User.role == UserRole.client
+        User.role == UserRole.patient
     ).first()
     
     if not patient:
@@ -172,7 +169,7 @@ async def get_patient_basic_info(
     patient = db.query(User).filter(
         User.id == patient_id,
         User.tenant_id == current_user.tenant_id,
-        User.role == UserRole.client
+        User.role == UserRole.patient
     ).first()
     
     if not patient:
