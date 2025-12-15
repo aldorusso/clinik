@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { CalendarView, CalendarViewType } from "@/components/calendar/calendar-view"
+import { InventoryUsageDialog } from "@/components/appointments/inventory-usage-dialog"
 import {
   Dialog,
   DialogContent,
@@ -48,6 +49,7 @@ import {
   PhoneCall,
   MessageSquare,
   RefreshCw,
+  Package,
   X,
   CalendarDays,
   CalendarIcon
@@ -74,6 +76,7 @@ export default function CalendarioPage() {
   const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false)
   const [isEditAppointmentOpen, setIsEditAppointmentOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [isInventoryDialogOpen, setIsInventoryDialogOpen] = useState(false)
   const [isAppointmentDetailsOpen, setIsAppointmentDetailsOpen] = useState(false)
   const [quickCreateDate, setQuickCreateDate] = useState<Date | null>(null)
   const [quickCreateTime, setQuickCreateTime] = useState<string>("")
@@ -933,6 +936,21 @@ export default function CalendarioPage() {
                         Editar
                       </Button>
                     </div>
+                    
+                    {/* Inventory button for scheduled/confirmed appointments */}
+                    {(selectedAppointment.status === 'scheduled' || selectedAppointment.status === 'confirmed') && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full mt-2"
+                        onClick={() => {
+                          setIsInventoryDialogOpen(true)
+                          setIsAppointmentDetailsOpen(false)
+                        }}
+                      >
+                        <Package className="h-4 w-4 mr-2" />
+                        Usar Inventario
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1072,6 +1090,20 @@ export default function CalendarioPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Inventory Usage Dialog */}
+        <InventoryUsageDialog
+          isOpen={isInventoryDialogOpen}
+          onClose={() => setIsInventoryDialogOpen(false)}
+          appointmentId={selectedAppointment?.id || ""}
+          serviceId={selectedAppointment?.service_id}
+          onUsageRecorded={() => {
+            toast({
+              title: "Inventario registrado",
+              description: "El uso de inventario se ha registrado exitosamente",
+            })
+          }}
+        />
       </div>
     </DashboardLayout>
   )
