@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { LogOut, User as UserIcon, Lock, LayoutDashboard, Users, Building2, Activity } from "lucide-react"
+import { LogOut, User as UserIcon, Lock, LayoutDashboard, Users, Building2, Activity, Stethoscope, Target } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -120,6 +120,24 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           >
             <Building2 className="mr-2 h-4 w-4" />
             Clientes
+          </Button>
+
+          <Button
+            variant={pathname.startsWith("/dashboard/admin/servicios") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/admin/servicios")}
+          >
+            <Stethoscope className="mr-2 h-4 w-4" />
+            Servicios Médicos
+          </Button>
+
+          <Button
+            variant={pathname.startsWith("/dashboard/admin/objetivos") ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => router.push("/dashboard/admin/objetivos")}
+          >
+            <Target className="mr-2 h-4 w-4" />
+            Objetivos Comerciales
           </Button>
 
           <Separator className="my-4" />

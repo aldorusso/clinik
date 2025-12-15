@@ -60,14 +60,14 @@ class ServiceBase(BaseModel):
     price_consultation: Optional[float] = Field(None, ge=0, description="Precio de consulta")
     
     # Duración y sesiones
-    duration_minutes: Optional[int] = Field(None, gt=0, description="Duración de cada sesión en minutos")
+    duration_minutes: Optional[int] = Field(60, gt=0, description="Duración de cada sesión en minutos")
     session_count_min: Optional[int] = Field(None, gt=0, description="Mínimo de sesiones")
     session_count_max: Optional[int] = Field(None, gt=0, description="Máximo de sesiones")
     
     # Configuración del servicio
-    requires_consultation: bool = Field(True, description="Requiere consulta previa")
-    requires_preparation: bool = Field(False, description="Requiere preparación especial")
-    has_contraindications: bool = Field(False, description="Tiene contraindicaciones")
+    requires_consultation: Optional[bool] = Field(True, description="Requiere consulta previa")
+    requires_preparation: Optional[bool] = Field(False, description="Requiere preparación especial")
+    has_contraindications: Optional[bool] = Field(False, description="Tiene contraindicaciones")
     
     # Información médica
     preparation_instructions: Optional[str] = Field(None, description="Instrucciones pre-tratamiento")
@@ -76,8 +76,8 @@ class ServiceBase(BaseModel):
     side_effects: Optional[str] = Field(None, description="Efectos secundarios posibles")
     
     # Configuración de agenda
-    booking_buffer_before: int = Field(0, ge=0, description="Minutos de buffer antes")
-    booking_buffer_after: int = Field(0, ge=0, description="Minutos de buffer después")
+    booking_buffer_before: Optional[int] = Field(0, ge=0, description="Minutos de buffer antes")
+    booking_buffer_after: Optional[int] = Field(0, ge=0, description="Minutos de buffer después")
     max_daily_bookings: Optional[int] = Field(None, gt=0, description="Máximo de citas por día")
     
     # Targeting de marketing
@@ -96,10 +96,10 @@ class ServiceBase(BaseModel):
     video_url: Optional[str] = Field(None, description="URL de video explicativo")
     
     # Estado y configuración
-    is_active: bool = Field(True, description="Si el servicio está activo")
-    is_featured: bool = Field(False, description="Si es servicio destacado")
-    is_online_bookable: bool = Field(True, description="Se puede agendar online")
-    display_order: int = Field(0, ge=0, description="Orden para mostrar en UI")
+    is_active: Optional[bool] = Field(True, description="Si el servicio está activo")
+    is_featured: Optional[bool] = Field(False, description="Si es servicio destacado")
+    is_online_bookable: Optional[bool] = Field(True, description="Se puede agendar online")
+    display_order: Optional[int] = Field(0, ge=0, description="Orden para mostrar en UI")
 
     @validator('price_max')
     def validate_price_range(cls, v, values):
@@ -175,11 +175,11 @@ class ServiceInDB(ServiceBase):
 
 class Service(ServiceInDB):
     # Información de la categoría
-    category_name: str
+    category_name: Optional[str] = None
     
     # Campos computados
-    price_range_text: str
-    session_count_text: str
+    price_range_text: Optional[str] = None
+    session_count_text: Optional[str] = None
     
     # Estadísticas
     lead_count: Optional[int] = Field(None, description="Número de leads interesados")

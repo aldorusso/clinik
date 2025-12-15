@@ -307,7 +307,14 @@ export const api = {
     });
 
     if (!response.ok) {
-      throw new Error('Login failed');
+      let errorMessage = 'Credenciales inválidas';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (e) {
+        // Error parsing response, use default message
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();
@@ -1838,6 +1845,440 @@ export const api = {
   },
 
   // ============================================
+  // SERVICES MANAGEMENT
+  // ============================================
+
+  /**
+   * Obtiene todas las categorías de servicios del tenant.
+   */
+  async getServiceCategories(
+    token: string,
+    activeOnly?: boolean
+  ): Promise<ServiceCategory[]> {
+    const params = new URLSearchParams();
+    if (activeOnly !== undefined) params.append('active_only', activeOnly.toString());
+    
+    const response = await fetch(`${API_URL}/api/v1/services/categories?${params.toString()}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch service categories');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Crea una nueva categoría de servicios (solo tenant_admin).
+   */
+  async createServiceCategory(token: string, data: ServiceCategoryCreate): Promise<ServiceCategory> {
+    const response = await fetch(`${API_URL}/api/v1/services/categories`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create service category');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Actualiza una categoría de servicios (solo tenant_admin).
+   */
+  async updateServiceCategory(token: string, categoryId: string, data: ServiceCategoryUpdate): Promise<ServiceCategory> {
+    const response = await fetch(`${API_URL}/api/v1/services/categories/${categoryId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update service category');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Elimina una categoría de servicios (solo tenant_admin).
+   */
+  async deleteServiceCategory(token: string, categoryId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/v1/services/categories/${categoryId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete service category');
+    }
+  },
+
+  /**
+   * Obtiene todos los servicios del tenant.
+   */
+  async getServices(
+    token: string,
+    params?: {
+      category_id?: string;
+      active_only?: boolean;
+      featured_only?: boolean;
+      search?: string;
+      order_by?: string;
+      order_direction?: string;
+    }
+  ): Promise<Service[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.category_id) searchParams.append('category_id', params.category_id);
+    if (params?.active_only !== undefined) searchParams.append('active_only', params.active_only.toString());
+    if (params?.featured_only !== undefined) searchParams.append('featured_only', params.featured_only.toString());
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.order_by) searchParams.append('order_by', params.order_by);
+    if (params?.order_direction) searchParams.append('order_direction', params.order_direction);
+
+    const url = `${API_URL}/api/v1/services/${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch services');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene un servicio específico por ID.
+   */
+  async getService(token: string, serviceId: string): Promise<Service> {
+    const response = await fetch(`${API_URL}/api/v1/services/${serviceId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch service');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Crea un nuevo servicio (solo tenant_admin).
+   */
+  async createService(token: string, data: ServiceCreate): Promise<Service> {
+    const response = await fetch(`${API_URL}/api/v1/services/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create service');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Actualiza un servicio (solo tenant_admin).
+   */
+  async updateService(token: string, serviceId: string, data: ServiceUpdate): Promise<Service> {
+    const response = await fetch(`${API_URL}/api/v1/services/${serviceId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update service');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Elimina un servicio (solo tenant_admin).
+   */
+  async deleteService(token: string, serviceId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/v1/services/${serviceId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete service');
+    }
+  },
+
+  // ============================================
+  // COMMERCIAL OBJECTIVES MANAGEMENT
+  // ============================================
+
+  /**
+   * Obtiene todos los objetivos comerciales del tenant con filtros.
+   */
+  async getCommercialObjectives(
+    token: string,
+    params?: {
+      commercial_id?: string;
+      type?: ObjectiveType;
+      period?: ObjectivePeriod;
+      status?: ObjectiveStatus;
+      is_active?: boolean;
+      search?: string;
+      order_by?: string;
+      order_direction?: string;
+    }
+  ): Promise<CommercialObjective[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.commercial_id) searchParams.append('commercial_id', params.commercial_id);
+    if (params?.type) searchParams.append('type', params.type);
+    if (params?.period) searchParams.append('period', params.period);
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.is_active !== undefined) searchParams.append('is_active', params.is_active.toString());
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.order_by) searchParams.append('order_by', params.order_by);
+    if (params?.order_direction) searchParams.append('order_direction', params.order_direction);
+
+    const url = `${API_URL}/api/v1/commercial/objectives${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch commercial objectives');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene un objetivo específico por ID.
+   */
+  async getCommercialObjective(token: string, objectiveId: string): Promise<CommercialObjective> {
+    const response = await fetch(`${API_URL}/api/v1/commercial/objectives/${objectiveId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch commercial objective');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Crea un nuevo objetivo comercial (solo tenant_admin).
+   */
+  async createCommercialObjective(token: string, data: CommercialObjectiveCreate): Promise<CommercialObjective> {
+    const response = await fetch(`${API_URL}/api/v1/commercial/objectives`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create commercial objective');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Actualiza un objetivo comercial (solo tenant_admin).
+   */
+  async updateCommercialObjective(token: string, objectiveId: string, data: CommercialObjectiveUpdate): Promise<CommercialObjective> {
+    const response = await fetch(`${API_URL}/api/v1/commercial/objectives/${objectiveId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update commercial objective');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Elimina un objetivo comercial (solo tenant_admin).
+   */
+  async deleteCommercialObjective(token: string, objectiveId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/v1/commercial/objectives/${objectiveId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete commercial objective');
+    }
+  },
+
+  /**
+   * Obtiene el historial de progreso de un objetivo.
+   */
+  async getObjectiveProgress(token: string, objectiveId: string): Promise<ObjectiveProgress[]> {
+    const response = await fetch(`${API_URL}/api/v1/commercial/objectives/${objectiveId}/progress`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch objective progress');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Agrega progreso a un objetivo.
+   */
+  async addObjectiveProgress(token: string, objectiveId: string, data: ObjectiveProgressCreate): Promise<ObjectiveProgress> {
+    const response = await fetch(`${API_URL}/api/v1/commercial/objectives/${objectiveId}/progress`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to add objective progress');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene el dashboard comercial (performance y objetivos).
+   */
+  async getCommercialDashboard(token: string, commercialId?: string): Promise<CommercialDashboard> {
+    const params = new URLSearchParams();
+    if (commercialId) params.append('commercial_id', commercialId);
+    
+    const response = await fetch(`${API_URL}/api/v1/commercial/dashboard/commercial?${params.toString()}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch commercial dashboard');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene el dashboard de administración de objetivos (solo tenant_admin).
+   */
+  async getAdminObjectiveDashboard(token: string): Promise<AdminObjectiveDashboard> {
+    const response = await fetch(`${API_URL}/api/v1/commercial/dashboard/admin`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch admin objective dashboard');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Obtiene las plantillas de objetivos (solo tenant_admin).
+   */
+  async getObjectiveTemplates(token: string, isActive?: boolean): Promise<ObjectiveTemplate[]> {
+    const params = new URLSearchParams();
+    if (isActive !== undefined) params.append('is_active', isActive.toString());
+    
+    const response = await fetch(`${API_URL}/api/v1/commercial/templates?${params.toString()}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch objective templates');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Crea una nueva plantilla de objetivo (solo tenant_admin).
+   */
+  async createObjectiveTemplate(token: string, data: ObjectiveTemplateCreate): Promise<ObjectiveTemplate> {
+    const response = await fetch(`${API_URL}/api/v1/commercial/templates`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create objective template');
+    }
+
+    return response.json();
+  },
+
+  // ============================================
   // PATIENT MANAGEMENT
   // ============================================
 
@@ -2202,4 +2643,390 @@ export interface LeadConversionResponse {
   patient_email?: string;
   conversion_date: string;
   generated_password?: string;
+}
+
+// ============================================
+// SERVICE TYPES
+// ============================================
+
+export interface ServiceCategory {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  service_count?: number;
+}
+
+export interface ServiceCategoryCreate {
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  display_order?: number;
+}
+
+export interface ServiceCategoryUpdate {
+  name?: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export interface Service {
+  id: string;
+  tenant_id: string;
+  category_id: string;
+  name: string;
+  short_description?: string;
+  description?: string;
+  
+  // Precios
+  price_min?: number;
+  price_max?: number;
+  price_consultation?: number;
+  
+  // Duración y sesiones
+  duration_minutes?: number;
+  session_count_min?: number;
+  session_count_max?: number;
+  
+  // Configuración del servicio
+  requires_consultation: boolean;
+  requires_preparation: boolean;
+  has_contraindications: boolean;
+  
+  // Información médica
+  preparation_instructions?: string;
+  aftercare_instructions?: string;
+  contraindications?: string;
+  side_effects?: string;
+  
+  // Configuración de agenda
+  booking_buffer_before: number;
+  booking_buffer_after: number;
+  max_daily_bookings?: number;
+  
+  // Targeting de marketing
+  target_age_min?: number;
+  target_age_max?: number;
+  target_gender?: 'masculino' | 'femenino' | 'ambos';
+  
+  // SEO y marketing
+  tags?: string[];
+  meta_title?: string;
+  meta_description?: string;
+  
+  // Imágenes y multimedia
+  featured_image?: string;
+  gallery_images?: string[];
+  video_url?: string;
+  
+  // Estado y configuración
+  is_active: boolean;
+  is_featured: boolean;
+  is_online_bookable: boolean;
+  display_order: number;
+  
+  created_at: string;
+  updated_at: string;
+  
+  // Información relacionada
+  category_name: string;
+  
+  // Campos computados
+  price_range_text: string;
+  session_count_text: string;
+  
+  // Estadísticas opcionales
+  lead_count?: number;
+  appointment_count?: number;
+  treatment_count?: number;
+}
+
+export interface ServiceCreate {
+  category_id: string;
+  name: string;
+  short_description?: string;
+  description?: string;
+  price_min?: number;
+  price_max?: number;
+  price_consultation?: number;
+  duration_minutes?: number;
+  session_count_min?: number;
+  session_count_max?: number;
+  requires_consultation?: boolean;
+  requires_preparation?: boolean;
+  has_contraindications?: boolean;
+  preparation_instructions?: string;
+  aftercare_instructions?: string;
+  contraindications?: string;
+  side_effects?: string;
+  booking_buffer_before?: number;
+  booking_buffer_after?: number;
+  max_daily_bookings?: number;
+  target_age_min?: number;
+  target_age_max?: number;
+  target_gender?: 'masculino' | 'femenino' | 'ambos';
+  tags?: string[];
+  meta_title?: string;
+  meta_description?: string;
+  featured_image?: string;
+  gallery_images?: string[];
+  video_url?: string;
+  is_active?: boolean;
+  is_featured?: boolean;
+  is_online_bookable?: boolean;
+  display_order?: number;
+}
+
+export interface ServiceUpdate {
+  category_id?: string;
+  name?: string;
+  short_description?: string;
+  description?: string;
+  price_min?: number;
+  price_max?: number;
+  price_consultation?: number;
+  duration_minutes?: number;
+  session_count_min?: number;
+  session_count_max?: number;
+  requires_consultation?: boolean;
+  requires_preparation?: boolean;
+  has_contraindications?: boolean;
+  preparation_instructions?: string;
+  aftercare_instructions?: string;
+  contraindications?: string;
+  side_effects?: string;
+  booking_buffer_before?: number;
+  booking_buffer_after?: number;
+  max_daily_bookings?: number;
+  target_age_min?: number;
+  target_age_max?: number;
+  target_gender?: 'masculino' | 'femenino' | 'ambos';
+  tags?: string[];
+  meta_title?: string;
+  meta_description?: string;
+  featured_image?: string;
+  gallery_images?: string[];
+  video_url?: string;
+  is_active?: boolean;
+  is_featured?: boolean;
+  is_online_bookable?: boolean;
+  display_order?: number;
+}
+
+// ============================================
+// COMMERCIAL OBJECTIVES TYPES
+// ============================================
+
+export type ObjectiveType = 'leads' | 'conversions' | 'revenue' | 'appointments' | 'calls' | 'meetings' | 'satisfaction';
+export type ObjectivePeriod = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+export type ObjectiveStatus = 'active' | 'completed' | 'paused' | 'cancelled' | 'overdue';
+
+export interface CommercialObjective {
+  id: string;
+  tenant_id: string;
+  commercial_id: string;
+  created_by_id: string;
+  title: string;
+  description?: string;
+  type: ObjectiveType;
+  period: ObjectivePeriod;
+  target_value: number;
+  current_value: number;
+  unit?: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  is_public: boolean;
+  auto_calculate: boolean;
+  reward_description?: string;
+  reward_amount?: number;
+  status: ObjectiveStatus;
+  completion_date?: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Información relacionada
+  commercial_name: string;
+  commercial_email: string;
+  created_by_name: string;
+  
+  // Campos computados
+  progress_percentage: number;
+  is_completed: boolean;
+  is_overdue: boolean;
+  days_remaining: number;
+  
+  // Estadísticas del período
+  period_stats?: any;
+}
+
+export interface CommercialObjectiveCreate {
+  commercial_id: string;
+  title: string;
+  description?: string;
+  type: ObjectiveType;
+  period: ObjectivePeriod;
+  target_value: number;
+  unit?: string;
+  start_date: string;
+  end_date: string;
+  is_public?: boolean;
+  auto_calculate?: boolean;
+  reward_description?: string;
+  reward_amount?: number;
+}
+
+export interface CommercialObjectiveUpdate {
+  title?: string;
+  description?: string;
+  target_value?: number;
+  unit?: string;
+  start_date?: string;
+  end_date?: string;
+  is_active?: boolean;
+  is_public?: boolean;
+  auto_calculate?: boolean;
+  reward_description?: string;
+  reward_amount?: number;
+  status?: ObjectiveStatus;
+}
+
+export interface ObjectiveProgress {
+  id: string;
+  objective_id: string;
+  previous_value: number;
+  new_value: number;
+  increment: number;
+  notes?: string;
+  recorded_by_id?: string;
+  recorded_by_name?: string;
+  is_automatic: boolean;
+  metadata?: any;
+  recorded_at: string;
+  objective_title: string;
+}
+
+export interface ObjectiveProgressCreate {
+  objective_id: string;
+  increment: number;
+  notes?: string;
+  metadata?: any;
+}
+
+export interface CommercialPerformance {
+  id: string;
+  tenant_id: string;
+  commercial_id: string;
+  period: ObjectivePeriod;
+  period_start: string;
+  period_end: string;
+  
+  // Métricas de leads
+  total_leads_assigned: number;
+  total_leads_contacted: number;
+  total_leads_converted: number;
+  conversion_rate: number;
+  
+  // Métricas de citas
+  total_appointments_scheduled: number;
+  total_appointments_completed: number;
+  appointment_show_rate: number;
+  
+  // Métricas de ingresos
+  total_revenue_generated: number;
+  average_deal_size: number;
+  
+  // Métricas de actividad
+  total_calls_made: number;
+  total_emails_sent: number;
+  total_meetings_held: number;
+  
+  // Métricas de satisfacción
+  average_satisfaction_score: number;
+  total_satisfaction_surveys: number;
+  
+  // Objetivos
+  objectives_assigned: number;
+  objectives_completed: number;
+  objectives_completion_rate: number;
+  
+  created_at: string;
+  updated_at: string;
+  
+  // Información relacionada
+  commercial_name: string;
+  commercial_email: string;
+  
+  // Comparaciones
+  lead_growth_rate?: number;
+  revenue_growth_rate?: number;
+  conversion_improvement?: number;
+}
+
+export interface ObjectiveTemplate {
+  id: string;
+  tenant_id: string;
+  created_by_id: string;
+  name: string;
+  description?: string;
+  type: ObjectiveType;
+  period: ObjectivePeriod;
+  default_target_value: number;
+  default_unit?: string;
+  default_reward_description?: string;
+  default_reward_amount?: number;
+  is_active: boolean;
+  usage_count: number;
+  created_at: string;
+  updated_at: string;
+  created_by_name: string;
+}
+
+export interface ObjectiveTemplateCreate {
+  name: string;
+  description?: string;
+  type: ObjectiveType;
+  period: ObjectivePeriod;
+  default_target_value: number;
+  default_unit?: string;
+  default_reward_description?: string;
+  default_reward_amount?: number;
+}
+
+export interface CommercialDashboard {
+  commercial_id: string;
+  commercial_name: string;
+  active_objectives: CommercialObjective[];
+  completed_objectives_this_period: number;
+  overdue_objectives: number;
+  current_period_performance?: CommercialPerformance;
+  previous_period_performance?: CommercialPerformance;
+  total_leads_this_month: number;
+  total_revenue_this_month: number;
+  conversion_rate_this_month: number;
+  objectives_completion_rate: number;
+  upcoming_deadlines: any[];
+  suggestions: string[];
+}
+
+export interface AdminObjectiveDashboard {
+  total_commercials: number;
+  total_active_objectives: number;
+  overall_completion_rate: number;
+  commercial_rankings: any[];
+  objectives_by_status: Record<string, number>;
+  objectives_by_type: Record<string, number>;
+  overdue_objectives: CommercialObjective[];
+  underperforming_commercials: any[];
+  period_summary: any;
 }

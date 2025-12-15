@@ -82,6 +82,8 @@ class User(Base):
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     patient_histories = relationship("MedicalHistory", foreign_keys="MedicalHistory.patient_id", back_populates="patient")
     medic_histories = relationship("MedicalHistory", foreign_keys="MedicalHistory.medic_id", back_populates="medic")
+    # Relación con objetivos comerciales (usando string para evitar dependencias circulares)
+    objectives = relationship("CommercialObjective", foreign_keys="CommercialObjective.commercial_id", back_populates="commercial")
 
     def __repr__(self):
         return f"<User {self.email} ({self.role.value})>"
