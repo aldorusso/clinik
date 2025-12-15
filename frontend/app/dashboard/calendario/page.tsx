@@ -67,9 +67,12 @@ export default function CalendarioPage() {
   const [viewType, setViewType] = useState<CalendarViewType>('month')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedProvider, setSelectedProvider] = useState<string>("")
+  const [selectedStatus, setSelectedStatus] = useState<string>("")
+  const [searchTerm, setSearchTerm] = useState<string>("")
   
   // Modals and sheets
   const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false)
+  const [isEditAppointmentOpen, setIsEditAppointmentOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [isAppointmentDetailsOpen, setIsAppointmentDetailsOpen] = useState(false)
   const [quickCreateDate, setQuickCreateDate] = useState<Date | null>(null)
@@ -77,6 +80,19 @@ export default function CalendarioPage() {
 
   // Form state
   const [newAppointmentForm, setNewAppointmentForm] = useState({
+    patient_name: '',
+    patient_phone: '',
+    patient_email: '',
+    provider_id: '',
+    service_id: '',
+    scheduled_date: '',
+    scheduled_time: '',
+    duration_minutes: 60,
+    notes: '',
+    type: 'consultation' as const
+  })
+
+  const [editAppointmentForm, setEditAppointmentForm] = useState({
     patient_name: '',
     patient_phone: '',
     patient_email: '',
@@ -138,10 +154,25 @@ export default function CalendarioPage() {
     loadData()
   }, [currentDate])
 
-  // Filter appointments by selected provider
-  const filteredAppointments = selectedProvider 
-    ? appointments.filter(apt => apt.provider_id === selectedProvider)
-    : appointments
+  // Filter appointments by selected provider, status, and search term
+  const filteredAppointments = appointments.filter(apt => {
+    // Filter by provider
+    if (selectedProvider && apt.provider_id !== selectedProvider) return false
+    
+    // Filter by status
+    if (selectedStatus && apt.status !== selectedStatus) return false
+    
+    // Filter by search term (patient name, phone, email)
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase()
+      const matchesName = apt.patient_name?.toLowerCase().includes(search)
+      const matchesPhone = apt.patient_phone?.toLowerCase().includes(search)
+      const matchesEmail = apt.patient_email?.toLowerCase().includes(search)
+      if (!matchesName && !matchesPhone && !matchesEmail) return false
+    }
+    
+    return true
+  })
 
   const handleAppointmentClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment)
@@ -279,6 +310,90 @@ export default function CalendarioPage() {
       console.error('Error creating appointment:', error)
       
       let errorMessage = "Error al crear la cita"
+      if (error.response?.data?.detail) {
+        if (Array.isArray(error.response.data.detail)) {
+          errorMessage = error.response.data.detail.map((err: any) => err.msg || err.message).join(', ')
+        } else {
+          errorMessage = error.response.data.detail
+        }
+      } else if (error.message && error.message !== '[object Object]') {
+        errorMessage = error.message
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleEditAppointment = (appointment: Appointment) => {
+    // Pre-fill edit form with appointment data
+    const appointmentDate = new Date(appointment.scheduled_at)
+    setEditAppointmentForm({
+      patient_name: appointment.patient_name || '',
+      patient_phone: appointment.patient_phone || '',
+      patient_email: appointment.patient_email || '',
+      provider_id: appointment.provider_id || '',
+      service_id: appointment.service_id || '',
+      scheduled_date: appointmentDate.toISOString().split('T')[0],
+      scheduled_time: appointmentDate.toTimeString().slice(0, 5),
+      duration_minutes: appointment.duration_minutes || 60,
+      notes: appointment.notes || '',
+      type: appointment.type || 'consultation'
+    })
+    
+    setSelectedAppointment(appointment)
+    setIsEditAppointmentOpen(true)
+    setIsAppointmentDetailsOpen(false)
+  }
+
+  const handleUpdateAppointment = async () => {
+    const token = auth.getToken()
+    if (!token || !selectedAppointment) return
+
+    if (!editAppointmentForm.patient_name || !editAppointmentForm.patient_phone || 
+        !editAppointmentForm.provider_id || !editAppointmentForm.scheduled_date || 
+        !editAppointmentForm.scheduled_time) {
+      toast({
+        title: "Campos requeridos",
+        description: "Complete todos los campos obligatorios",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const scheduledAt = new Date(`${editAppointmentForm.scheduled_date}T${editAppointmentForm.scheduled_time}`)
+      
+      const appointmentData = {
+        patient_name: editAppointmentForm.patient_name,
+        patient_phone: editAppointmentForm.patient_phone,
+        patient_email: editAppointmentForm.patient_email || undefined,
+        provider_id: editAppointmentForm.provider_id,
+        service_id: editAppointmentForm.service_id || undefined,
+        scheduled_at: scheduledAt.toISOString(),
+        duration_minutes: editAppointmentForm.duration_minutes,
+        notes: editAppointmentForm.notes || undefined,
+        type: editAppointmentForm.type
+      }
+
+      await api.updateAppointment(token, selectedAppointment.id, appointmentData)
+      
+      toast({
+        title: "✓ Cita actualizada",
+        description: `Cita de ${editAppointmentForm.patient_name} actualizada correctamente`,
+      })
+      
+      setIsEditAppointmentOpen(false)
+      setSelectedAppointment(null)
+      reloadAppointments()
+      
+    } catch (error: any) {
+      console.error('Error updating appointment:', error)
+      
+      let errorMessage = "Error al actualizar la cita"
       if (error.response?.data?.detail) {
         if (Array.isArray(error.response.data.detail)) {
           errorMessage = error.response.data.detail.map((err: any) => err.msg || err.message).join(', ')
@@ -448,7 +563,17 @@ export default function CalendarioPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar paciente..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64"
+            />
+          </div>
+          
           <Select value={selectedProvider || "all"} onValueChange={(value) => setSelectedProvider(value === "all" ? "" : value)}>
             <SelectTrigger className="w-64">
               <SelectValue placeholder="Filtrar por médico" />
@@ -465,6 +590,72 @@ export default function CalendarioPage() {
               ))}
             </SelectContent>
           </Select>
+
+          <Select value={selectedStatus || "all"} onValueChange={(value) => setSelectedStatus(value === "all" ? "" : value)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Estado de cita" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="scheduled">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-yellow-600" />
+                  Programada
+                </div>
+              </SelectItem>
+              <SelectItem value="confirmed">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                  Confirmada
+                </div>
+              </SelectItem>
+              <SelectItem value="in_progress">
+                <div className="flex items-center gap-2">
+                  <Stethoscope className="h-4 w-4 text-green-600" />
+                  En Consulta
+                </div>
+              </SelectItem>
+              <SelectItem value="completed">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  Completada
+                </div>
+              </SelectItem>
+              <SelectItem value="no_show">
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-red-600" />
+                  No Asistió
+                </div>
+              </SelectItem>
+              <SelectItem value="cancelled_by_patient">
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-red-600" />
+                  Cancelada (Paciente)
+                </div>
+              </SelectItem>
+              <SelectItem value="cancelled_by_clinic">
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-red-600" />
+                  Cancelada (Clínica)
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          {(selectedProvider || selectedStatus || searchTerm) && (
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSelectedProvider("")
+                setSelectedStatus("")
+                setSearchTerm("")
+              }}
+              className="px-3"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Limpiar filtros
+            </Button>
+          )}
         </div>
 
         {/* Calendar */}
@@ -733,7 +924,11 @@ export default function CalendarioPage() {
                         <Phone className="h-4 w-4 mr-2" />
                         Llamar
                       </Button>
-                      <Button variant="outline" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => handleEditAppointment(selectedAppointment)}
+                      >
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </Button>
@@ -744,6 +939,139 @@ export default function CalendarioPage() {
             )}
           </SheetContent>
         </Sheet>
+
+        {/* Edit Appointment Dialog */}
+        <Dialog open={isEditAppointmentOpen} onOpenChange={setIsEditAppointmentOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Edit className="h-5 w-5" />
+                Editar Cita
+              </DialogTitle>
+              <DialogDescription>
+                Modifique la información de la cita según sea necesario
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid gap-4 py-4">
+              {/* Patient Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_patient_name">Nombre del Paciente *</Label>
+                  <Input
+                    id="edit_patient_name"
+                    placeholder="Nombre completo"
+                    value={editAppointmentForm.patient_name}
+                    onChange={(e) => setEditAppointmentForm({...editAppointmentForm, patient_name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_patient_phone">Teléfono *</Label>
+                  <Input
+                    id="edit_patient_phone"
+                    placeholder="+52 55 1234 5678"
+                    value={editAppointmentForm.patient_phone}
+                    onChange={(e) => setEditAppointmentForm({...editAppointmentForm, patient_phone: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit_patient_email">Email (Opcional)</Label>
+                <Input
+                  id="edit_patient_email"
+                  type="email"
+                  placeholder="email@ejemplo.com"
+                  value={editAppointmentForm.patient_email}
+                  onChange={(e) => setEditAppointmentForm({...editAppointmentForm, patient_email: e.target.value})}
+                />
+              </div>
+
+              {/* Appointment Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_provider_id">Médico/Especialista *</Label>
+                  <Select value={editAppointmentForm.provider_id} onValueChange={(value) => setEditAppointmentForm({...editAppointmentForm, provider_id: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar médico" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProviders.map((provider) => (
+                        <SelectItem key={provider.id} value={provider.id}>
+                          <div className="flex items-center gap-2">
+                            <Stethoscope className="h-4 w-4" />
+                            {provider.full_name || `${provider.first_name} ${provider.last_name}`}
+                            {provider.job_title && (
+                              <span className="text-xs text-muted-foreground">• {provider.job_title}</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_duration_minutes">Duración (min)</Label>
+                  <Select value={String(editAppointmentForm.duration_minutes)} onValueChange={(value) => setEditAppointmentForm({...editAppointmentForm, duration_minutes: parseInt(value)})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 minutos</SelectItem>
+                      <SelectItem value="60">60 minutos</SelectItem>
+                      <SelectItem value="90">90 minutos</SelectItem>
+                      <SelectItem value="120">120 minutos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_scheduled_date">Fecha *</Label>
+                  <Input
+                    id="edit_scheduled_date"
+                    type="date"
+                    value={editAppointmentForm.scheduled_date}
+                    onChange={(e) => setEditAppointmentForm({...editAppointmentForm, scheduled_date: e.target.value})}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_scheduled_time">Hora *</Label>
+                  <Input
+                    id="edit_scheduled_time"
+                    type="time"
+                    value={editAppointmentForm.scheduled_time}
+                    onChange={(e) => setEditAppointmentForm({...editAppointmentForm, scheduled_time: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit_notes">Notas adicionales</Label>
+                <Textarea
+                  id="edit_notes"
+                  placeholder="Motivo de la consulta, síntomas, etc."
+                  value={editAppointmentForm.notes}
+                  onChange={(e) => setEditAppointmentForm({...editAppointmentForm, notes: e.target.value})}
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditAppointmentOpen(false)}>
+                <X className="mr-2 h-4 w-4" />
+                Cancelar
+              </Button>
+              <Button onClick={handleUpdateAppointment} className="bg-green-600 hover:bg-green-700">
+                <CalendarCheck className="mr-2 h-4 w-4" />
+                Actualizar Cita
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   )

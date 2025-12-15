@@ -26,6 +26,10 @@ from app.models.treatment import (
 from app.models.medical_history import (
     MedicalHistory, MedicalAttachment
 )
+from app.models.commercial_objectives import (
+    CommercialObjective, ObjectiveType, ObjectivePeriod, ObjectiveStatus,
+    ObjectiveProgress, CommercialPerformance, ObjectiveTemplate
+)
 
 __all__ = [
     # Base
@@ -75,4 +79,13 @@ __all__ = [
     # Medical History Models
     "MedicalHistory",
     "MedicalAttachment",
+    
+    # Commercial Objectives Models
+    "CommercialObjective",
+    "ObjectiveType",
+    "ObjectivePeriod", 
+    "ObjectiveStatus",
+    "ObjectiveProgress",
+    "CommercialPerformance",
+    "ObjectiveTemplate",
 ]

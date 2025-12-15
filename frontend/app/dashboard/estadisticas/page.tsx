@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { api, CommercialStatsResponse } from "@/lib/api"
+import { auth } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
 import { 
   BarChart3, 
   TrendingUp,
@@ -19,58 +22,40 @@ import {
 } from "lucide-react"
 
 export default function EstadisticasPage() {
+  const { toast } = useToast()
   const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState<any>(null)
+  const [stats, setStats] = useState<CommercialStatsResponse | null>(null)
 
-  // Datos de ejemplo para mostrar la estructura
+  // Cargar estadísticas reales desde la API
   useEffect(() => {
-    // Simulamos una carga de datos
-    setTimeout(() => {
-      setStats({
-        overview: {
-          total_leads: 156,
-          leads_this_month: 24,
-          conversion_rate: 18.5,
-          active_patients: 28
-        },
-        monthly_trends: {
-          leads_growth: 12.5,
-          conversion_growth: -2.3,
-          revenue_growth: 25.8
-        },
-        funnel: {
-          nuevo: 45,
-          contactado: 32,
-          calificado: 18,
-          cita_agendada: 12,
-          en_tratamiento: 8,
-          completado: 5
-        },
-        sources: {
-          website: 35,
-          facebook: 28,
-          instagram: 20,
-          referidos: 15,
-          google: 12,
-          otros: 10
-        },
-        doctors_performance: [
-          {
-            name: "Dr. Roberto Martínez",
-            leads_assigned: 45,
-            conversion_rate: 22.2,
-            active_patients: 10
-          },
-          {
-            name: "Dr. Ana García",
-            leads_assigned: 38,
-            conversion_rate: 15.8,
-            active_patients: 6
-          }
-        ]
-      })
-      setLoading(false)
-    }, 1000)
+    const loadStats = async () => {
+      const token = auth.getToken()
+      if (!token) {
+        toast({
+          title: "Error de autenticación",
+          description: "No se encontró un token válido. Por favor, inicia sesión nuevamente.",
+          variant: "destructive",
+        })
+        setLoading(false)
+        return
+      }
+
+      try {
+        const statsData = await api.getCommercialStats(token)
+        setStats(statsData)
+      } catch (error: any) {
+        console.error('Error loading commercial stats:', error)
+        toast({
+          title: "Error al cargar estadísticas",
+          description: "No se pudieron cargar las estadísticas. Intenta recargar la página.",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadStats()
   }, [])
 
   const getGrowthBadge = (growth: number) => {
@@ -88,6 +73,20 @@ export default function EstadisticasPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (!stats) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-64">
+          <h3 className="text-lg font-semibold mb-2">No se pudieron cargar las estadísticas</h3>
+          <p className="text-muted-foreground mb-4">Ocurrió un error al obtener los datos</p>
+          <Button onClick={() => window.location.reload()}>
+            Reintentar
+          </Button>
         </div>
       </DashboardLayout>
     )

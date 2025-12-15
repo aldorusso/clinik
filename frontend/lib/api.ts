@@ -2326,6 +2326,42 @@ export const api = {
 
     return response.json();
   },
+
+  // ============================================
+  // COMMERCIAL STATS
+  // ============================================
+
+  async getCommercialStats(
+    token: string, 
+    dateFrom?: string, 
+    dateTo?: string
+  ): Promise<CommercialStatsResponse> {
+    let url = `${API_URL}/api/v1/commercial-stats/`;
+    const params = new URLSearchParams();
+    
+    if (dateFrom) {
+      params.append('date_from', dateFrom);
+    }
+    if (dateTo) {
+      params.append('date_to', dateTo);
+    }
+    
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch commercial statistics');
+    }
+
+    return response.json();
+  },
 };
 
 // ============================================
@@ -3029,4 +3065,54 @@ export interface AdminObjectiveDashboard {
   overdue_objectives: CommercialObjective[];
   underperforming_commercials: any[];
   period_summary: any;
+}
+
+// ============================================
+// COMMERCIAL STATS TYPES
+// ============================================
+
+export interface CommercialStatsOverview {
+  total_leads: number;
+  leads_this_month: number;
+  conversion_rate: number;
+  active_patients: number;
+}
+
+export interface CommercialStatsMonthlyTrends {
+  leads_growth: number;
+  conversion_growth: number;
+  revenue_growth: number;
+}
+
+export interface CommercialStatsFunnel {
+  nuevo: number;
+  contactado: number;
+  calificado: number;
+  cita_agendada: number;
+  en_tratamiento: number;
+  completado: number;
+}
+
+export interface CommercialStatsSources {
+  website: number;
+  facebook: number;
+  instagram: number;
+  referidos: number;
+  google: number;
+  otros: number;
+}
+
+export interface CommercialStatsDoctorPerformance {
+  name: string;
+  leads_assigned: number;
+  conversion_rate: number;
+  active_patients: number;
+}
+
+export interface CommercialStatsResponse {
+  overview: CommercialStatsOverview;
+  monthly_trends: CommercialStatsMonthlyTrends;
+  funnel: CommercialStatsFunnel;
+  sources: CommercialStatsSources;
+  doctors_performance: CommercialStatsDoctorPerformance[];
 }

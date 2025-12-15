@@ -84,9 +84,9 @@ class User(Base):
     medic_histories = relationship("MedicalHistory", foreign_keys="MedicalHistory.medic_id", back_populates="medic")
     # Relación con objetivos comerciales (usando lazy loading para evitar dependencias circulares)
     objectives = relationship("CommercialObjective", 
-                            foreign_keys="CommercialObjective.commercial_id", 
+                            foreign_keys="[CommercialObjective.commercial_id]", 
                             back_populates="commercial",
-                            lazy="select")
+                            lazy="dynamic")
 
     def __repr__(self):
         return f"<User {self.email} ({self.role.value})>"

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications, leads, appointments, patients, services
+from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications, leads, appointments, patients, services, commercial_stats
 from app.api.v1.endpoints import medical_history, commercial_objectives
 
 api_router = APIRouter()
@@ -45,6 +45,9 @@ api_router.include_router(services.router, prefix="/services", tags=["services"]
 
 # Include commercial objectives router (commercial performance and goals)
 api_router.include_router(commercial_objectives.router, prefix="/commercial", tags=["commercial-objectives"])
+
+# Include commercial stats router (commercial statistics and metrics)
+api_router.include_router(commercial_stats.router, prefix="/commercial-stats", tags=["commercial-stats"])
 
 
 @api_router.get("/")
