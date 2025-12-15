@@ -145,22 +145,33 @@ PLATAFORMA (Superadmin)
 ├── backend/
 │   ├── app/
 │   │   ├── api/v1/          # Endpoints de la API
+│   │   │   ├── commercial_stats.py  # ✨ NUEVO - Estadísticas comerciales
+│   │   │   └── appointments.py      # 🔧 ACTUALIZADO - Límites de paginación
 │   │   ├── core/            # Config, seguridad, email
 │   │   ├── db/              # Configuración de BD
 │   │   ├── models/          # Modelos SQLAlchemy
+│   │   │   └── __init__.py  # 🔧 CORREGIDO - Imports de CommercialObjective
 │   │   ├── schemas/         # Schemas Pydantic
+│   │   │   └── commercial_stats.py  # ✨ NUEVO - Schemas de estadísticas
 │   │   └── services/        # Lógica de negocio
 │   └── alembic/             # Migraciones
 │
 ├── frontend/
 │   ├── app/                 # App Router Next.js
 │   │   ├── dashboard/       # Dashboards por rol
+│   │   │   ├── admin/calendario/  # ✨ NUEVO - Calendario para admins
+│   │   │   ├── calendario/        # 🔧 ACTUALIZADO - Edición de citas
+│   │   │   └── estadisticas/      # 🔧 ACTUALIZADO - Stats en tiempo real
 │   │   └── portal/          # Portal de clientes
 │   ├── components/          # Componentes React
-│   │   ├── leads/          # Componentes de leads
+│   │   ├── dashboard/
+│   │   │   └── admin-sidebar.tsx   # 🔧 ACTUALIZADO - Navegación calendario
+│   │   ├── leads/
+│   │   │   └── lead-form-modal.tsx # 🔧 ACTUALIZADO - Categorías dinámicas
 │   │   ├── medical/        # Componentes médicos
 │   │   └── ui/             # shadcn/ui
-│   └── lib/                # Utils y API client
+│   └── lib/
+│       └── api.ts          # 🔧 ACTUALIZADO - Nuevas interfaces comerciales
 │
 └── database/               # Scripts SQL iniciales
 ```
@@ -271,17 +282,28 @@ GET    /api/v1/leads/{id}/timeline  # Timeline del lead
 ```
 GET    /api/v1/services              # Lista de servicios
 POST   /api/v1/services              # Crear servicio
-GET    /api/v1/services/categories   # Categorías
+GET    /api/v1/services/categories   # Categorías (con filtros activo)
 PUT    /api/v1/services/{id}        # Actualizar servicio
 ```
 
-### Appointments API
+### Appointments API 🔧 ACTUALIZADO
 ```
-GET    /api/v1/appointments          # Agenda con filtros
+GET    /api/v1/appointments          # Agenda con filtros (page_size hasta 1000)
 POST   /api/v1/appointments          # Crear cita
 PUT    /api/v1/appointments/{id}     # Actualizar cita
 POST   /api/v1/appointments/{id}/confirm  # Confirmar cita
 GET    /api/v1/appointments/availability # Disponibilidad
+```
+
+### Commercial Stats API ✨ NUEVO
+```
+GET    /api/v1/commercial-stats/     # Estadísticas comerciales en tiempo real
+                                   # - Overview con conversiones actuales
+                                   # - Trends semanales de leads
+                                   # - Funnel de conversión por etapas
+                                   # - Performance por fuente de leads
+                                   # - Rendimiento por doctor
+                                   # Parámetros opcionales: start_date, end_date
 ```
 
 ### Reports API
@@ -374,6 +396,40 @@ NEXT_PUBLIC_GOOGLE_MAPS_KEY=your-key  # Para mapas de sucursales
 - Tasa de show-up
 - Conversión a venta
 
+## ✅ Funcionalidades Implementadas Recientemente
+
+### 📅 Sistema de Calendario Avanzado
+- **Calendario interactivo** con vista semanal/mensual
+- **Edición de citas** con modal de detalles completos
+- **Filtros dinámicos** por médico, estado y búsqueda
+- **Navegación dedicada para admins** (`/dashboard/admin/calendario`)
+- **Actualización en tiempo real** de estados de citas
+- **Validación de permisos** por rol de usuario
+
+### 📊 Estadísticas Comerciales Dinámicas
+- **API de estadísticas en tiempo real** (`/api/v1/commercial-stats/`)
+- **Reemplazo de datos hardcodeados** por cálculos de BD
+- **Dashboard comercial actualizado** con métricas reales:
+  - Overview con conversiones actuales
+  - Trends semanales de leads
+  - Funnel de conversión por etapas
+  - Performance por fuente de marketing
+  - Rendimiento individual por doctor
+- **Filtros por fechas** para análisis temporal
+
+### 🎯 Categorías de Servicios Dinámicas
+- **Lead form actualizado** con categorías de BD
+- **Eliminación de opciones hardcodeadas**
+- **Carga dinámica** de categorías activas
+- **Integración con API** de service categories
+
+### 🔧 Correcciones Técnicas Importantes
+- **Resolución de dependencias circulares** en modelos SQLAlchemy
+- **Fix de modelos faltantes** en imports (CommercialObjective)
+- **Aumento de límite de paginación** en appointments (1000 items)
+- **Corrección de enum values** en LeadSource
+- **Navegación corregida** para usuarios admin
+
 ## 🚀 Próximas Funcionalidades
 
 1. **WhatsApp Business API**: Mensajes automáticos y conversaciones
@@ -382,6 +438,40 @@ NEXT_PUBLIC_GOOGLE_MAPS_KEY=your-key  # Para mapas de sucursales
 4. **Telemedicina**: Consultas virtuales
 5. **Facturación Electrónica**: Integración con SAT/AFIP
 6. **Business Intelligence**: Dashboards avanzados con IA
+
+## 🔧 Correcciones y Mejoras Técnicas Recientes
+
+### Backend
+1. **Modelos SQLAlchemy**:
+   - Resuelto problema de dependencias circulares en User ↔ CommercialObjective
+   - Agregados imports faltantes en `models/__init__.py`
+   - Configurado lazy loading dinámico para relationships
+
+2. **APIs**:
+   - Incrementado límite `page_size` de 100 a 1000 en appointments
+   - Corregidos enum values para LeadSource (facebook vs instagram)
+   - Implementado endpoint commercial-stats con cálculos en tiempo real
+
+3. **Schemas**:
+   - Nuevos schemas Pydantic para estadísticas comerciales
+   - Validaciones mejoradas para datos de entrada
+
+### Frontend
+1. **Navegación**:
+   - Rutas dedicadas para admin (`/dashboard/admin/calendario`)
+   - Corrección de redirects automáticos por rol
+   - Layout separation (AdminDashboardLayout vs DashboardLayout)
+
+2. **Componentes**:
+   - Modal de edición de citas con funcionalidad completa
+   - Filtros dinámicos en calendario (médico, estado, búsqueda)
+   - Formulario de leads con categorías de BD
+   - Stats dashboard con datos reales de API
+
+3. **Estado y API**:
+   - Reemplazo de setTimeout por llamadas reales
+   - Manejo de errores mejorado
+   - Loading states consistentes
 
 ## ⚠️ Consideraciones Importantes
 
@@ -392,6 +482,9 @@ NEXT_PUBLIC_GOOGLE_MAPS_KEY=your-key  # Para mapas de sucursales
 5. **Encriptar** datos sensibles de pacientes
 6. **Validar** número de teléfono con código de país
 7. **Timezone** correcto para cada clínica
+8. **⚠️ NUEVO**: Mantener sincronizados los enum values entre backend y frontend
+9. **⚠️ NUEVO**: Validar límites de paginación según necesidades del cliente
+10. **⚠️ NUEVO**: Usar lazy loading para relationships con posibles dependencias circulares
 
 ## 🧪 Testing
 
