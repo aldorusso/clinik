@@ -54,11 +54,11 @@ export default function Home() {
       </div>
 
       {/* Right side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
         {/* Mobile header for small screens */}
         <div className="lg:hidden absolute top-8 left-8 right-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Clinic.online</h1>
-          <p className="text-gray-600 text-sm">Gestión integral de clínicas estéticas</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
+          <p className="text-muted-foreground text-sm">Gestión integral de clínicas estéticas</p>
         </div>
         
         <div className="w-full max-w-md mt-24 lg:mt-0">

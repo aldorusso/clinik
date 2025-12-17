@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, Mail, CheckCircle, Loader2, Building } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
+import { ArrowLeft, Mail, CheckCircle, Building } from "lucide-react"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -54,7 +55,7 @@ export default function RegisterPage() {
             <div className="absolute top-40 right-40 w-24 h-24 border border-white/30 rounded-lg -rotate-12"></div>
             <div className="absolute bottom-40 left-40 w-28 h-28 border border-white/30 rounded-lg rotate-45"></div>
           </div>
-          
+
           <div className="flex flex-col justify-between h-full p-12 relative z-10 text-white">
             {/* Top section with logo */}
             <div>
@@ -66,7 +67,7 @@ export default function RegisterPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Center section with main content */}
             <div className="flex-1 flex flex-col justify-center">
               {/* Main heading */}
@@ -76,17 +77,17 @@ export default function RegisterPage() {
                   Clinic.online! 👋
                 </h1>
               </div>
-              
+
               {/* Description */}
               <div className="max-w-md">
                 <p className="text-lg text-white/90 leading-relaxed">
-                  Simplifica y automatiza la gestión de leads médicos. 
-                  Obtén mayor productividad a través de la automatización 
+                  Simplifica y automatiza la gestión de leads médicos.
+                  Obtén mayor productividad a través de la automatización
                   y ahorra toneladas de tiempo.
                 </p>
               </div>
             </div>
-            
+
             {/* Footer */}
             <div>
               <p className="text-white/60 text-sm">
@@ -97,37 +98,37 @@ export default function RegisterPage() {
         </div>
 
         {/* Right side - Success Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
           {/* Mobile header for small screens */}
           <div className="lg:hidden absolute top-8 left-8 right-8 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Clinic.online</h1>
-            <p className="text-gray-600 text-sm">Gestión integral de clínicas estéticas</p>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
+            <p className="text-muted-foreground text-sm">Gestión integral de clínicas estéticas</p>
           </div>
-          
+
           <div className="w-full max-w-md mt-24 lg:mt-0">
             <div className="text-center mb-8">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                <CheckCircle className="h-8 w-8 text-green-600" />
+              <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
+                <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Clinic.online</h1>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">¡Solicitud Enviada!</h2>
-              <p className="text-gray-600 mb-4">
+              <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
+              <h2 className="text-3xl font-bold text-foreground mb-4">¡Solicitud Enviada!</h2>
+              <p className="text-muted-foreground mb-4">
                 Hemos recibido tu solicitud de acceso para <strong>{formData.clinicName}</strong>.
               </p>
             </div>
 
             <div className="space-y-6">
-              <Alert className="bg-blue-50 border-blue-200">
-                <Mail className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800">
+              <Alert className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800">
+                <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <AlertDescription className="text-blue-800 dark:text-blue-200">
                   Nuestro equipo te contactará en menos de 24 horas para configurar tu cuenta y brindarte una demostración personalizada.
                 </AlertDescription>
               </Alert>
-              
+
               <Link href="/">
-                <Button 
-                  variant="outline" 
-                  className="w-full h-12 border-gray-300 text-gray-700 font-medium text-base"
+                <Button
+                  variant="outline"
+                  className="w-full h-12 font-medium text-base"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Volver al inicio de sesión
@@ -150,7 +151,7 @@ export default function RegisterPage() {
           <div className="absolute top-40 right-40 w-24 h-24 border border-white/30 rounded-lg -rotate-12"></div>
           <div className="absolute bottom-40 left-40 w-28 h-28 border border-white/30 rounded-lg rotate-45"></div>
         </div>
-        
+
         <div className="flex flex-col justify-between h-full p-12 relative z-10 text-white">
           {/* Top section with logo */}
           <div>
@@ -162,7 +163,7 @@ export default function RegisterPage() {
               </div>
             </div>
           </div>
-          
+
           {/* Center section with main content */}
           <div className="flex-1 flex flex-col justify-center">
             {/* Main heading */}
@@ -172,17 +173,17 @@ export default function RegisterPage() {
                 Clinic.online! 👋
               </h1>
             </div>
-            
+
             {/* Description */}
             <div className="max-w-md">
               <p className="text-lg text-white/90 leading-relaxed">
-                Simplifica y automatiza la gestión de leads médicos. 
-                Obtén mayor productividad a través de la automatización 
+                Simplifica y automatiza la gestión de leads médicos.
+                Obtén mayor productividad a través de la automatización
                 y ahorra toneladas de tiempo.
               </p>
             </div>
           </div>
-          
+
           {/* Footer */}
           <div>
             <p className="text-white/60 text-sm">
@@ -193,29 +194,29 @@ export default function RegisterPage() {
       </div>
 
       {/* Right side - Register Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
         {/* Mobile header for small screens */}
         <div className="lg:hidden absolute top-8 left-8 right-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Clinic.online</h1>
-          <p className="text-gray-600 text-sm">Gestión integral de clínicas estéticas</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
+          <p className="text-muted-foreground text-sm">Gestión integral de clínicas estéticas</p>
         </div>
-        
+
         <div className="w-full max-w-md mt-24 lg:mt-0">
           <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-              <Building className="h-8 w-8 text-blue-600" />
+            <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6">
+              <Building className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Clinic.online</h1>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Solicitar Acceso</h2>
-            <p className="text-gray-600">
+            <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Solicitar Acceso</h2>
+            <p className="text-muted-foreground">
               Completa el formulario y nos pondremos en contacto contigo para configurar tu clínica.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <Alert variant="destructive" className="bg-red-50 border-red-200">
-                <AlertDescription className="text-red-800">{error}</AlertDescription>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
@@ -265,14 +266,14 @@ export default function RegisterPage() {
               rows={4}
             />
 
-            <Button 
-              type="submit" 
-              className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium text-base" 
+            <Button
+              type="submit"
+              className="w-full h-12 font-medium text-base"
               disabled={loading}
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Spinner size="sm" className="mr-2 border-primary-foreground border-t-transparent" />
                   Enviando solicitud...
                 </div>
               ) : (
@@ -281,7 +282,7 @@ export default function RegisterPage() {
             </Button>
 
             <div className="text-center">
-              <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm">
+              <Link href="/" className="text-muted-foreground hover:text-foreground text-sm">
                 <ArrowLeft className="inline h-4 w-4 mr-1" />
                 Volver al inicio de sesión
               </Link>
