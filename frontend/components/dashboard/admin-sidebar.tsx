@@ -119,7 +119,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             onClick={() => router.push("/dashboard/admin/directorio")}
           >
             <Users className="mr-2 h-4 w-4" />
-            📋 Directorio
+            Directorio
           </Button>
 
           <Button
@@ -155,7 +155,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             onClick={() => router.push("/dashboard/admin/inventario")}
           >
             <Package className="mr-2 h-4 w-4" />
-            📦 Inventario
+            Inventario
           </Button>
 
 
@@ -171,7 +171,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             onClick={() => router.push("/dashboard/admin/calendario")}
           >
             <CalendarDays className="mr-2 h-4 w-4" />
-            📅 Calendario
+            Calendario
           </Button>
 
           <Separator className="my-4" />

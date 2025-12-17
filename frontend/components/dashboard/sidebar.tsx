@@ -208,7 +208,7 @@ export function Sidebar({ user }: SidebarProps) {
             onClick={() => router.push("/dashboard/calendario")}
           >
             <CalendarDays className="mr-2 h-4 w-4" />
-            📅 Calendario
+            Calendario
           </Button>
         )}
 
