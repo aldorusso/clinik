@@ -32,9 +32,14 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Start command - prints env vars then starts uvicorn
-CMD sh -c 'echo "=== RUNTIME ENV CHECK ===" && \
+# DEBUG: Sleep to keep container alive for inspection
+# Remove this and use the uvicorn CMD below for production
+CMD sh -c 'echo "=== DEBUG MODE - Container will sleep ===" && \
     echo "DATABASE_URL set: $([ -n \"$DATABASE_URL\" ] && echo YES || echo NO)" && \
     echo "SECRET_KEY set: $([ -n \"$SECRET_KEY\" ] && echo YES || echo NO)" && \
-    echo "Starting uvicorn..." && \
-    uvicorn app.main:app --host 0.0.0.0 --port 8000'
+    echo "ALLOWED_ORIGINS: $ALLOWED_ORIGINS" && \
+    echo "Use terminal to run: uvicorn app.main:app --host 0.0.0.0 --port 8000" && \
+    sleep infinity'
+
+# PRODUCTION CMD (uncomment when debug is done):
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
