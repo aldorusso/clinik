@@ -207,7 +207,7 @@ async def get_commercial_stats(
     # Obtener médicos del tenant
     doctors = db.query(User).filter(
         User.tenant_id == current_user.tenant_id,
-        User.role == UserRole.user,  # user = médico
+        User.role == UserRole.medico,
         User.is_active == True
     ).all()
     

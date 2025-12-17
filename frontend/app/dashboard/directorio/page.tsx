@@ -90,7 +90,7 @@ export default function DirectorioPage() {
           color: "text-blue-600",
           bgColor: "bg-blue-50"
         }
-      case "user":
+      case "medico":
         return { 
           label: "Médico", 
           icon: Stethoscope, 
@@ -176,10 +176,10 @@ export default function DirectorioPage() {
   const usersByRole = {
     tenant_admin: filteredUsers.filter(u => u.role === "tenant_admin"),
     manager: filteredUsers.filter(u => u.role === "manager"),
-    user: filteredUsers.filter(u => u.role === "user"),
+    medico: filteredUsers.filter(u => u.role === "medico"),
     closer: filteredUsers.filter(u => u.role === "closer"),
     recepcionista: filteredUsers.filter(u => u.role === "recepcionista"),
-    others: filteredUsers.filter(u => !["tenant_admin", "manager", "user", "closer", "recepcionista"].includes(u.role))
+    others: filteredUsers.filter(u => !["tenant_admin", "manager", "medico", "closer", "recepcionista"].includes(u.role))
   }
 
   if (loading) {
@@ -240,7 +240,7 @@ export default function DirectorioPage() {
                     Gestor de Leads
                   </div>
                 </SelectItem>
-                <SelectItem value="user">
+                <SelectItem value="medico">
                   <div className="flex items-center gap-2">
                     <Stethoscope className="h-4 w-4" />
                     Médico
@@ -349,7 +349,7 @@ export default function DirectorioPage() {
                               )}
                               
                               {/* Job title for medical staff */}
-                              {user.role === "user" && user.job_title && (
+                              {user.role === "medico" && user.job_title && (
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                   <Stethoscope className="h-3 w-3 flex-shrink-0" />
                                   <span className="truncate">Especialidad: {user.job_title}</span>

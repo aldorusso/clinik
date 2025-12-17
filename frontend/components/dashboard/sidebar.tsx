@@ -72,7 +72,7 @@ export function Sidebar({ user }: SidebarProps) {
     switch (role) {
       case "manager":
         return "Gestor de Leads"
-      case "user":
+      case "medico":
         return "Médico"
       case "closer":
         return "Closer/Comercial"
@@ -87,7 +87,7 @@ export function Sidebar({ user }: SidebarProps) {
     if (!user) return null
 
     const isManager = user.role === "manager"
-    const isDoctor = user.role === "user"
+    const isDoctor = user.role === "medico"
     const isCommercial = user.role === "closer"
     const isReceptionist = user.role === "recepcionista"
 

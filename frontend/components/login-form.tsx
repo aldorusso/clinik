@@ -22,7 +22,7 @@ function getRedirectPath(role: UserRole): string {
       return "/portal"
     case "closer":
     case "manager":
-    case "user":
+    case "medico":
     case "recepcionista":
     default:
       return "/dashboard"

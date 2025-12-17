@@ -175,7 +175,7 @@ def doctor_user(db_session, test_tenant):
         hashed_password=get_password_hash("testpass123"),
         first_name="Dr. Test",
         last_name="Doctor",
-        role=UserRole.user,
+        role=UserRole.medico,
         tenant_id=test_tenant.id,
         is_active=True
     )

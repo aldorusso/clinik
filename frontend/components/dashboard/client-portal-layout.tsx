@@ -42,7 +42,7 @@ export function ClientPortalLayout({ children }: ClientPortalLayoutProps) {
           router.push("/dashboard")
           return
         }
-        if (userData.role === "user") {
+        if (userData.role === "medico") {
           router.push("/dashboard")
           return
         }

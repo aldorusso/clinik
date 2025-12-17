@@ -94,7 +94,7 @@ export function ScheduleAppointmentModal({
       try {
         // Load doctors and services in parallel
         const [doctorsData, servicesData] = await Promise.all([
-          api.getMyTenantUsers(token, 'user'), // Get users with role 'user' (doctors)
+          api.getMyTenantUsers(token, 'medico'), // Get users with role 'medico' (doctors)
           api.getServices(token, { active_only: true })
         ])
         setDoctors(doctorsData)

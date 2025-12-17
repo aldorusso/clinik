@@ -69,7 +69,7 @@ async def list_tenants_with_stats(
         # Count users by role for this tenant
         user_count = db.query(func.count(User.id)).filter(
             User.tenant_id == tenant.id,
-            User.role == UserRole.user
+            User.role == UserRole.medico
         ).scalar()
 
         tenant_admin_count = db.query(func.count(User.id)).filter(
@@ -202,7 +202,7 @@ async def get_tenant(
     # Get user counts
     user_count = db.query(func.count(User.id)).filter(
         User.tenant_id == tenant.id,
-        User.role == UserRole.user
+        User.role == UserRole.medico
     ).scalar()
 
     tenant_admin_count = db.query(func.count(User.id)).filter(
@@ -433,7 +433,7 @@ async def create_tenant_user(
         )
 
     # Ensure role is valid for tenant (not superadmin)
-    role = user_in.get("role", UserRole.user)
+    role = user_in.get("role", UserRole.medico)
     if role == UserRole.superadmin:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

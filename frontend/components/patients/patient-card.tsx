@@ -38,7 +38,7 @@ export function PatientCard({
   onScheduleAppointment, 
   onViewDetails 
 }: PatientCardProps) {
-  const isDoctor = currentUserRole === "user" // user = médico
+  const isDoctor = currentUserRole === "medico" // user = médico
   const isAdmin = currentUserRole === "tenant_admin"
   const isManager = currentUserRole === "manager"
   const canSeeFullDetails = isDoctor || isAdmin
@@ -153,7 +153,7 @@ export function PatientCard({
         <div className="mt-3 pt-2 border-t text-xs">
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">
-              Tu rol: {currentUserRole === "user" ? "Médico" :
+              Tu rol: {currentUserRole === "medico" ? "Médico" :
                       currentUserRole === "manager" ? "Gestor" :
                       currentUserRole === "closer" ? "Closer" :
                       currentUserRole === "recepcionista" ? "Recepcionista" :

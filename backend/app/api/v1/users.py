@@ -386,7 +386,7 @@ async def list_my_tenant_users(
     List all users in my tenant. Accessible by all tenant members.
     """
     # Check permissions - all tenant members can see the directory
-    if current_user.role not in [UserRole.superadmin, UserRole.tenant_admin, UserRole.manager, UserRole.user, UserRole.closer, UserRole.recepcionista]:
+    if current_user.role not in [UserRole.superadmin, UserRole.tenant_admin, UserRole.manager, UserRole.medico, UserRole.closer, UserRole.recepcionista]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para ver la lista de usuarios"
@@ -431,12 +431,12 @@ async def create_my_tenant_user(
         )
 
     # Tenant admins can create all roles except superadmin and other tenant_admins
-    allowed_roles = [UserRole.manager, UserRole.user, UserRole.closer, UserRole.recepcionista]
-    role = user_in.role or UserRole.user
+    allowed_roles = [UserRole.manager, UserRole.medico, UserRole.closer, UserRole.recepcionista]
+    role = user_in.role or UserRole.medico
     if role not in allowed_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo puedes crear usuarios con rol 'manager', 'user', 'closer' o 'recepcionista'"
+            detail="Solo puedes crear usuarios con rol 'manager', 'medico', 'closer' o 'recepcionista'"
         )
 
     # Create new user in the same tenant
@@ -504,11 +504,11 @@ async def invite_user(
         )
 
     # Tenant admins can only invite managers, users, and clients
-    allowed_roles = [UserRole.manager, UserRole.user, UserRole.closer]
+    allowed_roles = [UserRole.manager, UserRole.medico, UserRole.closer]
     if invitation.role not in allowed_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo puedes invitar usuarios con rol 'manager', 'user' o 'closer'"
+            detail="Solo puedes invitar usuarios con rol 'manager', 'medico' o 'closer'"
         )
 
     # Generate invitation token

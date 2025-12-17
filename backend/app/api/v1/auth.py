@@ -530,7 +530,7 @@ async def accept_invitation(
         role_display = {
             UserRole.tenant_admin: "Administrador",
             UserRole.manager: "Manager",
-            UserRole.user: "Usuario",
+            UserRole.medico: "Médico",
             UserRole.closer: "Closer/Comercial"
         }.get(user.role, user.role.value)
 

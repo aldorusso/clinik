@@ -247,7 +247,7 @@ async def send_invitation_email(
     role_translations = {
         "tenant_admin": "Administrador",
         "manager": "Manager",
-        "user": "Usuario",
+        "medico": "Médico",
         "closer": "Closer/Comercial"
     }
     role_display = role_translations.get(role, role)

@@ -107,7 +107,7 @@ export default function CitasPage() {
         // Load available providers (doctors)
         const directoryData = await api.getMyTenantUsers(token)
         const providers = directoryData.filter(user => 
-          user.role === 'user' || user.role === 'tenant_admin' || user.role === 'manager'
+          user.role === 'medico' || user.role === 'tenant_admin' || user.role === 'manager'
         )
         setAvailableProviders(providers)
 
@@ -401,10 +401,10 @@ export default function CitasPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Calendar className="h-8 w-8 text-blue-600" />
-              {currentUser?.role === 'user' ? '📅 Mis Citas' : 'Panel de Recepción'}
+              {currentUser?.role === 'medico' ? '📅 Mis Citas' : 'Panel de Recepción'}
             </h1>
             <p className="text-muted-foreground">
-              {currentUser?.role === 'user' 
+              {currentUser?.role === 'medico' 
                 ? 'Agenda médica personal - Solo mis consultas' 
                 : `Gestión integral de citas médicas • ${currentUser?.role === 'recepcionista' ? 'Recepcionista' : 'Personal clínico'}`
               }
@@ -412,7 +412,7 @@ export default function CitasPage() {
           </div>
           <div className="flex gap-2">
             {/* Solo mostrar botón de nueva cita para no médicos */}
-            {currentUser?.role !== 'user' && (
+            {currentUser?.role !== 'medico' && (
               <Dialog open={isNewAppointmentOpen} onOpenChange={setIsNewAppointmentOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-blue-600 hover:bg-blue-700">

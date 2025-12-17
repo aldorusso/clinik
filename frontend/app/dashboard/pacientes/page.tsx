@@ -146,7 +146,7 @@ export default function PacientesPage() {
   }
 
   const stats = getAccessLevelStats()
-  const isDoctor = currentUser?.role === "user"
+  const isDoctor = currentUser?.role === "medico"
   const isAdmin = currentUser?.role === "tenant_admin"
 
 

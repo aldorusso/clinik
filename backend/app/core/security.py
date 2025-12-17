@@ -149,7 +149,7 @@ async def get_current_manager_or_above(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
     """Get the current manager or higher (superadmin, tenant_admin, manager)."""
-    if current_user.role == UserRole.user:
+    if current_user.role == UserRole.medico:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Manager privileges required"
@@ -173,7 +173,7 @@ async def get_current_tenant_member(
     if current_user.role == UserRole.superadmin:
         return current_user  # Superadmin can access everything
     # In our medical leads system, 'closer' role represents internal comercials/closers
-    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.user, UserRole.closer, UserRole.recepcionista]:
+    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.medico, UserRole.closer, UserRole.recepcionista]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Internal access only"
@@ -217,7 +217,7 @@ async def get_current_medical_staff(
     """Get current user with medical staff access (tenant_admin, manager, or user/médico only)."""
     if current_user.role == UserRole.superadmin:
         return current_user  # Superadmin can access everything
-    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.user]:
+    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.medico]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Medical staff access required"
@@ -232,12 +232,12 @@ async def get_current_medical_staff(
 async def get_current_doctor_only(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
-    """Get current user with doctor-only access (user role = médico)."""
+    """Get current user with doctor-only access (medico role)."""
     if current_user.role == UserRole.superadmin:
         return current_user  # Superadmin can access everything
     if current_user.role == UserRole.tenant_admin:
         return current_user  # Tenant admin can access patient details
-    if current_user.role != UserRole.user:  # user = médico in our system
+    if current_user.role != UserRole.medico:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Doctor access required for detailed patient information"

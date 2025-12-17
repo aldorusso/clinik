@@ -138,7 +138,7 @@ export default function CalendarioPage() {
         // Load available providers (doctors)
         const directoryData = await api.getMyTenantUsers(token)
         const providers = directoryData.filter(user => 
-          user.role === 'user' || user.role === 'tenant_admin' || user.role === 'manager'
+          user.role === 'medico' || user.role === 'tenant_admin' || user.role === 'manager'
         )
         setAvailableProviders(providers)
 
@@ -504,7 +504,7 @@ export default function CalendarioPage() {
               <RefreshCw className="mr-2 h-4 w-4" />
               Actualizar
             </Button>
-            {currentUser?.role !== 'user' && (
+            {currentUser?.role !== 'medico' && (
               <Button 
                 className="bg-blue-600 hover:bg-blue-700"
                 onClick={() => setIsNewAppointmentOpen(true)}

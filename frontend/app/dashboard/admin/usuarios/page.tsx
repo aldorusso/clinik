@@ -63,7 +63,7 @@ import { toast } from "sonner"
 // Configuration for all roles available in tenant admin
 const roleConfig: Record<string, { label: string; icon: any; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   manager: { label: "Gestor de Leads", icon: Briefcase, variant: "secondary" },
-  user: { label: "Médico", icon: Stethoscope, variant: "outline" },
+  medico: { label: "Médico", icon: Stethoscope, variant: "outline" },
   closer: { label: "Closer", icon: UserIcon, variant: "default" },
   recepcionista: { label: "Recepcionista", icon: HeadphonesIcon, variant: "outline" },
 }
@@ -94,7 +94,7 @@ export default function TenantAdminUsuariosPage() {
     office_address: "",
     company_name: "",
     job_title: "",
-    role: "user" as UserRole,
+    role: "medico" as UserRole,
   })
 
   // Form data for inviting users
@@ -102,7 +102,7 @@ export default function TenantAdminUsuariosPage() {
     email: "",
     first_name: "",
     last_name: "",
-    role: "user" as UserRole,
+    role: "medico" as UserRole,
   })
 
   // Form data for editing users
@@ -111,7 +111,7 @@ export default function TenantAdminUsuariosPage() {
     first_name: "",
     last_name: "",
     phone: "",
-    role: "user" as UserRole,
+    role: "medico" as UserRole,
     is_active: true,
   })
 
@@ -178,7 +178,7 @@ export default function TenantAdminUsuariosPage() {
         office_address: "",
         company_name: "",
         job_title: "",
-        role: "user",
+        role: "medico",
       })
       loadData()
     } catch (error: any) {
@@ -208,7 +208,7 @@ export default function TenantAdminUsuariosPage() {
         email: "",
         first_name: "",
         last_name: "",
-        role: "user",
+        role: "medico",
       })
       loadData()
     } catch (error: any) {
@@ -379,7 +379,7 @@ export default function TenantAdminUsuariosPage() {
                             Gestor de Leads
                           </div>
                         </SelectItem>
-                        <SelectItem value="user">
+                        <SelectItem value="medico">
                           <div className="flex items-center gap-2">
                             <UserIcon className="h-4 w-4" />
                             Médico
@@ -529,7 +529,7 @@ export default function TenantAdminUsuariosPage() {
                           Gestor de Leads
                         </div>
                       </SelectItem>
-                      <SelectItem value="user">
+                      <SelectItem value="medico">
                         <div className="flex items-center gap-2">
                           <Stethoscope className="h-4 w-4" />
                           Médico
@@ -582,7 +582,7 @@ export default function TenantAdminUsuariosPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {users.filter((u) => u.role === "user").length}
+                {users.filter((u) => u.role === "medico").length}
               </div>
             </CardContent>
           </Card>
@@ -629,7 +629,7 @@ export default function TenantAdminUsuariosPage() {
                   <SelectContent>
                     <SelectItem value="all">Todos los roles</SelectItem>
                     <SelectItem value="manager">Gestor de Leads</SelectItem>
-                    <SelectItem value="user">Médico</SelectItem>
+                    <SelectItem value="medico">Médico</SelectItem>
                     <SelectItem value="closer">Closer</SelectItem>
                     <SelectItem value="recepcionista">Recepcionista</SelectItem>
                   </SelectContent>
@@ -783,7 +783,7 @@ export default function TenantAdminUsuariosPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="manager">Gestor de Leads</SelectItem>
-                  <SelectItem value="user">Médico</SelectItem>
+                  <SelectItem value="medico">Médico</SelectItem>
                   <SelectItem value="closer">Closer</SelectItem>
                   <SelectItem value="recepcionista">Recepcionista</SelectItem>
                 </SelectContent>

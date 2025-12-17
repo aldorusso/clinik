@@ -58,7 +58,7 @@ async def get_patients(
     patients = query.offset(offset).limit(page_size).all()
     
     # Determine access level based on user role
-    is_medical_staff = current_user.role in [UserRole.superadmin, UserRole.tenant_admin, UserRole.manager, UserRole.user]
+    is_medical_staff = current_user.role in [UserRole.superadmin, UserRole.tenant_admin, UserRole.manager, UserRole.medico]
     
     result = []
     for patient in patients:

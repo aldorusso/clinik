@@ -38,7 +38,7 @@ export function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
           router.push("/portal")
           return
         }
-        if (userData.role === "user" || userData.role === "closer") {
+        if (userData.role === "medico" || userData.role === "closer") {
           router.push("/dashboard")
           return
         }

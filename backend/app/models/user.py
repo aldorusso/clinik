@@ -14,7 +14,7 @@ class UserRole(str, enum.Enum):
     - superadmin: Administrador global de la plataforma (sin tenant)
     - tenant_admin: Administrador de clínica/centro médico (admin_clinica)
     - manager: Gestor de leads y supervisor comercial
-    - user: Médico/especialista (recibe leads asignados)
+    - medico: Médico/especialista (recibe leads asignados)
     - closer: Comercial/Closer (primer contacto con leads, cierra ventas)
     - recepcionista: Personal de recepción (agenda, registro manual)
     - patient: Paciente real que accede al portal de pacientes
@@ -22,7 +22,7 @@ class UserRole(str, enum.Enum):
     superadmin = "superadmin"
     tenant_admin = "tenant_admin"
     manager = "manager"
-    user = "user"
+    medico = "medico"
     closer = "closer"
     recepcionista = "recepcionista"
     patient = "patient"
@@ -62,7 +62,7 @@ class User(Base):
     profile_photo = Column(String, nullable=True)
 
     # Control de acceso
-    role = Column(SQLEnum(UserRole), default=UserRole.user, nullable=False)
+    role = Column(SQLEnum(UserRole), default=UserRole.medico, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
 
     # Reset de contraseña
@@ -106,8 +106,8 @@ class User(Base):
         return self.role == UserRole.manager
 
     @property
-    def is_user(self) -> bool:
-        return self.role == UserRole.user
+    def is_medico(self) -> bool:
+        return self.role == UserRole.medico
 
     @property
     def is_closer(self) -> bool:
@@ -135,11 +135,6 @@ class User(Base):
     def is_gestor_leads(self) -> bool:
         """Alias para manager en contexto médico"""
         return self.role == UserRole.manager
-
-    @property
-    def is_medico(self) -> bool:
-        """Alias para user en contexto médico"""
-        return self.role == UserRole.user
 
     @property
     def is_comercial(self) -> bool:

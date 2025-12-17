@@ -24,7 +24,7 @@ class UserBase(BaseModel):
 # Schema for creating a user (by tenant admin)
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6)
-    role: Optional[UserRole] = UserRole.user
+    role: Optional[UserRole] = UserRole.medico
     tenant_id: Optional[UUID] = None  # Set by system for tenant users
 
 

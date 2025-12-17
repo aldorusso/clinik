@@ -68,8 +68,10 @@ const roleConfig: Record<UserRole, { label: string; icon: any; variant: "default
   superadmin: { label: "Superadmin", icon: Shield, variant: "destructive" },
   tenant_admin: { label: "Admin", icon: UserCog, variant: "default" },
   manager: { label: "Manager", icon: Briefcase, variant: "secondary" },
-  user: { label: "Usuario", icon: UserIcon, variant: "outline" },
-  client: { label: "Cliente", icon: UserCheck, variant: "outline" },
+  medico: { label: "Médico", icon: UserIcon, variant: "outline" },
+  closer: { label: "Closer", icon: UserCheck, variant: "outline" },
+  recepcionista: { label: "Recepcionista", icon: UserIcon, variant: "outline" },
+  patient: { label: "Paciente", icon: UserIcon, variant: "outline" },
 }
 
 export default function SuperadminUsuariosPage() {
@@ -107,7 +109,7 @@ export default function SuperadminUsuariosPage() {
     first_name: "",
     last_name: "",
     phone: "",
-    role: "user" as UserRole,
+    role: "medico" as UserRole,
     is_active: true,
   })
 
@@ -438,7 +440,7 @@ export default function SuperadminUsuariosPage() {
                           Manager
                         </div>
                       </SelectItem>
-                      <SelectItem value="user">
+                      <SelectItem value="medico">
                         <div className="flex items-center gap-2">
                           <UserIcon className="h-4 w-4" />
                           Usuario
@@ -550,7 +552,7 @@ export default function SuperadminUsuariosPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {users.filter((u) => u.role === "user").length}
+                {users.filter((u) => u.role === "medico").length}
               </div>
             </CardContent>
           </Card>
@@ -589,7 +591,7 @@ export default function SuperadminUsuariosPage() {
                       <SelectItem value="superadmin">Superadmin</SelectItem>
                       <SelectItem value="tenant_admin">Admin</SelectItem>
                       <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="user">Usuario</SelectItem>
+                      <SelectItem value="medico">Usuario</SelectItem>
                       <SelectItem value="closer">Closer</SelectItem>
                     </SelectContent>
                   </Select>
@@ -766,7 +768,7 @@ export default function SuperadminUsuariosPage() {
                   <SelectItem value="superadmin">Superadmin</SelectItem>
                   <SelectItem value="tenant_admin">Admin de Tenant</SelectItem>
                   <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="user">Usuario</SelectItem>
+                  <SelectItem value="medico">Usuario</SelectItem>
                   <SelectItem value="closer">Closer</SelectItem>
                 </SelectContent>
               </Select>
