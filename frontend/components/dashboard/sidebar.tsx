@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,8 +91,8 @@ export function Sidebar({ user }: SidebarProps) {
     label: string
     isActive: boolean
   }) => (
-    <button
-      onClick={() => router.push(href)}
+    <Link
+      href={href}
       className={cn(
         "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
         isActive
@@ -104,7 +103,7 @@ export function Sidebar({ user }: SidebarProps) {
       <Icon className={cn("h-4 w-4", isActive && "text-sidebar-primary")} />
       <span>{label}</span>
       {isActive && <ChevronRight className="ml-auto h-4 w-4 text-sidebar-primary" />}
-    </button>
+    </Link>
   )
 
   const NavSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -330,14 +329,18 @@ export function Sidebar({ user }: SidebarProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem onClick={() => router.push("/dashboard/profile")} className="cursor-pointer">
-              <UserIcon className="mr-2 h-4 w-4" />
-              <span>Perfil</span>
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/dashboard/profile">
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Perfil</span>
+              </Link>
             </DropdownMenuItem>
 
-            <DropdownMenuItem onClick={() => router.push("/dashboard/profile?tab=security")} className="cursor-pointer">
-              <Lock className="mr-2 h-4 w-4" />
-              <span>Seguridad</span>
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/dashboard/profile?tab=security">
+                <Lock className="mr-2 h-4 w-4" />
+                <span>Seguridad</span>
+              </Link>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />

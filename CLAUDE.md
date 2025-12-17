@@ -314,14 +314,96 @@ GET    /api/v1/reports/revenue        # Ingresos
 GET    /api/v1/reports/medics         # Performance médicos
 ```
 
-## 💡 Patrones y Mejores Prácticas
+## 📏 Limites de Tamano y Estructura de Codigo
+
+### Frontend - Componentes React/Next.js
+
+| Tipo | Limite Maximo | Accion si se excede |
+|------|---------------|---------------------|
+| **Pagina (page.tsx)** | 300 lineas | Extraer secciones a componentes |
+| **Componente UI** | 200 lineas | Dividir en subcomponentes |
+| **Hook personalizado** | 100 lineas | Dividir logica en hooks mas pequenos |
+| **Funcion/Handler** | 50 lineas | Extraer a funciones helper |
+| **Archivo de tipos** | 150 lineas | Dividir por dominio |
+
+#### Cuando dividir un componente:
+- Tiene mas de 3 estados locales (useState)
+- Tiene mas de 2 efectos (useEffect)
+- Renderiza mas de 3 secciones distintas
+- Se repite logica similar en multiples lugares
+- El JSX tiene mas de 100 lineas
+
+#### Estructura recomendada de componente:
+```tsx
+// 1. Imports (agrupados: react, next, libs, components, utils, types)
+// 2. Types/Interfaces locales
+// 3. Constantes
+// 4. Componente principal
+//    - Hooks al inicio
+//    - Handlers/funciones
+//    - Early returns (loading, error)
+//    - Return principal
+// 5. Subcomponentes (si son pequenos y solo se usan aqui)
+```
+
+### Backend - FastAPI/Python
+
+| Tipo | Limite Maximo | Accion si se excede |
+|------|---------------|---------------------|
+| **Endpoint (router)** | 50 lineas | Mover logica a services |
+| **Service** | 200 lineas | Dividir por responsabilidad |
+| **Modelo SQLAlchemy** | 100 lineas | Normal para modelos complejos |
+| **Schema Pydantic** | 80 lineas | Dividir en schemas base/response |
+| **Funcion** | 40 lineas | Extraer a funciones helper |
+
+#### Estructura de endpoint:
+```python
+# 1. Validacion de permisos
+# 2. Validacion de datos entrada
+# 3. Llamada a service
+# 4. Manejo de errores
+# 5. Return response
+```
+
+### Base de Datos
+
+| Tipo | Limite/Recomendacion |
+|------|---------------------|
+| **Campos por tabla** | Max 25-30 campos |
+| **Relaciones por modelo** | Max 8-10 relationships |
+| **Migracion** | Una operacion logica por migracion |
+| **Indices** | Maximo 5-7 por tabla |
+
+### Archivos de Configuracion
+
+| Tipo | Limite Maximo |
+|------|---------------|
+| **docker-compose.yml** | 200 lineas (dividir en override si crece) |
+| **globals.css** | 500 lineas (dividir por modulos si crece) |
+| **tailwind config** | 150 lineas |
+
+### Volumenes Docker (Produccion)
+
+```yaml
+# Backend
+volumes:
+  - clinik_uploads:/app/uploads    # Archivos subidos por usuarios
+
+# Database
+volumes:
+  - clinik_postgres_data:/var/lib/postgresql/data  # Datos persistentes
+```
+
+## 💡 Patrones y Mejores Practicas
 
 ### Backend
-1. **Validación Multi-tenant**: Siempre filtrar por tenant_id
+1. **Validacion Multi-tenant**: Siempre filtrar por tenant_id
 2. **Soft Deletes**: Usar is_active en lugar de DELETE
 3. **Audit Logs**: Registrar todas las acciones importantes
-4. **Async/Await**: Usar funciones asíncronas para mejor performance
-5. **Pydantic**: Validación estricta de datos entrada/salida
+4. **Async/Await**: Usar funciones asincronas para mejor performance
+5. **Pydantic**: Validacion estricta de datos entrada/salida
+6. **Services Layer**: Logica de negocio en services, no en endpoints
+7. **Funciones pequenas**: Max 40 lineas, single responsibility
 
 ### Frontend
 1. **Server Components**: Usar por defecto en Next.js 16
@@ -329,11 +411,13 @@ GET    /api/v1/reports/medics         # Performance médicos
 3. **API Types**: Mantener types sincronizados con backend
 4. **Error Boundaries**: Manejo robusto de errores
 5. **Optimistic UI**: Actualizar UI antes de confirmar en servidor
+6. **Componentes pequenos**: Max 200 lineas, extraer si crece
+7. **Custom Hooks**: Extraer logica reutilizable a hooks
 
 ### Seguridad
-1. **JWT en httpOnly cookies**: Más seguro que localStorage
-2. **CORS restrictivo**: Solo origines permitidos
-3. **Rate Limiting**: En endpoints críticos
+1. **JWT en httpOnly cookies**: Mas seguro que localStorage
+2. **CORS restrictivo**: Solo origenes permitidos
+3. **Rate Limiting**: En endpoints criticos
 4. **Input Validation**: Cliente y servidor
 5. **SQL Injection**: Usar ORM, nunca queries raw
 
