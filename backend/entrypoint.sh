@@ -45,6 +45,16 @@ echo "=== Creating initial users ==="
 python create_test_users.py || echo "Users may already exist, continuing..."
 echo ""
 
+# Seed email templates
+echo "=== Seeding email templates ==="
+python seed_email_templates.py || echo "Email templates may already exist, continuing..."
+echo ""
+
+# Seed service categories (for all tenants)
+echo "=== Seeding service categories ==="
+python seed_service_categories.py || echo "Service categories may already exist, continuing..."
+echo ""
+
 # Start the server
 echo "=== Starting Uvicorn server ==="
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000
