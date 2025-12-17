@@ -27,7 +27,7 @@ jest.mock('@/hooks/use-toast', () => ({
 const mockUser = {
   id: 'user-123',
   email: 'commercial@test.com',
-  role: 'client',
+  role: 'closer',
   first_name: 'Test',
   last_name: 'Commercial'
 }

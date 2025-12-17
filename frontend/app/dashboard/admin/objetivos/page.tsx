@@ -130,7 +130,7 @@ export default function AdminObjetivosPage() {
       ] = await Promise.all([
         api.getAdminObjectiveDashboard(token),
         api.getCommercialObjectives(token),
-        api.getMyTenantUsers(token, 'client'), // Get commercials
+        api.getMyTenantUsers(token, 'closer'), // Get commercials
         api.getObjectiveTemplates(token, true)
       ])
 
