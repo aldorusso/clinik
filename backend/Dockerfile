@@ -24,5 +24,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Start command - Gunicorn with Uvicorn workers for production
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Start command - with error logging
+CMD ["sh", "-c", "python -c 'from app.main import app; print(\"App loaded OK\")' && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"]
