@@ -52,7 +52,7 @@ import {
   CalendarDays,
   CalendarIcon
 } from "lucide-react"
-import { Appointment, AppointmentStatus, AppointmentCreate, User as UserType, api } from "@/lib/api"
+import { Appointment, AppointmentStatus, AppointmentCreate, AppointmentType, User as UserType, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
@@ -92,7 +92,18 @@ export default function CalendarioPage() {
     type: 'consultation' as const
   })
 
-  const [editAppointmentForm, setEditAppointmentForm] = useState({
+  const [editAppointmentForm, setEditAppointmentForm] = useState<{
+    patient_name: string;
+    patient_phone: string;
+    patient_email: string;
+    provider_id: string;
+    service_id: string;
+    scheduled_date: string;
+    scheduled_time: string;
+    duration_minutes: number;
+    notes: string;
+    type: AppointmentType;
+  }>({
     patient_name: '',
     patient_phone: '',
     patient_email: '',
@@ -102,7 +113,7 @@ export default function CalendarioPage() {
     scheduled_time: '',
     duration_minutes: 60,
     notes: '',
-    type: 'consultation' as const
+    type: 'consultation'
   })
 
   // Load data on component mount
