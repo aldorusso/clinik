@@ -107,7 +107,6 @@ def get_or_create_tenant(db: Session) -> Tenant:
         phone="+52 55 1234 5678",
         address="Av. Reforma 123, CDMX",
         city="Ciudad de México",
-        state="CDMX",
         country="México",
         is_active=True
     )

@@ -5,6 +5,13 @@ echo "=== Clinik Backend Startup ==="
 echo "Date: $(date)"
 echo ""
 
+echo "=== Environment Variables ==="
+echo "ALLOWED_ORIGINS: $ALLOWED_ORIGINS"
+echo "FRONTEND_URL: $FRONTEND_URL"
+echo "DATABASE_URL is set: $([ -n "$DATABASE_URL" ] && echo 'YES' || echo 'NO')"
+echo "SECRET_KEY is set: $([ -n "$SECRET_KEY" ] && echo 'YES' || echo 'NO')"
+echo ""
+
 # Wait for database to be ready
 echo "=== Waiting for database... ==="
 MAX_RETRIES=30
