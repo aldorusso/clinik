@@ -41,13 +41,14 @@ export function LoginForm() {
     setError("")
     setIsLoading(true)
 
-    try {
-      // Basic validation
-      if (!email || !password) {
-        setError("Por favor ingrese email y contraseña")
-        return
-      }
+    // Basic validation
+    if (!email || !password) {
+      setError("Por favor ingrese email y contraseña")
+      setIsLoading(false)
+      return
+    }
 
+    try {
       const response = await api.login({
         username: email,
         password: password,
@@ -61,7 +62,6 @@ export function LoginForm() {
 
       router.push(redirectPath)
     } catch (err: any) {
-      console.error("Login error:", err)
       setError(err.message || "Credenciales inválidas. Verifique su email y contraseña.")
     } finally {
       setIsLoading(false)
