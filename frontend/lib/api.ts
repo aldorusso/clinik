@@ -2875,6 +2875,7 @@ export interface ServiceCategoryCreate {
   icon?: string;
   color?: string;
   display_order?: number;
+  is_active?: boolean;
 }
 
 export interface ServiceCategoryUpdate {
