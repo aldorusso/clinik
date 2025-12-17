@@ -17,6 +17,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Test that app can be imported (will fail build if there's an error)
+RUN python -c "from app.main import app; print('App import test: OK')"
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
@@ -24,5 +27,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Start command - with error logging
-CMD ["sh", "-c", "python -c 'from app.main import app; print(\"App loaded OK\")' && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"]
+# Start command
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
