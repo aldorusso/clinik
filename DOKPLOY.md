@@ -44,8 +44,12 @@ VALIDATE_CERTS=true
 
 ### Volumes
 ```
-(no se necesitan volumes para backend)
+/app/uploads -> clinik_uploads
 ```
+Este volumen almacena:
+- Fotos de perfil de usuarios
+- Documentos de pacientes
+- Archivos adjuntos
 
 ### Puerto
 ```
