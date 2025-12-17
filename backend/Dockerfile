@@ -35,9 +35,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Create non-root user for security
-RUN groupadd --system --gid 1001 appgroup && \
-    useradd --system --uid 1001 --gid appgroup appuser
+# Create non-root user for security (UID 1000 for volume compatibility)
+RUN groupadd --system --gid 1000 appgroup && \
+    useradd --system --uid 1000 --gid appgroup appuser
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
