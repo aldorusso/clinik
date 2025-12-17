@@ -147,7 +147,7 @@ def upgrade() -> None:
     op.alter_column('commercial_performance', 'average_satisfaction_score',
                existing_type=sa.DOUBLE_PRECISION(precision=53),
                nullable=False)
-    op.drop_constraint('commercial_performance_commercial_id_period_period_start_pe_key', 'commercial_performance', type_='unique')
+    op.drop_constraint('_commercial_period_uc', 'commercial_performance', type_='unique')
     op.drop_column('commercial_performance', 'objectives_total')
     op.drop_column('commercial_performance', 'qualified_leads')
     op.drop_column('commercial_performance', 'calls_made')
@@ -177,7 +177,7 @@ def downgrade() -> None:
     op.add_column('commercial_performance', sa.Column('calls_made', sa.INTEGER(), server_default=sa.text('0'), autoincrement=False, nullable=False))
     op.add_column('commercial_performance', sa.Column('qualified_leads', sa.INTEGER(), server_default=sa.text('0'), autoincrement=False, nullable=False))
     op.add_column('commercial_performance', sa.Column('objectives_total', sa.INTEGER(), server_default=sa.text('0'), autoincrement=False, nullable=False))
-    op.create_unique_constraint('commercial_performance_commercial_id_period_period_start_pe_key', 'commercial_performance', ['commercial_id', 'period', 'period_start', 'period_end'])
+    op.create_unique_constraint('_commercial_period_uc', 'commercial_performance', ['commercial_id', 'period', 'period_start', 'period_end'])
     op.alter_column('commercial_performance', 'average_satisfaction_score',
                existing_type=sa.DOUBLE_PRECISION(precision=53),
                nullable=True)

@@ -1,7 +1,7 @@
 """Add commercial objectives tables
 
 Revision ID: 200895fbb0d0
-Revises: 9f0a6042a6de
+Revises: bed63fc805dd
 Create Date: 2025-12-15 11:26:50.641719
 
 """
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '200895fbb0d0'
-down_revision = '9f0a6042a6de'
+down_revision = 'bed63fc805dd'
 branch_labels = None
 depends_on = None
 

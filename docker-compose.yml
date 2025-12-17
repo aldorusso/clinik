@@ -1,35 +1,35 @@
 services:
   # PostgreSQL Database
-  db:
+  clinik-db:
     image: postgres:16-alpine
-    container_name: clinik_download_db
+    container_name: clinik_db
     environment:
-      POSTGRES_DB: base_fastapi_nextjs16_db
-      POSTGRES_USER: base_fastapi_nextjs16_user
-      POSTGRES_PASSWORD: base_fastapi_nextjs16_password
+      POSTGRES_DB: clinik_db
+      POSTGRES_USER: clinik_user
+      POSTGRES_PASSWORD: clinik_password
     ports:
       - "5434:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - clinik_postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - clinik_download_network
+      - clinik_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U base_fastapi_nextjs16_user -d base_fastapi_nextjs16_db"]
+      test: ["CMD-SHELL", "pg_isready -U clinik_user -d clinik_db"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   # FastAPI Backend
-  backend:
+  clinik-backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: clinik_download_backend
+    container_name: clinik_backend
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: postgresql://base_fastapi_nextjs16_user:base_fastapi_nextjs16_password@db:5432/base_fastapi_nextjs16_db
+      DATABASE_URL: postgresql://clinik_user:clinik_password@clinik-db:5432/clinik_db
       ENVIRONMENT: development
       DEBUG: "true"
     ports:
@@ -38,18 +38,18 @@ services:
       - ./backend:/app
       - /app/__pycache__
     depends_on:
-      db:
+      clinik-db:
         condition: service_healthy
     networks:
-      - clinik_download_network
+      - clinik_network
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   # Next.js 16 Frontend
-  frontend:
+  clinik-frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: clinik_download_frontend
+    container_name: clinik_frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8002
       NODE_ENV: development
@@ -60,14 +60,14 @@ services:
       - /app/node_modules
       - /app/.next
     depends_on:
-      - backend
+      - clinik-backend
     networks:
-      - clinik_download_network
+      - clinik_network
     command: npm run dev
 
 volumes:
-  postgres_data:
+  clinik_postgres_data:
 
 networks:
-  clinik_download_network:
+  clinik_network:
     driver: bridge
