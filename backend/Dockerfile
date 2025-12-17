@@ -20,6 +20,9 @@ COPY . .
 # Test that app can be imported (will fail build if there's an error)
 RUN python -c "from app.main import app; print('App import test: OK')"
 
+# Make startup script executable
+RUN chmod +x start.sh
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
@@ -27,5 +30,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Start command - single worker for better error visibility
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--log-level", "debug"]
+# Start command with startup script
+CMD ["./start.sh"]
