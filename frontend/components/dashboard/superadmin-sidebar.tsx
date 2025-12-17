@@ -2,7 +2,6 @@
 
 import { useRouter, usePathname } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,12 +10,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Separator } from "@/components/ui/separator"
-import { Settings, LogOut, User as UserIcon, LayoutDashboard, Users, Mail, Building2, Shield, ClipboardList } from "lucide-react"
+import {
+  Settings,
+  LogOut,
+  User as UserIcon,
+  LayoutDashboard,
+  Users,
+  Mail,
+  Building2,
+  Shield,
+  ClipboardList,
+  ChevronRight,
+  Lock
+} from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { NotificationBell } from "@/components/notifications/notification-bell"
+import { cn } from "@/lib/utils"
 
 interface SuperadminSidebarProps {
   user: UserType | null
@@ -52,121 +61,135 @@ export function SuperadminSidebar({ user }: SuperadminSidebarProps) {
     return "SA"
   }
 
+  const NavItem = ({
+    href,
+    icon: Icon,
+    label,
+    isActive
+  }: {
+    href: string
+    icon: React.ElementType
+    label: string
+    isActive: boolean
+  }) => (
+    <button
+      onClick={() => router.push(href)}
+      className={cn(
+        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+        isActive
+          ? "bg-sidebar-accent text-sidebar-primary"
+          : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+      )}
+    >
+      <Icon className={cn("h-4 w-4", isActive && "text-sidebar-primary")} />
+      <span>{label}</span>
+      {isActive && <ChevronRight className="ml-auto h-4 w-4 text-sidebar-primary" />}
+    </button>
+  )
+
+  const NavSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="mb-6">
+      <p className="text-[10px] font-semibold text-sidebar-muted uppercase tracking-wider px-3 mb-2">
+        {title}
+      </p>
+      <div className="space-y-1">
+        {children}
+      </div>
+    </div>
+  )
+
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-card">
+    <div className="flex h-screen w-64 flex-col bg-sidebar">
       {/* Logo Section */}
-      <div className="flex h-16 items-center justify-between border-b px-4">
-        <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <Shield className="h-5 w-5 text-primary-foreground" />
+      <div className="flex h-16 items-center px-4 border-b border-sidebar-border">
+        <div className="flex items-center space-x-3">
+          <div className="h-9 w-9 rounded-xl bg-sidebar-primary flex items-center justify-center shadow-lg">
+            <Shield className="h-5 w-5 text-sidebar-primary-foreground" />
           </div>
-          <span className="font-bold text-xl">SuperAdmin</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <NotificationBell />
-          <ThemeToggle />
+          <div className="flex flex-col">
+            <span className="font-bold text-lg text-sidebar-foreground">Clinik</span>
+            <span className="text-[10px] text-sidebar-muted uppercase tracking-wider">SuperAdmin</span>
+          </div>
         </div>
       </div>
 
       {/* Navigation Section */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <nav className="space-y-2">
-          <Button
-            variant={pathname === "/dashboard/superadmin" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/superadmin")}
-          >
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
-          </Button>
+      <div className="flex-1 overflow-y-auto px-3 py-4">
+        <nav className="space-y-1">
+          <NavItem
+            href="/dashboard/superadmin"
+            icon={LayoutDashboard}
+            label="Dashboard"
+            isActive={pathname === "/dashboard/superadmin"}
+          />
 
-          <Separator className="my-4" />
+          <NavSection title="Multi-Tenant">
+            <NavItem
+              href="/dashboard/superadmin/tenants"
+              icon={Building2}
+              label="Organizaciones"
+              isActive={pathname.startsWith("/dashboard/superadmin/tenants")}
+            />
+          </NavSection>
 
-          {/* Tenants Section */}
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            Multi-Tenant
-          </p>
-          <Button
-            variant={pathname.startsWith("/dashboard/superadmin/tenants") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/superadmin/tenants")}
-          >
-            <Building2 className="mr-2 h-4 w-4" />
-            Organizaciones
-          </Button>
-
-          <Separator className="my-4" />
-
-          {/* System Section */}
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            Sistema
-          </p>
-          <Button
-            variant={pathname.startsWith("/dashboard/superadmin/usuarios") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/superadmin/usuarios")}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Todos los Usuarios
-          </Button>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/superadmin/emails") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/superadmin/emails")}
-          >
-            <Mail className="mr-2 h-4 w-4" />
-            Plantillas de Email
-          </Button>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/superadmin/configuracion") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/superadmin/configuracion")}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            Configuracion
-          </Button>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/superadmin/auditoria") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/superadmin/auditoria")}
-          >
-            <ClipboardList className="mr-2 h-4 w-4" />
-            Logs / Auditoria
-          </Button>
+          <NavSection title="Sistema">
+            <NavItem
+              href="/dashboard/superadmin/usuarios"
+              icon={Users}
+              label="Todos los Usuarios"
+              isActive={pathname.startsWith("/dashboard/superadmin/usuarios")}
+            />
+            <NavItem
+              href="/dashboard/superadmin/emails"
+              icon={Mail}
+              label="Plantillas de Email"
+              isActive={pathname.startsWith("/dashboard/superadmin/emails")}
+            />
+            <NavItem
+              href="/dashboard/superadmin/configuracion"
+              icon={Settings}
+              label="Configuracion"
+              isActive={pathname.startsWith("/dashboard/superadmin/configuracion")}
+            />
+            <NavItem
+              href="/dashboard/superadmin/auditoria"
+              icon={ClipboardList}
+              label="Logs / Auditoria"
+              isActive={pathname.startsWith("/dashboard/superadmin/auditoria")}
+            />
+          </NavSection>
         </nav>
       </div>
 
       {/* User Section */}
-      <div className="border-t p-4">
+      <div className="border-t border-sidebar-border p-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-2 hover:bg-accent"
-            >
-              <div className="flex items-center space-x-3 w-full">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={user?.profile_photo || ""} alt={user?.full_name || user?.email} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getInitials(user)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-start flex-1 min-w-0">
-                  <span className="text-sm font-medium truncate w-full text-left">
-                    {user?.first_name || user?.full_name || "SuperAdmin"}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate w-full text-left">
-                    {user?.email}
-                  </span>
-                </div>
+            <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-colors">
+              <Avatar className="h-9 w-9 ring-2 ring-sidebar-border">
+                <AvatarImage src={user?.profile_photo || ""} alt={user?.full_name || user?.email} />
+                <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm font-semibold">
+                  {getInitials(user)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col items-start flex-1 min-w-0">
+                <span className="text-sm font-medium text-sidebar-foreground truncate w-full text-left">
+                  {user?.first_name || user?.full_name || "SuperAdmin"}
+                </span>
+                <span className="text-xs text-sidebar-muted truncate w-full text-left">
+                  {user?.email}
+                </span>
               </div>
-            </Button>
+              <Settings className="h-4 w-4 text-sidebar-muted" />
+            </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Mi Cuenta (SuperAdmin)</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-56" sideOffset={8}>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium">{user?.full_name || user?.first_name}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
+              </div>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={() => router.push("/dashboard/superadmin/profile")} className="cursor-pointer">
@@ -175,7 +198,7 @@ export function SuperadminSidebar({ user }: SuperadminSidebarProps) {
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => router.push("/dashboard/superadmin/profile?tab=security")} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
+              <Lock className="mr-2 h-4 w-4" />
               <span>Seguridad</span>
             </DropdownMenuItem>
 
@@ -183,7 +206,7 @@ export function SuperadminSidebar({ user }: SuperadminSidebarProps) {
 
             <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Cerrar Sesi&oacute;n</span>
+              <span>Cerrar Sesion</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -1,9 +1,7 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,12 +10,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Separator } from "@/components/ui/separator"
-import { LogOut, User as UserIcon, Lock, LayoutDashboard, Users, Building2, Activity, Stethoscope, Target, CalendarDays, Package, FileText } from "lucide-react"
+import {
+  LogOut,
+  User as UserIcon,
+  Lock,
+  LayoutDashboard,
+  Users,
+  Building2,
+  Activity,
+  Stethoscope,
+  Target,
+  CalendarDays,
+  Package,
+  ChevronRight,
+  Settings
+} from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { NotificationBell } from "@/components/notifications/notification-bell"
+import { cn } from "@/lib/utils"
 
 interface AdminSidebarProps {
   user: UserType | null
@@ -53,32 +63,68 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     return "A"
   }
 
+  const NavItem = ({
+    href,
+    icon: Icon,
+    label,
+    isActive
+  }: {
+    href: string
+    icon: React.ElementType
+    label: string
+    isActive: boolean
+  }) => (
+    <button
+      onClick={() => router.push(href)}
+      className={cn(
+        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+        isActive
+          ? "bg-sidebar-accent text-sidebar-primary"
+          : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+      )}
+    >
+      <Icon className={cn("h-4 w-4", isActive && "text-sidebar-primary")} />
+      <span>{label}</span>
+      {isActive && <ChevronRight className="ml-auto h-4 w-4 text-sidebar-primary" />}
+    </button>
+  )
+
+  const NavSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="mb-6">
+      <p className="text-[10px] font-semibold text-sidebar-muted uppercase tracking-wider px-3 mb-2">
+        {title}
+      </p>
+      <div className="space-y-1">
+        {children}
+      </div>
+    </div>
+  )
+
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-card">
+    <div className="flex h-screen w-64 flex-col bg-sidebar">
       {/* Logo Section */}
-      <div className="flex h-16 items-center justify-between border-b px-4">
-        <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">E</span>
+      <div className="flex h-16 items-center px-4 border-b border-sidebar-border">
+        <div className="flex items-center space-x-3">
+          <div className="h-9 w-9 rounded-xl bg-sidebar-primary flex items-center justify-center shadow-lg">
+            <span className="text-sidebar-primary-foreground font-bold text-lg">C</span>
           </div>
-          <span className="font-bold text-xl">Admin</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <NotificationBell />
-          <ThemeToggle />
+          <div className="flex flex-col">
+            <span className="font-bold text-lg text-sidebar-foreground">Clinik</span>
+            <span className="text-[10px] text-sidebar-muted uppercase tracking-wider">Admin</span>
+          </div>
         </div>
       </div>
 
       {/* Tenant/Organization Name */}
       {user?.tenant_name && (
-        <div className="border-b px-4 py-3 bg-muted/30">
+        <div className="px-4 py-3 border-b border-sidebar-border">
           <div className="flex items-center space-x-2">
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <Building2 className="h-4 w-4 text-sidebar-muted" />
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">
+              <span className="text-[10px] text-sidebar-muted uppercase tracking-wider">
                 Organizacion
               </span>
-              <span className="text-sm font-medium truncate">
+              <span className="text-sm font-medium text-sidebar-foreground truncate">
                 {user.tenant_name}
               </span>
             </div>
@@ -87,138 +133,103 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       )}
 
       {/* Navigation Section */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <nav className="space-y-2">
-          <Button
-            variant={pathname === "/dashboard/admin" ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin")}
-          >
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
-          </Button>
+      <div className="flex-1 overflow-y-auto px-3 py-4">
+        <nav className="space-y-1">
+          <NavItem
+            href="/dashboard/admin"
+            icon={LayoutDashboard}
+            label="Dashboard"
+            isActive={pathname === "/dashboard/admin"}
+          />
 
-          <Separator className="my-4" />
+          <NavSection title="Gestion">
+            <NavItem
+              href="/dashboard/admin/usuarios"
+              icon={Users}
+              label="Usuarios"
+              isActive={pathname.startsWith("/dashboard/admin/usuarios")}
+            />
+            <NavItem
+              href="/dashboard/admin/directorio"
+              icon={Users}
+              label="Directorio"
+              isActive={pathname.startsWith("/dashboard/admin/directorio")}
+            />
+            <NavItem
+              href="/dashboard/admin/clientes"
+              icon={Building2}
+              label="Clientes"
+              isActive={pathname.startsWith("/dashboard/admin/clientes")}
+            />
+            <NavItem
+              href="/dashboard/admin/servicios"
+              icon={Stethoscope}
+              label="Servicios Medicos"
+              isActive={pathname.startsWith("/dashboard/admin/servicios")}
+            />
+            <NavItem
+              href="/dashboard/admin/objetivos"
+              icon={Target}
+              label="Objetivos Comerciales"
+              isActive={pathname.startsWith("/dashboard/admin/objetivos")}
+            />
+            <NavItem
+              href="/dashboard/admin/inventario"
+              icon={Package}
+              label="Inventario"
+              isActive={pathname.startsWith("/dashboard/admin/inventario")}
+            />
+          </NavSection>
 
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            Gestion
-          </p>
+          <NavSection title="Agenda">
+            <NavItem
+              href="/dashboard/admin/calendario"
+              icon={CalendarDays}
+              label="Calendario"
+              isActive={pathname.startsWith("/dashboard/admin/calendario")}
+            />
+          </NavSection>
 
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/usuarios") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/usuarios")}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Usuarios
-          </Button>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/directorio") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/directorio")}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Directorio
-          </Button>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/clientes") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/clientes")}
-          >
-            <Building2 className="mr-2 h-4 w-4" />
-            Clientes
-          </Button>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/servicios") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/servicios")}
-          >
-            <Stethoscope className="mr-2 h-4 w-4" />
-            Servicios Médicos
-          </Button>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/objetivos") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/objetivos")}
-          >
-            <Target className="mr-2 h-4 w-4" />
-            Objetivos Comerciales
-          </Button>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/inventario") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/inventario")}
-          >
-            <Package className="mr-2 h-4 w-4" />
-            Inventario
-          </Button>
-
-
-          <Separator className="my-4" />
-
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            Agenda
-          </p>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/calendario") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/calendario")}
-          >
-            <CalendarDays className="mr-2 h-4 w-4" />
-            Calendario
-          </Button>
-
-          <Separator className="my-4" />
-
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            Monitoreo
-          </p>
-
-          <Button
-            variant={pathname.startsWith("/dashboard/admin/actividad") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/dashboard/admin/actividad")}
-          >
-            <Activity className="mr-2 h-4 w-4" />
-            Registro de Actividad
-          </Button>
+          <NavSection title="Monitoreo">
+            <NavItem
+              href="/dashboard/admin/actividad"
+              icon={Activity}
+              label="Registro de Actividad"
+              isActive={pathname.startsWith("/dashboard/admin/actividad")}
+            />
+          </NavSection>
         </nav>
       </div>
 
       {/* User Section */}
-      <div className="border-t p-4">
+      <div className="border-t border-sidebar-border p-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-2 hover:bg-accent"
-            >
-              <div className="flex items-center space-x-3 w-full">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={user?.profile_photo || ""} alt={user?.full_name || user?.email} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getInitials(user)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-start flex-1 min-w-0">
-                  <span className="text-sm font-medium truncate w-full text-left">
-                    {user?.first_name || user?.full_name || "Admin"}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate w-full text-left">
-                    {user?.email}
-                  </span>
-                </div>
+            <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-colors">
+              <Avatar className="h-9 w-9 ring-2 ring-sidebar-border">
+                <AvatarImage src={user?.profile_photo || ""} alt={user?.full_name || user?.email} />
+                <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm font-semibold">
+                  {getInitials(user)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col items-start flex-1 min-w-0">
+                <span className="text-sm font-medium text-sidebar-foreground truncate w-full text-left">
+                  {user?.first_name || user?.full_name || "Admin"}
+                </span>
+                <span className="text-xs text-sidebar-muted truncate w-full text-left">
+                  {user?.email}
+                </span>
               </div>
-            </Button>
+              <Settings className="h-4 w-4 text-sidebar-muted" />
+            </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-56" sideOffset={8}>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium">{user?.full_name || user?.first_name}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
+              </div>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={() => router.push("/dashboard/admin/profile")} className="cursor-pointer">
