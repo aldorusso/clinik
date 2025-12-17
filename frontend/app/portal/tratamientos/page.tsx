@@ -31,9 +31,9 @@ export default function PatientTreatmentsPage() {
 
   const getStatusBadge = (status: string) => {
     if (status === "Completado") {
-      return <Badge className="bg-green-100 text-green-800">✅ Completado</Badge>
+      return <Badge className="bg-green-100 text-green-800">Completado</Badge>
     }
-    return <Badge className="bg-blue-100 text-blue-800">🔄 En Progreso</Badge>
+    return <Badge className="bg-blue-100 text-blue-800">En Progreso</Badge>
   }
 
   return (

@@ -92,7 +92,7 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
           <Separator className="my-4" />
 
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            📅 Mis Citas
+            Mis Citas
           </p>
 
           <Button
@@ -107,7 +107,7 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
           <Separator className="my-4" />
 
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            🏥 Mi Información Médica
+            Mi Información Médica
           </p>
 
           <Button
@@ -131,7 +131,7 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
           <Separator className="my-4" />
 
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            💼 Administración
+            Administración
           </p>
 
           <Button

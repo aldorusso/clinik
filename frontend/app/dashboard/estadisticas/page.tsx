@@ -98,7 +98,7 @@ export default function EstadisticasPage() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">📊 Estadísticas</h1>
+            <h1 className="text-3xl font-bold">Estadísticas</h1>
             <p className="text-muted-foreground">
               Análisis y métricas del rendimiento de leads
             </p>

@@ -490,7 +490,7 @@ export default function CalendarioPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Calendar className="h-8 w-8 text-blue-600" />
-              📅 Calendario de Citas
+              Calendario de Citas
             </h1>
             <p className="text-muted-foreground">
               Vista calendario para gestión visual de citas médicas

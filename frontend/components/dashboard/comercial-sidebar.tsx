@@ -104,7 +104,7 @@ export function ComercialSidebar({ user }: ComercialSidebarProps) {
           <Separator className="my-4" />
 
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            💼 Gestión Comercial
+            Gestión Comercial
           </p>
 
           <Button
@@ -137,7 +137,7 @@ export function ComercialSidebar({ user }: ComercialSidebarProps) {
           <Separator className="my-4" />
 
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-            📊 Mi Performance
+            Mi Performance
           </p>
 
           <Button

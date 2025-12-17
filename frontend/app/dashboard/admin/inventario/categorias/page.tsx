@@ -207,7 +207,7 @@ export default function InventoryCategoriesPage() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">📂 Categorías de Inventario</h1>
+            <h1 className="text-3xl font-bold">Categorías de Inventario</h1>
             <p className="text-muted-foreground">
               Organiza los productos del inventario en categorías
             </p>
@@ -236,7 +236,7 @@ export default function InventoryCategoriesPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <Badge className="bg-green-100 text-green-800 border-green-200">
-                  ✅ Activas: {categories.filter(c => c.is_active).length}
+                  Activas: {categories.filter(c => c.is_active).length}
                 </Badge>
               </div>
             </CardContent>
@@ -246,7 +246,7 @@ export default function InventoryCategoriesPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
                 <Badge className="bg-gray-100 text-gray-800 border-gray-200">
-                  ⏸️ Inactivas: {categories.filter(c => !c.is_active).length}
+                  Inactivas: {categories.filter(c => !c.is_active).length}
                 </Badge>
               </div>
             </CardContent>
@@ -355,7 +355,7 @@ export default function InventoryCategoriesPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                📊 Categorías Más Utilizadas
+                Categorías Más Utilizadas
               </CardTitle>
               <CardDescription>
                 Categorías con mayor número de productos

@@ -111,9 +111,9 @@ export function PatientCard({
         {/* Access Level Information */}
         <div className="mb-4 p-2 bg-muted rounded-md">
           <p className="text-xs text-muted-foreground">
-            {patient.access_level === "full" && "✓ Información médica completa"}
-            {patient.access_level === "limited" && "⚠️ Solo información básica - Protección de datos médicos"}
-            {patient.access_level === "basic" && "ℹ️ Información básica para agendamiento"}
+            {patient.access_level === "full" && "Información médica completa"}
+            {patient.access_level === "limited" && "Solo información básica - Protección de datos médicos"}
+            {patient.access_level === "basic" && "Información básica para agendamiento"}
           </p>
         </div>
 

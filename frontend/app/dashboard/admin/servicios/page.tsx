@@ -320,7 +320,7 @@ export default function AdminServiciosPage() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
-              🏥 Administración de Servicios
+              Administración de Servicios
             </h1>
             <p className="text-muted-foreground">
               Gestiona los servicios médicos y categorías de tu clínica

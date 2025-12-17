@@ -386,7 +386,7 @@ export default function AdminObjetivosPage() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
-              🎯 Gestión de Objetivos
+              Gestión de Objetivos
             </h1>
             <p className="text-muted-foreground">
               Administra los objetivos y performance de tu equipo comercial

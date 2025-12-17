@@ -240,33 +240,14 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode, currentU
       })
       
       if (mode === 'create') {
-        // Si es un comercial creando el lead y no hay assigned_to_id, auto-asignarlo
-        if (currentUser?.role === 'client' && !cleanedData.assigned_to_id && currentUser.id) {
+        // Si es un comercial (closer) creando el lead y no hay assigned_to_id, auto-asignarlo
+        if (currentUser?.role === 'closer' && !cleanedData.assigned_to_id && currentUser.id) {
           cleanedData.assigned_to_id = currentUser.id
-          console.log('✅ Auto-asignando lead a comercial:', currentUser.id, currentUser.email)
-        } else {
-          console.log('❌ No se auto-asigna:', {
-            role: currentUser?.role,
-            hasAssignment: !!cleanedData.assigned_to_id,
-            hasUserId: !!currentUser?.id,
-            userId: currentUser?.id
-          })
         }
-        
-        // TEMPORAL: Force assignment for testing if user is client
-        if (currentUser?.role === 'client' && currentUser.id) {
-          cleanedData.assigned_to_id = currentUser.id
-          console.log('🔧 FORCE ASSIGNMENT for testing:', currentUser.id)
-          alert(`TESTING: Assigning lead to ${currentUser.email} with ID ${currentUser.id}`)
-        } else {
-          alert(`TESTING: NOT assigning - role: ${currentUser?.role}, id: ${currentUser?.id}`)
-        }
-        
-        console.log('📋 Datos finales del lead a crear:', cleanedData)
         await api.createLead(token, cleanedData)
         toast({
           title: "Lead creado",
-          description: currentUser?.role === 'client' 
+          description: currentUser?.role === 'closer'
             ? "El lead ha sido creado y asignado a ti exitosamente"
             : "El lead ha sido creado exitosamente",
         })

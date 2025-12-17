@@ -189,9 +189,9 @@ export default function PacientesPage() {
                 <h3 className="font-semibold text-amber-800">Protección de Datos Médicos</h3>
                 <p className="text-sm text-amber-700 mt-1">
                   {isDoctor || isAdmin ? (
-                    "✓ Tienes acceso completo a la información médica de los pacientes."
+                    "Tienes acceso completo a la información médica de los pacientes."
                   ) : (
-                    "⚠️ Tu rol permite ver solo información básica. Los detalles médicos están protegidos."
+                    "Tu rol permite ver solo información básica. Los detalles médicos están protegidos."
                   )}
                 </p>
                 <div className="mt-2 flex items-center gap-4 text-xs">

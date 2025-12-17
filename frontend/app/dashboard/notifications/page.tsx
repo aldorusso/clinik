@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Bell, CheckCheck, Trash2, ExternalLink } from "lucide-react"
+import { Bell, CheckCheck, Trash2, ExternalLink, Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react"
 import { api, Notification, NotificationType, User } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { formatDistanceToNow } from "date-fns"
@@ -260,15 +260,15 @@ export default function NotificationsPage() {
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
       case "info":
-        return "ℹ️"
+        return <Info className="h-5 w-5 text-blue-500" />
       case "success":
-        return "✅"
+        return <CheckCircle className="h-5 w-5 text-green-500" />
       case "warning":
-        return "⚠️"
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />
       case "error":
-        return "❌"
+        return <XCircle className="h-5 w-5 text-red-500" />
       default:
-        return "🔔"
+        return <Bell className="h-5 w-5 text-muted-foreground" />
     }
   }
 

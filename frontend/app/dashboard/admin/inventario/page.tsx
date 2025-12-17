@@ -77,7 +77,7 @@ export default function InventoryDashboardPage() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">📦 Gestión de Inventario</h1>
+            <h1 className="text-3xl font-bold">Gestión de Inventario</h1>
             <p className="text-muted-foreground">
               Administra productos, stock y alertas del inventario médico
             </p>
@@ -163,7 +163,7 @@ export default function InventoryDashboardPage() {
             <CardHeader>
               <CardTitle className="text-red-800 flex items-center">
                 <AlertTriangle className="mr-2 h-5 w-5" />
-                ⚠️ Productos Vencidos
+                Productos Vencidos
               </CardTitle>
               <CardDescription className="text-red-600">
                 {stats?.products_expired} productos han vencido y necesitan ser retirados
@@ -177,7 +177,7 @@ export default function InventoryDashboardPage() {
             <CardHeader>
               <CardTitle className="text-orange-800 flex items-center">
                 <Calendar className="mr-2 h-5 w-5" />
-                📅 Próximos a Vencer
+                Próximos a Vencer
               </CardTitle>
               <CardDescription className="text-orange-600">
                 {stats?.products_expiring_soon} productos vencen en los próximos 7 días
@@ -202,7 +202,7 @@ export default function InventoryDashboardPage() {
               <div className="space-y-3">
                 {lowStockAlerts.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    ✅ No hay productos con stock bajo
+                    No hay productos con stock bajo
                   </p>
                 ) : (
                   lowStockAlerts.slice(0, 5).map((alert) => (
@@ -327,7 +327,7 @@ export default function InventoryDashboardPage() {
         {stats?.most_used_products && stats.most_used_products.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>📊 Productos Más Utilizados (30 días)</CardTitle>
+              <CardTitle>Productos Más Utilizados (30 días)</CardTitle>
               <CardDescription>
                 Productos con mayor consumo en el último mes
               </CardDescription>

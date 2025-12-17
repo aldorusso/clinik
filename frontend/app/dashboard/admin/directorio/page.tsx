@@ -198,7 +198,7 @@ export default function AdminDirectorioPage() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">📋 Directorio de la Clínica</h1>
+            <h1 className="text-3xl font-bold">Directorio de la Clínica</h1>
             <p className="text-muted-foreground">
               Directorio completo con contactos de todo el equipo de tu clínica
             </p>

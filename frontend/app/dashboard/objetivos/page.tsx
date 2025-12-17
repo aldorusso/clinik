@@ -227,7 +227,7 @@ export default function ObjetivosPage() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
-              🎯 Mis Objetivos
+              Mis Objetivos
             </h1>
             <p className="text-muted-foreground">
               Seguimiento de metas y objetivos comerciales

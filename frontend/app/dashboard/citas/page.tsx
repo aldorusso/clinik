@@ -401,7 +401,7 @@ export default function CitasPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Calendar className="h-8 w-8 text-blue-600" />
-              {currentUser?.role === 'medico' ? '📅 Mis Citas' : 'Panel de Recepción'}
+              {currentUser?.role === 'medico' ? 'Mis Citas' : 'Panel de Recepción'}
             </h1>
             <p className="text-muted-foreground">
               {currentUser?.role === 'medico' 

@@ -108,7 +108,7 @@ export function Sidebar({ user }: SidebarProps) {
         {(isManager || isReceptionist) && (
           <>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              {isManager ? "🎯 Gestión de Leads" : "📞 Gestión de Leads"}
+              Gestión de Leads
             </p>
 
             <Button
@@ -135,7 +135,7 @@ export function Sidebar({ user }: SidebarProps) {
         {isCommercial && (
           <>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              💼 Mi Gestión Comercial
+              Mi Gestión Comercial
             </p>
 
             <Button
@@ -162,7 +162,7 @@ export function Sidebar({ user }: SidebarProps) {
         {isDoctor && (
           <>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              👨‍⚕️ Mi Consulta
+              Mi Consulta
             </p>
 
             <Button
@@ -218,7 +218,7 @@ export function Sidebar({ user }: SidebarProps) {
           <>
             <Separator className="my-4" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              📊 Reportes
+              Reportes
             </p>
 
             <Button
@@ -237,7 +237,7 @@ export function Sidebar({ user }: SidebarProps) {
           <>
             <Separator className="my-4" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              📊 Mi Performance
+              Mi Performance
             </p>
 
             <Button
@@ -265,7 +265,7 @@ export function Sidebar({ user }: SidebarProps) {
           <>
             <Separator className="my-4" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              👥 Organización
+              Organización
             </p>
 
             <Button
@@ -297,7 +297,7 @@ export function Sidebar({ user }: SidebarProps) {
       <div className="flex h-16 items-center justify-between border-b px-4">
         <div className="flex items-center space-x-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">🏥</span>
+            <Stethoscope className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="font-bold text-xl">Leads CRM</span>
         </div>

@@ -652,19 +652,19 @@ export default function ProfilePage() {
                     <div className="grid gap-2">
                       <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900">
                         <div className="h-2 w-2 rounded-full bg-blue-600" />
-                        <span className="text-sm">ℹ️ <strong>Información</strong> - Actualizaciones generales y noticias del sistema</span>
+                        <span className="text-sm"><strong>Información</strong> - Actualizaciones generales y noticias del sistema</span>
                       </div>
                       <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900">
                         <div className="h-2 w-2 rounded-full bg-green-600" />
-                        <span className="text-sm">✅ <strong>Éxito</strong> - Confirmaciones de acciones completadas</span>
+                        <span className="text-sm"><strong>Éxito</strong> - Confirmaciones de acciones completadas</span>
                       </div>
                       <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900">
                         <div className="h-2 w-2 rounded-full bg-yellow-600" />
-                        <span className="text-sm">⚠️ <strong>Advertencias</strong> - Cambios de seguridad y acciones importantes</span>
+                        <span className="text-sm"><strong>Advertencias</strong> - Cambios de seguridad y acciones importantes</span>
                       </div>
                       <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
                         <div className="h-2 w-2 rounded-full bg-red-600" />
-                        <span className="text-sm">❌ <strong>Errores</strong> - Problemas críticos que requieren atención</span>
+                        <span className="text-sm"><strong>Errores</strong> - Problemas críticos que requieren atención</span>
                       </div>
                     </div>
                   </div>
@@ -696,10 +696,10 @@ export default function ProfilePage() {
                   <Separator />
 
                   <div className="rounded-lg bg-muted p-4">
-                    <p className="text-sm font-medium mb-2">💡 Consejo</p>
+                    <p className="text-sm font-medium mb-2">Consejo</p>
                     <p className="text-sm text-muted-foreground">
                       Las notificaciones te mantienen informado sobre eventos importantes en tiempo real.
-                      Haz click en el campanita 🔔 en el header para ver tus últimas notificaciones.
+                      Haz click en el icono de campana en el header para ver tus últimas notificaciones.
                     </p>
                   </div>
                 </div>

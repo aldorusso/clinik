@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Bell } from "lucide-react"
+import { Bell, Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -154,15 +154,15 @@ export function NotificationBell() {
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
       case "info":
-        return "ℹ️"
+        return <Info className="h-4 w-4 text-blue-500" />
       case "success":
-        return "✅"
+        return <CheckCircle className="h-4 w-4 text-green-500" />
       case "warning":
-        return "⚠️"
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />
       case "error":
-        return "❌"
+        return <XCircle className="h-4 w-4 text-red-500" />
       default:
-        return "🔔"
+        return <Bell className="h-4 w-4 text-muted-foreground" />
     }
   }
 
