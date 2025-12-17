@@ -27,5 +27,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Start command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Start command - single worker for better error visibility
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--log-level", "debug"]
