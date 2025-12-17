@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { ClientSidebar } from "./client-sidebar"
 import { SessionExpiryModal } from "@/components/session-expiry-modal"
 import { User, api } from "@/lib/api"
+import { Spinner } from "@/components/ui/spinner"
 import { auth } from "@/lib/auth"
 
 interface ClientPortalLayoutProps {
@@ -79,7 +80,7 @@ export function ClientPortalLayout({ children }: ClientPortalLayoutProps) {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Spinner size="lg" />
       </div>
     )
   }

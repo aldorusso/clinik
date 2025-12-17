@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Spinner } from "@/components/ui/spinner"
 import { AppointmentCreate, api, User, Service } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
@@ -386,7 +387,7 @@ export function ScheduleAppointmentModal({
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <Spinner size="sm" className="border-primary-foreground border-t-transparent" />
                   Agendando...
                 </div>
               ) : (

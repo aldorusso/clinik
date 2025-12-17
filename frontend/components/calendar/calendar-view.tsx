@@ -5,17 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Calendar,
-  Clock,
-  User,
+import {
+  ChevronLeft,
+  ChevronRight,
   CalendarDays,
-  CalendarIcon,
-  Plus,
-  Filter
+  CalendarIcon
 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 import { Appointment } from "@/lib/api"
 
 export type CalendarViewType = 'month' | 'week'
@@ -205,7 +201,7 @@ export function CalendarView({
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <Spinner size="lg" />
           </div>
         </CardContent>
       </Card>

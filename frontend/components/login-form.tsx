@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Spinner } from "@/components/ui/spinner"
+import { AlertCircle } from "lucide-react"
 import { api, UserRole } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
@@ -69,15 +72,15 @@ export function LoginForm() {
     <div className="w-full">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Clinic.online</h1>
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">¡Bienvenido de Nuevo!</h2>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
+        <h2 className="text-3xl font-bold text-foreground mb-4">¡Bienvenido de Nuevo!</h2>
+        <p className="text-muted-foreground">
           ¿No tienes una cuenta?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline font-medium">
+          <Link href="/register" className="text-primary hover:underline font-medium">
             Solicita acceso ahora.
           </Link>
         </p>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Te contactaremos en menos de 24 horas.
         </p>
       </div>
@@ -96,7 +99,7 @@ export function LoginForm() {
             autoComplete="email"
             className="h-12 text-base"
           />
-          
+
           <Input
             id="password"
             type="password"
@@ -111,19 +114,20 @@ export function LoginForm() {
         </div>
 
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
-            {error}
-          </div>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
-        <Button 
-          type="submit" 
-          className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium text-base"
+        <Button
+          type="submit"
+          className="w-full h-12 font-medium text-base"
           disabled={isLoading}
         >
           {isLoading ? (
             <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              <Spinner size="sm" className="mr-2 border-primary-foreground border-t-transparent" />
               Ingresando...
             </div>
           ) : (
@@ -135,7 +139,7 @@ export function LoginForm() {
         <Button
           type="button"
           variant="outline"
-          className="w-full h-12 border-gray-300 text-gray-700 font-medium text-base"
+          className="w-full h-12 font-medium text-base"
           disabled={isLoading}
         >
           <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -151,9 +155,9 @@ export function LoginForm() {
         <div className="text-center">
           <Link
             href="/forgot-password"
-            className="text-gray-600 hover:text-gray-900 text-sm"
+            className="text-muted-foreground hover:text-foreground text-sm"
           >
-            ¿Olvidaste tu contraseña? <span className="font-medium text-blue-600">Clic aquí</span>
+            ¿Olvidaste tu contraseña? <span className="font-medium text-primary">Clic aquí</span>
           </Link>
         </div>
       </form>

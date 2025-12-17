@@ -45,6 +45,7 @@ import {
   Search,
 } from "lucide-react"
 import { api, User } from "@/lib/api"
+import { Spinner } from "@/components/ui/spinner"
 import { auth } from "@/lib/auth"
 import { toast } from "sonner"
 
@@ -210,7 +211,7 @@ export function ClientesManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Spinner size="lg" />
       </div>
     )
   }

@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "./sidebar"
 import { SessionExpiryModal } from "@/components/session-expiry-modal"
+import { Spinner } from "@/components/ui/spinner"
 import { User, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
@@ -65,7 +66,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Spinner size="lg" />
       </div>
     )
   }
