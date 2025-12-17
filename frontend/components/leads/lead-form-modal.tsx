@@ -30,6 +30,7 @@ interface LeadFormModalProps {
   onSuccess: () => void
   lead?: Lead | null
   mode: 'create' | 'edit'
+  currentUser?: User | null
 }
 
 const sourceOptions: { value: LeadSource; label: string }[] = [
@@ -77,7 +78,7 @@ const contactMethodOptions = [
   { value: 'whatsapp', label: 'WhatsApp' },
 ]
 
-export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFormModalProps) {
+export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode, currentUser }: LeadFormModalProps) {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [doctors, setDoctors] = useState<User[]>([])
@@ -239,10 +240,35 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode }: LeadFo
       })
       
       if (mode === 'create') {
+        // Si es un comercial creando el lead y no hay assigned_to_id, auto-asignarlo
+        if (currentUser?.role === 'client' && !cleanedData.assigned_to_id && currentUser.id) {
+          cleanedData.assigned_to_id = currentUser.id
+          console.log('✅ Auto-asignando lead a comercial:', currentUser.id, currentUser.email)
+        } else {
+          console.log('❌ No se auto-asigna:', {
+            role: currentUser?.role,
+            hasAssignment: !!cleanedData.assigned_to_id,
+            hasUserId: !!currentUser?.id,
+            userId: currentUser?.id
+          })
+        }
+        
+        // TEMPORAL: Force assignment for testing if user is client
+        if (currentUser?.role === 'client' && currentUser.id) {
+          cleanedData.assigned_to_id = currentUser.id
+          console.log('🔧 FORCE ASSIGNMENT for testing:', currentUser.id)
+          alert(`TESTING: Assigning lead to ${currentUser.email} with ID ${currentUser.id}`)
+        } else {
+          alert(`TESTING: NOT assigning - role: ${currentUser?.role}, id: ${currentUser?.id}`)
+        }
+        
+        console.log('📋 Datos finales del lead a crear:', cleanedData)
         await api.createLead(token, cleanedData)
         toast({
           title: "Lead creado",
-          description: "El lead ha sido creado exitosamente",
+          description: currentUser?.role === 'client' 
+            ? "El lead ha sido creado y asignado a ti exitosamente"
+            : "El lead ha sido creado exitosamente",
         })
       } else if (mode === 'edit' && lead) {
         const updateData: LeadUpdate = { ...cleanedData }

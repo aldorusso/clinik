@@ -111,7 +111,53 @@ async def get_objectives(
         query = query.order_by(order_func(CommercialObjective.created_at))
     
     objectives = query.all()
-    return objectives
+    
+    # Transform to response schema with computed fields
+    response_objectives = []
+    for objective in objectives:
+        # Get commercial and creator info
+        commercial_name = objective.commercial.full_name or objective.commercial.email if objective.commercial else "Usuario eliminado"
+        commercial_email = objective.commercial.email if objective.commercial else ""
+        created_by_name = objective.created_by.full_name or objective.created_by.email if objective.created_by else "Usuario eliminado"
+        
+        # Create response object with computed fields
+        objective_response = CommercialObjectiveResponse(
+            # Base fields from database
+            id=objective.id,
+            tenant_id=objective.tenant_id,
+            commercial_id=objective.commercial_id,
+            created_by_id=objective.created_by_id,
+            title=objective.title,
+            description=objective.description,
+            type=objective.type,
+            period=objective.period,
+            target_value=objective.target_value,
+            current_value=objective.current_value,
+            unit=objective.unit,
+            start_date=objective.start_date,
+            end_date=objective.end_date,
+            is_active=objective.is_active,
+            is_public=objective.is_public,
+            auto_calculate=objective.auto_calculate,
+            reward_description=objective.reward_description,
+            reward_amount=objective.reward_amount,
+            status=objective.status,
+            completion_date=objective.completion_date,
+            created_at=objective.created_at,
+            updated_at=objective.updated_at,
+            # Computed fields
+            commercial_name=commercial_name,
+            commercial_email=commercial_email,
+            created_by_name=created_by_name,
+            progress_percentage=objective.progress_percentage,
+            is_completed=objective.is_completed,
+            is_overdue=objective.is_overdue,
+            days_remaining=objective.days_remaining,
+            period_stats=None  # TODO: Calculate period stats if needed
+        )
+        response_objectives.append(objective_response)
+    
+    return response_objectives
 
 
 @router.get("/objectives/{objective_id}", response_model=CommercialObjectiveResponse)
@@ -145,7 +191,47 @@ async def get_objective(
             detail="Solo puedes ver tus propios objetivos"
         )
     
-    return objective
+    # Transform to response schema with computed fields
+    commercial_name = objective.commercial.full_name or objective.commercial.email if objective.commercial else "Usuario eliminado"
+    commercial_email = objective.commercial.email if objective.commercial else ""
+    created_by_name = objective.created_by.full_name or objective.created_by.email if objective.created_by else "Usuario eliminado"
+    
+    objective_response = CommercialObjectiveResponse(
+        # Base fields from database
+        id=objective.id,
+        tenant_id=objective.tenant_id,
+        commercial_id=objective.commercial_id,
+        created_by_id=objective.created_by_id,
+        title=objective.title,
+        description=objective.description,
+        type=objective.type,
+        period=objective.period,
+        target_value=objective.target_value,
+        current_value=objective.current_value,
+        unit=objective.unit,
+        start_date=objective.start_date,
+        end_date=objective.end_date,
+        is_active=objective.is_active,
+        is_public=objective.is_public,
+        auto_calculate=objective.auto_calculate,
+        reward_description=objective.reward_description,
+        reward_amount=objective.reward_amount,
+        status=objective.status,
+        completion_date=objective.completion_date,
+        created_at=objective.created_at,
+        updated_at=objective.updated_at,
+        # Computed fields
+        commercial_name=commercial_name,
+        commercial_email=commercial_email,
+        created_by_name=created_by_name,
+        progress_percentage=objective.progress_percentage,
+        is_completed=objective.is_completed,
+        is_overdue=objective.is_overdue,
+        days_remaining=objective.days_remaining,
+        period_stats=None  # TODO: Calculate period stats if needed
+    )
+    
+    return objective_response
 
 
 @router.post("/objectives", response_model=CommercialObjectiveResponse, status_code=status.HTTP_201_CREATED)
@@ -180,7 +266,53 @@ async def create_objective(
     db.commit()
     db.refresh(objective)
     
-    return objective
+    # Load relationships for response
+    objective = db.query(CommercialObjective).options(
+        joinedload(CommercialObjective.commercial),
+        joinedload(CommercialObjective.created_by)
+    ).filter(CommercialObjective.id == objective.id).first()
+    
+    # Transform to response schema with computed fields
+    commercial_name = objective.commercial.full_name or objective.commercial.email if objective.commercial else "Usuario eliminado"
+    commercial_email = objective.commercial.email if objective.commercial else ""
+    created_by_name = objective.created_by.full_name or objective.created_by.email if objective.created_by else "Usuario eliminado"
+    
+    objective_response = CommercialObjectiveResponse(
+        # Base fields from database
+        id=objective.id,
+        tenant_id=objective.tenant_id,
+        commercial_id=objective.commercial_id,
+        created_by_id=objective.created_by_id,
+        title=objective.title,
+        description=objective.description,
+        type=objective.type,
+        period=objective.period,
+        target_value=objective.target_value,
+        current_value=objective.current_value,
+        unit=objective.unit,
+        start_date=objective.start_date,
+        end_date=objective.end_date,
+        is_active=objective.is_active,
+        is_public=objective.is_public,
+        auto_calculate=objective.auto_calculate,
+        reward_description=objective.reward_description,
+        reward_amount=objective.reward_amount,
+        status=objective.status,
+        completion_date=objective.completion_date,
+        created_at=objective.created_at,
+        updated_at=objective.updated_at,
+        # Computed fields
+        commercial_name=commercial_name,
+        commercial_email=commercial_email,
+        created_by_name=created_by_name,
+        progress_percentage=objective.progress_percentage,
+        is_completed=objective.is_completed,
+        is_overdue=objective.is_overdue,
+        days_remaining=objective.days_remaining,
+        period_stats=None  # TODO: Calculate period stats if needed
+    )
+    
+    return objective_response
 
 
 @router.put("/objectives/{objective_id}", response_model=CommercialObjectiveResponse)
@@ -217,7 +349,53 @@ async def update_objective(
     db.commit()
     db.refresh(objective)
     
-    return objective
+    # Load relationships for response
+    objective = db.query(CommercialObjective).options(
+        joinedload(CommercialObjective.commercial),
+        joinedload(CommercialObjective.created_by)
+    ).filter(CommercialObjective.id == objective.id).first()
+    
+    # Transform to response schema with computed fields
+    commercial_name = objective.commercial.full_name or objective.commercial.email if objective.commercial else "Usuario eliminado"
+    commercial_email = objective.commercial.email if objective.commercial else ""
+    created_by_name = objective.created_by.full_name or objective.created_by.email if objective.created_by else "Usuario eliminado"
+    
+    objective_response = CommercialObjectiveResponse(
+        # Base fields from database
+        id=objective.id,
+        tenant_id=objective.tenant_id,
+        commercial_id=objective.commercial_id,
+        created_by_id=objective.created_by_id,
+        title=objective.title,
+        description=objective.description,
+        type=objective.type,
+        period=objective.period,
+        target_value=objective.target_value,
+        current_value=objective.current_value,
+        unit=objective.unit,
+        start_date=objective.start_date,
+        end_date=objective.end_date,
+        is_active=objective.is_active,
+        is_public=objective.is_public,
+        auto_calculate=objective.auto_calculate,
+        reward_description=objective.reward_description,
+        reward_amount=objective.reward_amount,
+        status=objective.status,
+        completion_date=objective.completion_date,
+        created_at=objective.created_at,
+        updated_at=objective.updated_at,
+        # Computed fields
+        commercial_name=commercial_name,
+        commercial_email=commercial_email,
+        created_by_name=created_by_name,
+        progress_percentage=objective.progress_percentage,
+        is_completed=objective.is_completed,
+        is_overdue=objective.is_overdue,
+        days_remaining=objective.days_remaining,
+        period_stats=None  # TODO: Calculate period stats if needed
+    )
+    
+    return objective_response
 
 
 @router.delete("/objectives/{objective_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -388,12 +566,60 @@ async def get_commercial_dashboard(
     if not commercial:
         raise HTTPException(status_code=404, detail="Comercial no encontrado")
     
-    # Get active objectives
-    active_objectives = db.query(CommercialObjective).filter(
+    # Get active objectives with relationships loaded
+    active_objectives_raw = db.query(CommercialObjective).options(
+        joinedload(CommercialObjective.commercial),
+        joinedload(CommercialObjective.created_by)
+    ).filter(
         CommercialObjective.commercial_id == target_commercial_id,
         CommercialObjective.is_active == True,
         CommercialObjective.status == ObjectiveStatus.active
     ).all()
+    
+    # Transform to response schema with computed fields
+    active_objectives = []
+    for objective in active_objectives_raw:
+        # Get commercial and creator info
+        commercial_name = objective.commercial.full_name or objective.commercial.email if objective.commercial else "Usuario eliminado"
+        commercial_email = objective.commercial.email if objective.commercial else ""
+        created_by_name = objective.created_by.full_name or objective.created_by.email if objective.created_by else "Usuario eliminado"
+        
+        # Create response object with computed fields
+        objective_response = CommercialObjectiveResponse(
+            # Base fields from database
+            id=objective.id,
+            tenant_id=objective.tenant_id,
+            commercial_id=objective.commercial_id,
+            created_by_id=objective.created_by_id,
+            title=objective.title,
+            description=objective.description,
+            type=objective.type,
+            period=objective.period,
+            target_value=objective.target_value,
+            current_value=objective.current_value,
+            unit=objective.unit,
+            start_date=objective.start_date,
+            end_date=objective.end_date,
+            is_active=objective.is_active,
+            is_public=objective.is_public,
+            auto_calculate=objective.auto_calculate,
+            reward_description=objective.reward_description,
+            reward_amount=objective.reward_amount,
+            status=objective.status,
+            completion_date=objective.completion_date,
+            created_at=objective.created_at,
+            updated_at=objective.updated_at,
+            # Computed fields
+            commercial_name=commercial_name,
+            commercial_email=commercial_email,
+            created_by_name=created_by_name,
+            progress_percentage=objective.progress_percentage,
+            is_completed=objective.is_completed,
+            is_overdue=objective.is_overdue,
+            days_remaining=objective.days_remaining,
+            period_stats=None  # TODO: Calculate period stats if needed
+        )
+        active_objectives.append(objective_response)
     
     # Get completed objectives this period
     current_month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -454,14 +680,60 @@ async def get_admin_objectives_dashboard(
         CommercialObjective.status == ObjectiveStatus.active
     ).scalar()
     
-    # Get overdue objectives
-    overdue_objectives = db.query(CommercialObjective).options(
-        joinedload(CommercialObjective.commercial)
+    # Get overdue objectives with relationships loaded
+    overdue_objectives_raw = db.query(CommercialObjective).options(
+        joinedload(CommercialObjective.commercial),
+        joinedload(CommercialObjective.created_by)
     ).filter(
         CommercialObjective.tenant_id == current_user.tenant_id,
         CommercialObjective.end_date < datetime.utcnow(),
         CommercialObjective.status.in_([ObjectiveStatus.active, ObjectiveStatus.overdue])
     ).all()
+    
+    # Transform to response schema with computed fields
+    overdue_objectives = []
+    for objective in overdue_objectives_raw:
+        # Get commercial and creator info
+        commercial_name = objective.commercial.full_name or objective.commercial.email if objective.commercial else "Usuario eliminado"
+        commercial_email = objective.commercial.email if objective.commercial else ""
+        created_by_name = objective.created_by.full_name or objective.created_by.email if objective.created_by else "Usuario eliminado"
+        
+        # Create response object with computed fields
+        objective_response = CommercialObjectiveResponse(
+            # Base fields from database
+            id=objective.id,
+            tenant_id=objective.tenant_id,
+            commercial_id=objective.commercial_id,
+            created_by_id=objective.created_by_id,
+            title=objective.title,
+            description=objective.description,
+            type=objective.type,
+            period=objective.period,
+            target_value=objective.target_value,
+            current_value=objective.current_value,
+            unit=objective.unit,
+            start_date=objective.start_date,
+            end_date=objective.end_date,
+            is_active=objective.is_active,
+            is_public=objective.is_public,
+            auto_calculate=objective.auto_calculate,
+            reward_description=objective.reward_description,
+            reward_amount=objective.reward_amount,
+            status=objective.status,
+            completion_date=objective.completion_date,
+            created_at=objective.created_at,
+            updated_at=objective.updated_at,
+            # Computed fields
+            commercial_name=commercial_name,
+            commercial_email=commercial_email,
+            created_by_name=created_by_name,
+            progress_percentage=objective.progress_percentage,
+            is_completed=objective.is_completed,
+            is_overdue=objective.is_overdue,
+            days_remaining=objective.days_remaining,
+            period_stats=None  # TODO: Calculate period stats if needed
+        )
+        overdue_objectives.append(objective_response)
     
     # Get objectives by status
     objectives_by_status = {}

@@ -177,7 +177,7 @@ async def get_my_medical_history(
         result["consultations"].append({
             "id": apt.id,
             "date": apt.scheduled_at,
-            "doctor_name": f"Dr. {apt.medic.first_name} {apt.medic.last_name}" if apt.medic else "Doctor",
+            "doctor_name": f"Dr. {apt.provider.first_name} {apt.provider.last_name}" if apt.provider else "Doctor",
             "type": apt.service.name if apt.service else "Consulta General",
             "diagnosis": apt.diagnosis if hasattr(apt, 'diagnosis') else "",
             "notes": apt.notes,

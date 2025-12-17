@@ -148,9 +148,9 @@ export function Sidebar({ user }: SidebarProps) {
             </Button>
 
             <Button
-              variant={pathname.startsWith("/dashboard/mis-pacientes-comercial") ? "secondary" : "ghost"}
+              variant={pathname.startsWith("/dashboard/mis-pacientes") ? "secondary" : "ghost"}
               className="w-full justify-start"
-              onClick={() => router.push("/dashboard/mis-pacientes-comercial")}
+              onClick={() => router.push("/dashboard/mis-pacientes")}
             >
               <UserCheck className="mr-2 h-4 w-4" />
               Mis Pacientes
@@ -241,18 +241,18 @@ export function Sidebar({ user }: SidebarProps) {
             </p>
 
             <Button
-              variant={pathname.startsWith("/dashboard/mi-performance") ? "secondary" : "ghost"}
+              variant={pathname.startsWith("/dashboard/estadisticas") ? "secondary" : "ghost"}
               className="w-full justify-start"
-              onClick={() => router.push("/dashboard/mi-performance")}
+              onClick={() => router.push("/dashboard/estadisticas")}
             >
               <BarChart3 className="mr-2 h-4 w-4" />
               Mi Performance
             </Button>
 
             <Button
-              variant={pathname.startsWith("/dashboard/mis-objetivos") ? "secondary" : "ghost"}
+              variant={pathname.startsWith("/dashboard/objetivos") ? "secondary" : "ghost"}
               className="w-full justify-start"
-              onClick={() => router.push("/dashboard/mis-objetivos")}
+              onClick={() => router.push("/dashboard/objetivos")}
             >
               <Target className="mr-2 h-4 w-4" />
               Mis Objetivos

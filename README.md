@@ -1,181 +1,280 @@
-# Scraper App - SerpAPI & Google Maps
+# 🏥 Clinik.Download - Sistema de Gestión de Leads Médicos
 
-Aplicación full-stack para scraping de SerpAPI y Google Maps.
+Plataforma multi-tenant completa para la gestión integral de leads, pacientes y operaciones en clínicas estéticas y centros médicos.
 
-## Stack Tecnológico
+## 🌟 Características Principales
+
+- **🏢 Multi-tenant**: Cada clínica tiene su propio espacio aislado
+- **👥 Gestión de Leads**: Pipeline completo de conversión
+- **📅 Calendario Médico**: Agenda integrada para citas
+- **👤 Portal del Paciente**: Acceso independiente para pacientes
+- **📊 Dashboard Analytics**: Estadísticas en tiempo real
+- **🎯 Objetivos Comerciales**: Seguimiento de metas
+- **📋 Inventario Médico**: Control de productos y equipos
+- **🔐 Roles y Permisos**: 6 niveles de acceso diferentes
+
+## 🚀 Stack Tecnológico
 
 ### Backend
-- **FastAPI** - Framework web moderno y rápido
-- **PostgreSQL** - Base de datos relacional
-- **SQLAlchemy** - ORM para Python
-- **Alembic** - Migraciones de base de datos
+- **FastAPI 0.115.6** - Framework web moderno y asíncrono
+- **PostgreSQL 16** - Base de datos relacional robusta
+- **SQLAlchemy 2.0** - ORM avanzado con soporte async
+- **Alembic** - Sistema de migraciones
+- **JWT** - Autenticación con refresh tokens
 
 ### Frontend
-- **Next.js 14** - Framework de React
-- **shadcn/ui** - Componentes UI con Tailwind CSS
-- **TypeScript** - Tipado estático
+- **Next.js 16** - Framework React con App Router
+- **TypeScript** - Tipado estático completo
+- **shadcn/ui** - Componentes UI modernos
+- **Tailwind CSS** - Estilos utilitarios
+- **Sonner** - Notificaciones toast
 
 ### Infraestructura
-- **Docker & Docker Compose** - Contenedorización
+- **Docker & Docker Compose** - Contenedorización completa
+- **Hot Reload** - Desarrollo con recarga automática
+- **Multi-stage builds** - Optimización para producción
 
-## Estructura del Proyecto
+## 🏗️ Arquitectura Multi-Tenant
 
 ```
-scraper-fastapi/
-├── backend/
-│   ├── app/
-│   │   ├── api/v1/        # Endpoints de la API
-│   │   ├── core/          # Configuración
-│   │   ├── db/            # Configuración de base de datos
-│   │   ├── models/        # Modelos SQLAlchemy
-│   │   ├── schemas/       # Schemas Pydantic
-│   │   └── services/      # Lógica de negocio
-│   ├── alembic/           # Migraciones
-│   ├── Dockerfile.dev
-│   └── requirements.txt
-├── frontend/
-│   ├── app/               # App Router de Next.js
-│   ├── components/        # Componentes React
-│   ├── lib/               # Utilidades
-│   ├── Dockerfile.dev
-│   └── package.json
-├── database/
-│   └── init.sql           # Script de inicialización
-└── docker-compose.yml
+PLATAFORMA (Superadmin)
+    │
+    ├── CLÍNICA A (Tenant)
+    │   ├── Admin Clínica
+    │   ├── Gestor de Leads
+    │   ├── Médicos
+    │   ├── Comerciales
+    │   └── Recepcionistas
+    │
+    └── CLÍNICA B (Tenant)
+        └── ... (misma estructura)
 ```
 
-## Comenzar
+## 👤 Sistema de Roles
 
-### Prerrequisitos
+| Rol | Descripción | Acceso |
+|-----|-------------|--------|
+| `superadmin` | Admin global de la plataforma | Gestión total de clínicas |
+| `tenant_admin` | Admin de clínica | Todos los leads y pacientes |
+| `manager` | Gestor de leads | Leads, Pacientes, Citas, Estadísticas |
+| `user` | Médico | Mis Leads Asignados, Mis Pacientes |
+| `client` | Comercial | Mis Leads, Performance, Objetivos |
+| `recepcionista` | Recepcionista | Leads, Pacientes, Citas |
+
+## 🚀 Inicio Rápido
+
+### Prerequisitos
 - Docker
 - Docker Compose
+- Git
 
-### Instalación y Ejecución
+### Instalación
 
-1. Clonar el repositorio
-
-2. Levantar los servicios con Docker Compose:
+1. **Clonar repositorio**
 ```bash
-docker-compose up --build
+git clone [repo-url]
+cd clinik-download
 ```
 
-Esto levantará tres servicios:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
-- **PostgreSQL**: localhost:5432
+2. **Levantar servicios**
+```bash
+docker-compose up -d
+```
 
-3. Aplicar las migraciones de base de datos:
+3. **Aplicar migraciones**
 ```bash
 docker-compose exec backend alembic upgrade head
 ```
 
-4. Crear un usuario admin inicial:
+4. **Crear superadmin**
 ```bash
 docker-compose exec backend python create_admin.py
 ```
 
-Credenciales por defecto:
-- Email: `admin@example.com`
-- Password: `admin123`
+5. **Acceder a la aplicación**
+- Frontend: http://localhost:3002
+- Backend API: http://localhost:8002
+- Documentación API: http://localhost:8002/docs
 
-5. Acceder a la aplicación en http://localhost:3000 y hacer login con las credenciales del admin
+## 📋 Comandos Útiles
 
-### Desarrollo
-
-Los contenedores están configurados con hot-reload:
-- Cambios en el backend se reflejan automáticamente
-- Cambios en el frontend se reflejan automáticamente
-- Los volúmenes de Docker mantienen los cambios sincronizados
-
-### Detener los servicios
-
+### Docker
 ```bash
-docker-compose down
-```
+# Levantar servicios
+docker-compose up -d
 
-Para eliminar también los volúmenes (base de datos):
-```bash
+# Ver logs en tiempo real
+docker-compose logs -f
+
+# Reconstruir contenedores
+docker-compose build
+
+# Limpiar todo
 docker-compose down -v
 ```
 
-## Configuración de shadcn/ui
-
-El frontend ya está configurado con shadcn/ui. Para agregar componentes:
-
+### Base de Datos
 ```bash
-# Entrar al contenedor del frontend
-docker-compose exec frontend sh
-
-# Agregar componentes
-npx shadcn-ui@latest add button
-npx shadcn-ui@latest add card
-npx shadcn-ui@latest add form
-# etc...
-```
-
-## Base de Datos
-
-### Crear una migración
-```bash
-docker-compose exec backend alembic revision --autogenerate -m "descripción del cambio"
-```
-
-### Aplicar migraciones
-```bash
+# Aplicar migraciones
 docker-compose exec backend alembic upgrade head
+
+# Crear nueva migración
+docker-compose exec backend alembic revision --autogenerate -m "descripción"
+
+# Acceso directo a PostgreSQL
+docker-compose exec db psql -U clinik_download_user -d clinik_download_db
 ```
 
-### Revertir migración
+### Datos Iniciales
 ```bash
-docker-compose exec backend alembic downgrade -1
+# Crear superadmin
+docker-compose exec backend python create_admin.py
+
+# Crear usuarios de prueba
+docker-compose exec backend python create_test_users.py
+
+# Seedear plantillas de email
+docker-compose exec backend python seed_email_templates.py
 ```
 
-## Variables de Entorno
+## 🔧 Configuración
 
-### Backend (.env)
+### Variables de Entorno Backend (.env)
+```env
+# Database
+DATABASE_URL=postgresql://clinik_download_user:clinik_download_password@db:5432/clinik_download_db
+
+# Security
+SECRET_KEY=your-super-secret-key-change-in-production
+ACCESS_TOKEN_EXPIRE_MINUTES=10080
+
+# Email SMTP
+MAIL_USERNAME=clinic@gmail.com
+MAIL_PASSWORD=app-specific-password
+MAIL_FROM=noreply@clinik.download
+MAIL_SERVER=smtp.gmail.com
+
+# Frontend URL
+FRONTEND_URL=http://localhost:3002
 ```
-DATABASE_URL=postgresql://scraper_user:scraper_password@db:5432/scraper_db
-ENVIRONMENT=development
-DEBUG=true
+
+### Variables Frontend
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8002
 ```
 
-### Frontend (.env.local)
+## 📊 APIs Principales
+
+### Autenticación
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NODE_ENV=development
+POST /api/v1/auth/login        # Login con credenciales
+POST /api/v1/auth/register     # Registro de usuario
+POST /api/v1/auth/refresh      # Refresh token
 ```
 
-## Autenticación
+### Leads Management
+```
+GET    /api/v1/leads                 # Lista con filtros
+POST   /api/v1/leads                 # Crear lead
+PUT    /api/v1/leads/{id}/assign     # Asignar lead
+GET    /api/v1/leads/{id}/timeline   # Timeline del lead
+```
 
-El sistema incluye autenticación JWT con dos roles:
+### Portal de Pacientes
+```
+GET /api/v1/patient-portal/my-appointments     # Mis citas
+GET /api/v1/patient-portal/my-treatments       # Mis tratamientos
+GET /api/v1/patient-portal/my-medical-history  # Historial médico
+```
 
-### Roles de Usuario
-- **Admin**: Acceso completo al sistema, puede crear otros admins
-- **User**: Acceso básico al sistema
+## 🎯 Pipeline de Leads
 
-### Endpoints de Autenticación
-- `POST /api/v1/auth/register` - Registrar nuevo usuario
-- `POST /api/v1/auth/login` - Login (retorna JWT token)
-- `GET /api/v1/auth/me` - Obtener información del usuario actual (requiere token)
-- `POST /api/v1/auth/create-admin` - Crear admin (solo admins)
+```
+NUEVO → CONTACTADO → CALIFICADO → CITA AGENDADA → VINO A CITA → EN TRATAMIENTO → COMPLETADO
+  ↓         ↓            ↓              ↓               ↓              ↓
+PERDIDO  NO CONTESTA  NO CALIFICA   NO SHOW      RECHAZÓ PRESUP.  ABANDONO
+```
 
-### Flujo de Autenticación
-1. Usuario hace login en el frontend
-2. Backend valida credenciales y retorna JWT token
-3. Frontend almacena token en localStorage
-4. Todas las peticiones subsecuentes incluyen el token en headers
-5. Backend valida token y permisos en cada request
+## 📈 KPIs y Métricas
 
-## Próximos Pasos
+- **Tasa de Conversión Global**: Leads → Pacientes
+- **ROI por Canal**: Performance de fuentes de marketing
+- **Tiempo de Respuesta**: Primera interacción con leads
+- **Ocupación de Agenda**: Eficiencia médica
+- **Valor Promedio**: Revenue por tratamiento
 
-- [ ] Implementar modelos de datos para scraping
-- [ ] Crear endpoints de API para SerpAPI
-- [ ] Crear endpoints de API para Google Maps
-- [ ] Diseñar interfaz de usuario para scraping
-- [ ] Implementar sistema de jobs/tareas
-- [x] Agregar autenticación JWT
+## 🛠️ Desarrollo
 
-## Licencia
+### Estructura del Proyecto
+```
+/
+├── backend/                # FastAPI application
+│   ├── app/
+│   │   ├── api/v1/        # API endpoints
+│   │   ├── models/        # SQLAlchemy models
+│   │   ├── schemas/       # Pydantic schemas
+│   │   └── core/          # Config, security, email
+│   └── alembic/           # Database migrations
+│
+├── frontend/              # Next.js 16 application
+│   ├── app/               # App Router
+│   ├── components/        # React components
+│   └── lib/               # Utilities and API client
+│
+└── database/              # SQL scripts
+```
 
-Proyecto privado
+### Testing
+```bash
+# Backend tests (por implementar)
+docker-compose exec backend pytest
+
+# Frontend type checking
+docker-compose exec frontend npm run type-check
+
+# Linting
+docker-compose exec backend black app/ --check
+docker-compose exec frontend npm run lint
+```
+
+## 🚀 Producción
+
+### Build para Producción
+```bash
+# Build optimizado
+docker-compose -f docker-compose.prod.yml up -d
+
+# Variables de producción necesarias
+DATABASE_URL=postgresql://user:pass@prod-db:5432/db
+SECRET_KEY=production-secret-key-32-chars-min
+MAIL_SERVER=smtp.your-provider.com
+```
+
+### Consideraciones de Seguridad
+- ✅ JWT en httpOnly cookies
+- ✅ CORS restrictivo
+- ✅ Rate limiting en endpoints críticos
+- ✅ Validación de entrada en cliente y servidor
+- ✅ Encriptación de datos sensibles
+
+## 📝 Licencia
+
+Proyecto privado - Todos los derechos reservados.
+
+## 🤝 Contribución
+
+1. Fork del proyecto
+2. Crear feature branch (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit cambios (`git commit -m 'Agregar nueva funcionalidad'`)
+4. Push al branch (`git push origin feature/nueva-funcionalidad`)
+5. Crear Pull Request
+
+## 🆘 Soporte
+
+Para soporte técnico o consultas sobre el sistema:
+- Email: support@clinik.download
+- Documentación: [Enlace a docs]
+
+---
+
+**Clinik.Download** - Transformando la gestión de leads médicos con tecnología moderna 🚀

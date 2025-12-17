@@ -20,7 +20,7 @@ export interface ResetPasswordRequest {
 }
 
 // User roles for medical leads management system (6 roles)
-export type UserRole = 'superadmin' | 'tenant_admin' | 'manager' | 'user' | 'client' | 'recepcionista';
+export type UserRole = 'superadmin' | 'tenant_admin' | 'manager' | 'user' | 'client' | 'recepcionista' | 'patient';
 
 // ============================================
 // LEAD TYPES
@@ -1829,6 +1829,51 @@ export const api = {
   },
 
   /**
+   * Obtiene las citas del paciente actual (para portal de paciente).
+   */
+  async getPatientAppointments(token: string): Promise<Appointment[]> {
+    const response = await fetch(`${API_URL}/api/v1/patient-portal/my-appointments`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch patient appointments');
+    }
+    return response.json();
+  },
+
+  /**
+   * Obtiene los tratamientos del paciente actual (para portal de paciente).
+   */
+  async getPatientTreatments(token: string): Promise<any[]> {
+    const response = await fetch(`${API_URL}/api/v1/patient-portal/my-treatments`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch patient treatments');
+    }
+    return response.json();
+  },
+
+  /**
+   * Obtiene el historial médico del paciente actual (para portal de paciente).
+   */
+  async getPatientMedicalHistory(token: string): Promise<any> {
+    const response = await fetch(`${API_URL}/api/v1/patient-portal/my-medical-history`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch patient medical history');
+    }
+    return response.json();
+  },
+
+  /**
    * Obtiene estadísticas de citas del tenant.
    */
   async getAppointmentStats(
@@ -2375,10 +2420,14 @@ export const api = {
 
   // Generic HTTP methods for API calls
   async get(url: string, options: RequestInit = {}): Promise<any> {
+    // Get token from localStorage for authentication
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    
     const response = await fetch(`${API_URL}${url}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
       ...options,
@@ -2399,10 +2448,14 @@ export const api = {
   },
 
   async post(url: string, data: any, options: RequestInit = {}): Promise<any> {
+    // Get token from localStorage for authentication
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    
     const response = await fetch(`${API_URL}${url}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
       body: JSON.stringify(data),
@@ -2424,10 +2477,14 @@ export const api = {
   },
 
   async put(url: string, data: any, options: RequestInit = {}): Promise<any> {
+    // Get token from localStorage for authentication
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    
     const response = await fetch(`${API_URL}${url}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
       body: JSON.stringify(data),
@@ -2449,10 +2506,14 @@ export const api = {
   },
 
   async delete(url: string, options: RequestInit = {}): Promise<any> {
+    // Get token from localStorage for authentication
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    
     const response = await fetch(`${API_URL}${url}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
       ...options,

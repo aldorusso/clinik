@@ -30,7 +30,7 @@ export default function Home() {
             <div className="mb-8">
               <h1 className="text-5xl font-bold mb-2">
                 Hola<br />
-                Sistema de Leads! 👋
+                Clinic.online! 👋
               </h1>
             </div>
             
@@ -47,7 +47,7 @@ export default function Home() {
           {/* Footer */}
           <div>
             <p className="text-white/60 text-sm">
-              © 2024 Sistema de Leads. Todos los derechos reservados.
+              © 2024 Clinic.online. Todos los derechos reservados.
             </p>
           </div>
         </div>
@@ -57,7 +57,7 @@ export default function Home() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
         {/* Mobile header for small screens */}
         <div className="lg:hidden absolute top-8 left-8 right-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Sistema de Leads Médicos</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Clinic.online</h1>
           <p className="text-gray-600 text-sm">Gestión integral de clínicas estéticas</p>
         </div>
         

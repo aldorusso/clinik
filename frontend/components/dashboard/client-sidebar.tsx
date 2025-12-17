@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { Lock, LogOut, User as UserIcon, LayoutDashboard, FileText, MessageSquare, Building2, Calendar, HeartHandshake, CreditCard, Stethoscope, FileHeart } from "lucide-react"
+import { Lock, LogOut, User as UserIcon, LayoutDashboard, FileText, MessageSquare, Building2, Calendar, HeartHandshake, Stethoscope, FileHeart } from "lucide-react"
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -133,15 +133,6 @@ export function ClientSidebar({ user }: ClientSidebarProps) {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
             💼 Administración
           </p>
-
-          <Button
-            variant={pathname.startsWith("/portal/facturacion") ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => router.push("/portal/facturacion")}
-          >
-            <CreditCard className="mr-2 h-4 w-4" />
-            Facturación
-          </Button>
 
           <Button
             variant={pathname.startsWith("/portal/documentos") ? "secondary" : "ghost"}

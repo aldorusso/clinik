@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { LeadFormModal } from "@/components/leads/lead-form-modal"
 import { 
   Users, 
   Plus, 
@@ -22,7 +23,7 @@ import {
   Star,
   Target
 } from "lucide-react"
-import { api, User } from "@/lib/api"
+import { api, User, Lead } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
@@ -34,44 +35,46 @@ export default function MisLeadsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
-  useEffect(() => {
-    const loadData = async () => {
-      const token = auth.getToken()
-      if (!token) {
-        router.push("/")
+  // Function to load data (extracted so it can be called from modal success)
+  const loadData = async () => {
+    const token = auth.getToken()
+    if (!token) {
+      router.push("/")
+      return
+    }
+
+    try {
+      // Verificar que sea un usuario con rol client
+      const userData = await api.getCurrentUser(token)
+      setUser(userData)
+
+      if (userData.role !== "client") {
+        router.push("/dashboard")
         return
       }
 
-      try {
-        // Verificar que sea un usuario con rol client
-        const userData = await api.getCurrentUser(token)
-        setUser(userData)
-
-        if (userData.role !== "client") {
-          router.push("/dashboard")
-          return
-        }
-
-        // Cargar solo MIS leads (asignados a mí)
-        const response = await api.get(`/api/v1/leads?assigned_to_me=true`, token)
-        const leadsData = Array.isArray(response) 
-          ? response 
-          : response.items || response.leads || []
-        
-        setLeads(leadsData)
-      } catch (error: any) {
-        console.error('Error loading data:', error)
-        toast({
-          title: "Error",
-          description: "Error al cargar mis leads",
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
-      }
+      // Cargar solo MIS leads (asignados a mí)
+      const response = await api.get(`/api/v1/leads?assigned_to_me=true`, token)
+      const leadsData = Array.isArray(response) 
+        ? response 
+        : response.items || response.leads || []
+      
+      setLeads(leadsData)
+    } catch (error: any) {
+      console.error('Error loading data:', error)
+      toast({
+        title: "Error",
+        description: "Error al cargar mis leads",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     loadData()
   }, [router, toast])
 
@@ -153,6 +156,13 @@ export default function MisLeadsPage() {
               Gestiona tus leads asignados - {user?.first_name || "Comercial"}
             </p>
           </div>
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Crear Lead
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -328,6 +338,18 @@ export default function MisLeadsPage() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Modal para crear lead */}
+      <LeadFormModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          setIsCreateModalOpen(false)
+          loadData() // Recargar la lista
+        }}
+        mode="create"
+        currentUser={user}
+      />
     </DashboardLayout>
   )
 }

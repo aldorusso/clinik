@@ -39,82 +39,9 @@ export default function PatientMedicalHistoryPage() {
       if (!token) return
 
       try {
-        // TODO: Implement patient medical history API
-        // const response = await api.get('/api/v1/patients/my-medical-history', token)
-        // setMedicalHistory(response)
-        
-        // Mock data for now
-        setMedicalHistory({
-          consultations: [
-            {
-              id: "1",
-              date: "2024-12-15T15:30:00Z",
-              doctor_name: "Dr. Carlos Mendez",
-              type: "Evaluación Inicial",
-              diagnosis: "Evaluación estética facial",
-              notes: "Paciente solicita consulta para rejuvenecimiento facial. Se observa...",
-              status: "completed"
-            },
-            {
-              id: "2",
-              date: "2024-11-20T10:00:00Z", 
-              doctor_name: "Dr. María García",
-              type: "Consulta de Seguimiento",
-              diagnosis: "Control post-procedimiento",
-              notes: "Evolución satisfactoria del tratamiento...",
-              status: "completed"
-            }
-          ],
-          treatments: [
-            {
-              id: "1",
-              name: "Botox Facial",
-              start_date: "2024-11-25",
-              status: "active",
-              doctor_name: "Dr. Carlos Mendez",
-              sessions_total: 1,
-              sessions_completed: 1,
-              notes: "Aplicación en zona fronto-temporal"
-            }
-          ],
-          medications: [
-            {
-              id: "1",
-              name: "Paracetamol 500mg",
-              dosage: "1 cada 8 horas",
-              duration: "3 días",
-              prescribed_date: "2024-11-25",
-              doctor_name: "Dr. Carlos Mendez",
-              status: "completed"
-            }
-          ],
-          allergies: [
-            {
-              id: "1",
-              allergen: "Penicilina",
-              severity: "moderate",
-              reactions: ["Rash cutáneo", "Picazón"],
-              reported_date: "2024-10-15"
-            }
-          ],
-          documents: [
-            {
-              id: "1",
-              name: "Consentimiento informado - Botox",
-              type: "consent",
-              date: "2024-11-25",
-              size: "245 KB"
-            },
-            {
-              id: "2",
-              name: "Resultados de laboratorio",
-              type: "lab_results",
-              date: "2024-11-20",
-              size: "180 KB"
-            }
-          ]
-        })
-        
+        // Get patient's medical history using the real API
+        const response = await api.getPatientMedicalHistory(token)
+        setMedicalHistory(response)
         setLoading(false)
       } catch (error: any) {
         console.error('Error loading medical history:', error)

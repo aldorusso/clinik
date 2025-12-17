@@ -58,6 +58,9 @@ api_router.include_router(inventory_usage.router, prefix="/inventory-usage", tag
 # Include patient portal router (patient-specific endpoints)
 api_router.include_router(patient_portal.router, prefix="/patient-portal", tags=["patient-portal"])
 
+# Include consent router (informed consent management system) - DISABLED
+# api_router.include_router(consents.router, prefix="/consents", tags=["consents"])
+
 
 @api_router.get("/")
 async def api_root():

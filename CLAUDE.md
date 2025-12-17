@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🏥 Sistema de Gestión de Leads Médicos
+## 🏥 Clinik.Download - Sistema de Gestión de Leads Médicos
 
 Este es un sistema multi-tenant para la gestión integral de leads en clínicas estéticas y centros médicos. Cada tenant representa una clínica/centro independiente con sus propios usuarios, leads, servicios y configuraciones.
 
@@ -47,7 +47,7 @@ docker-compose exec backend alembic downgrade -1
 docker-compose exec backend alembic history
 
 # Acceder a PostgreSQL
-docker-compose exec db psql -U base_fastapi_nextjs16_user -d base_fastapi_nextjs16_db
+docker-compose exec db psql -U clinik_download_user -d clinik_download_db
 ```
 
 ### Creación de Usuarios y Datos Iniciales
@@ -342,7 +342,7 @@ GET    /api/v1/reports/medics         # Performance médicos
 ### Variables de Entorno Backend
 ```env
 # Base de datos
-DATABASE_URL=postgresql://user:pass@db:5432/db_name
+DATABASE_URL=postgresql://clinik_download_user:clinik_download_password@db:5432/clinik_download_db
 
 # JWT
 SECRET_KEY=your-secret-key-change-in-production

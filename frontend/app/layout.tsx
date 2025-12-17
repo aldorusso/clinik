@@ -8,8 +8,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Eurosynapse",
-  description: "Eurosynapse Platform",
+  title: "Clinik.Download - Gestión de Leads Médicos",
+  description: "Plataforma multi-tenant para gestión integral de leads en clínicas estéticas y centros médicos",
 };
 
 export default function RootLayout({

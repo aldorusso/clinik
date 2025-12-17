@@ -70,6 +70,9 @@ class Tenant(Base):
     # Inventory System Relationships
     inventory_categories = relationship("InventoryCategory", back_populates="tenant", cascade="all, delete-orphan")
     inventory_products = relationship("InventoryProduct", back_populates="tenant", cascade="all, delete-orphan")
+    
+    # Consent System Relationships (disabled)
+    # consent_templates = relationship("ConsentTemplate", back_populates="tenant", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Tenant {self.name} ({self.slug})>"

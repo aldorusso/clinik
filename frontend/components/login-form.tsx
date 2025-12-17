@@ -17,6 +17,8 @@ function getRedirectPath(role: UserRole): string {
       return "/dashboard/admin"
     case "client":
       return "/portal"
+    case "patient":
+      return "/portal"
     case "manager":
     case "user":
     default:
@@ -67,16 +69,16 @@ export function LoginForm() {
     <div className="w-full">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Sistema de Leads</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Clinic.online</h1>
         <h2 className="text-3xl font-bold text-gray-900 mb-4">¡Bienvenido de Nuevo!</h2>
         <p className="text-gray-600">
           ¿No tienes una cuenta?{" "}
           <Link href="/register" className="text-blue-600 hover:underline font-medium">
-            Crea una nueva cuenta ahora.
+            Solicita acceso ahora.
           </Link>
         </p>
         <p className="text-sm text-gray-500 mt-1">
-          Es GRATIS! Te toma menos de un minuto.
+          Te contactaremos en menos de 24 horas.
         </p>
       </div>
 

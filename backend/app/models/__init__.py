@@ -34,6 +34,9 @@ from app.models.inventory import (
     InventoryCategory, InventoryProduct, UnitType, InventoryMovement, 
     MovementType, ServiceProduct, AppointmentInventoryUsage, InventoryAlert
 )
+# from app.models.consent import (
+#     ConsentTemplate, ConsentStatus, ConsentAssignment, ConsentAssignmentStatus, ConsentAuditLog
+# )
 
 __all__ = [
     # Base
@@ -102,4 +105,11 @@ __all__ = [
     "ServiceProduct",
     "AppointmentInventoryUsage",
     "InventoryAlert",
+    
+    # Consent Models (disabled)
+    # "ConsentTemplate",
+    # "ConsentStatus", 
+    # "ConsentAssignment",
+    # "ConsentAssignmentStatus",
+    # "ConsentAuditLog",
 ]

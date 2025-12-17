@@ -31,34 +31,9 @@ export default function PatientAppointmentsPage() {
       if (!token) return
 
       try {
-        // TODO: Implement patient appointments API
-        // const response = await api.get('/api/v1/appointments/my-appointments', token)
-        // setAppointments(response)
-        
-        // Mock data for now
-        setAppointments([
-          {
-            id: "1",
-            scheduled_at: "2024-12-20T10:00:00Z",
-            service_name: "Consulta de Seguimiento",
-            doctor_name: "Dr. María García",
-            status: "confirmed",
-            duration_minutes: 30,
-            location: "Consultorio 2",
-            notes: "Control post-tratamiento"
-          },
-          {
-            id: "2", 
-            scheduled_at: "2024-12-15T15:30:00Z",
-            service_name: "Evaluación Inicial",
-            doctor_name: "Dr. Carlos Mendez",
-            status: "completed",
-            duration_minutes: 60,
-            location: "Consultorio 1",
-            notes: "Primera consulta"
-          }
-        ])
-        
+        // Get patient's appointments using the real API
+        const response = await api.getPatientAppointments(token)
+        setAppointments(response)
         setLoading(false)
       } catch (error: any) {
         console.error('Error loading appointments:', error)

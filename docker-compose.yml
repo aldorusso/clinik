@@ -2,7 +2,7 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:16-alpine
-    container_name: base_fastapi_nextjs16_db
+    container_name: clinik_download_db
     environment:
       POSTGRES_DB: base_fastapi_nextjs16_db
       POSTGRES_USER: base_fastapi_nextjs16_user
@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - base_fastapi_nextjs16_network
+      - clinik_download_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U base_fastapi_nextjs16_user -d base_fastapi_nextjs16_db"]
       interval: 10s
@@ -25,7 +25,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: base_fastapi_nextjs16_backend
+    container_name: clinik_download_backend
     env_file:
       - ./backend/.env
     environment:
@@ -41,15 +41,15 @@ services:
       db:
         condition: service_healthy
     networks:
-      - base_fastapi_nextjs16_network
+      - clinik_download_network
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  # Next.js 15 Frontend
+  # Next.js 16 Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: base_fastapi_nextjs16_frontend
+    container_name: clinik_download_frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8002
       NODE_ENV: development
@@ -62,12 +62,12 @@ services:
     depends_on:
       - backend
     networks:
-      - base_fastapi_nextjs16_network
+      - clinik_download_network
     command: npm run dev
 
 volumes:
   postgres_data:
 
 networks:
-  base_fastapi_nextjs16_network:
+  clinik_download_network:
     driver: bridge
