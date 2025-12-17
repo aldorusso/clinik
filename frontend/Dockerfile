@@ -11,6 +11,9 @@ RUN npm ci --legacy-peer-deps
 # Copy application code
 COPY . .
 
+# Ensure public directory exists
+RUN mkdir -p public
+
 # Build argument for API URL
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
