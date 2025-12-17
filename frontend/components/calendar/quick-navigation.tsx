@@ -4,11 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CalendarViewType } from "./calendar-view"
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  ChevronLeft,
+  ChevronRight,
   Calendar,
-  Today,
   CalendarDays,
   CalendarIcon
 } from "lucide-react"
@@ -190,7 +189,7 @@ export function QuickNavigation({
             onClick={goToToday}
             className="text-blue-600 hover:text-blue-700"
           >
-            <Today className="h-4 w-4 mr-1" />
+            <CalendarIcon className="h-4 w-4 mr-1" />
             Hoy
           </Button>
 

@@ -35,9 +35,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Create non-root user for security (UID 1000 for volume compatibility)
-RUN groupadd --system --gid 1000 appgroup && \
-    useradd --system --uid 1000 --gid appgroup appuser
+# Create non-root user for security
+RUN groupadd --system --gid 1001 appgroup && \
+    useradd --system --uid 1001 --gid appgroup appuser
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
@@ -50,6 +50,9 @@ COPY --chown=appuser:appgroup . .
 RUN mkdir -p /app/uploads && \
     chown -R appuser:appgroup /app/uploads
 
+# Make entrypoint executable
+RUN chmod +x /app/entrypoint.sh
+
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -61,5 +64,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Run with Uvicorn directly
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run entrypoint script (migrations + create users + uvicorn)
+CMD ["/app/entrypoint.sh"]

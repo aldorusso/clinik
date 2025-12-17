@@ -180,8 +180,8 @@ export function ScheduleAppointmentModal({
       }
       
       console.log('Sending appointment data:', appointmentData)
-      
-      await api.createAppointment(token, appointmentData)
+
+      await api.createAppointment(token, appointmentData as AppointmentCreate)
       
       toast({
         title: "Cita agendada",

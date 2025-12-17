@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { Suspense, useEffect, useState, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ClientPortalLayout } from "@/components/dashboard/client-portal-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -43,7 +43,7 @@ import { api, User as UserType, UserUpdate } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { toast } from "sonner"
 
-export default function ClientProfilePage() {
+function ClientProfilePageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab") || "profile"
@@ -649,5 +649,19 @@ export default function ClientProfilePage() {
         </DialogContent>
       </Dialog>
     </ClientPortalLayout>
+  )
+}
+
+export default function ClientProfilePage() {
+  return (
+    <Suspense fallback={
+      <ClientPortalLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </ClientPortalLayout>
+    }>
+      <ClientProfilePageContent />
+    </Suspense>
   )
 }

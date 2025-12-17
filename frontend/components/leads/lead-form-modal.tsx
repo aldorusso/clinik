@@ -98,11 +98,11 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode, currentU
     address: '',
     city: '',
     age: undefined,
-    gender: 'none',
+    gender: undefined,
     occupation: '',
-    treatment_interest: 'none',
+    treatment_interest: '',
     budget_range: '',
-    preferred_contact_method: 'none',
+    preferred_contact_method: undefined,
     preferred_contact_time: '',
     how_did_find_us: '',
     referral_source: '',
@@ -119,7 +119,7 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode, currentU
       try {
         // Load doctors and service categories in parallel
         const [doctorsData, categoriesData] = await Promise.all([
-          api.getMyTenantUsers(token, 'user'),
+          api.getMyTenantUsers(token, 'medico'),
           api.getServiceCategories(token, true) // true = include all active categories
         ])
         setDoctors(doctorsData)
@@ -153,11 +153,11 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode, currentU
         address: lead.address || '',
         city: lead.city || '',
         age: lead.age,
-        gender: lead.gender || 'none',
+        gender: lead.gender,
         occupation: lead.occupation || '',
-        treatment_interest: lead.treatment_interest || 'none',
+        treatment_interest: lead.treatment_interest || '',
         budget_range: lead.budget_range || '',
-        preferred_contact_method: lead.preferred_contact_method || 'none',
+        preferred_contact_method: lead.preferred_contact_method,
         preferred_contact_time: lead.preferred_contact_time || '',
         how_did_find_us: lead.how_did_find_us || '',
         referral_source: lead.referral_source || '',
@@ -179,11 +179,11 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode, currentU
         address: '',
         city: '',
         age: undefined,
-        gender: 'none',
+        gender: undefined,
         occupation: '',
-        treatment_interest: 'none',
+        treatment_interest: '',
         budget_range: '',
-        preferred_contact_method: 'none',
+        preferred_contact_method: undefined,
         preferred_contact_time: '',
         how_did_find_us: '',
         referral_source: '',
@@ -218,14 +218,14 @@ export function LeadFormModal({ isOpen, onClose, onSuccess, lead, mode, currentU
         delete cleanedData.notes
       }
       
-      // Remove fields with "none" values or convert them to null/undefined
-      if (cleanedData.gender === 'none') {
+      // Remove undefined values
+      if (!cleanedData.gender) {
         delete cleanedData.gender
       }
-      if (cleanedData.preferred_contact_method === 'none') {
+      if (!cleanedData.preferred_contact_method) {
         delete cleanedData.preferred_contact_method
       }
-      if (cleanedData.treatment_interest === 'none') {
+      if (!cleanedData.treatment_interest) {
         delete cleanedData.treatment_interest
       }
       if (cleanedData.assigned_to_id === '') {

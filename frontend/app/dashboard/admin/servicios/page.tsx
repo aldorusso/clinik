@@ -279,9 +279,9 @@ export default function AdminServiciosPage() {
 
   // Filter services
   const filteredServices = services.filter(service => {
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase())
+      (service.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
 
     const matchesCategory = selectedCategory === "all" || service.category_id === selectedCategory
     const matchesActive = !showOnlyActive || service.is_active
@@ -398,7 +398,7 @@ export default function AdminServiciosPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {services.length ? Math.round(services.reduce((sum, s) => sum + s.duration_minutes, 0) / services.length) : 0} min
+                {services.length ? Math.round(services.reduce((sum, s) => sum + (s.duration_minutes || 0), 0) / services.length) : 0} min
               </div>
               <p className="text-xs text-muted-foreground">
                 Por procedimiento

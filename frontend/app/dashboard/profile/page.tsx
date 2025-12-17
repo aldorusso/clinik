@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { Suspense, useEffect, useState, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -44,7 +44,7 @@ import { api, User as UserType, UserUpdate } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { toast } from "sonner"
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab") || "profile"
@@ -238,7 +238,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <DashboardLayout user={user}>
+      <DashboardLayout>
         <div className="flex items-center justify-center h-96">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -247,7 +247,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <DashboardLayout user={user}>
+    <DashboardLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Mi Cuenta</h1>
@@ -819,5 +819,19 @@ export default function ProfilePage() {
         </DialogContent>
       </Dialog>
     </DashboardLayout>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
+    }>
+      <ProfilePageContent />
+    </Suspense>
   )
 }

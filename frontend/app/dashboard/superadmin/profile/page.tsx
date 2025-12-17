@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { SuperadminDashboardLayout } from "@/components/dashboard/superadmin-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,7 +23,7 @@ import { api, User as UserType, UserUpdate } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { toast } from "sonner"
 
-export default function SuperadminProfilePage() {
+function SuperadminProfilePageContent() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab") || "profile"
 
@@ -511,5 +511,19 @@ export default function SuperadminProfilePage() {
         </DialogContent>
       </Dialog>
     </SuperadminDashboardLayout>
+  )
+}
+
+export default function SuperadminProfilePage() {
+  return (
+    <Suspense fallback={
+      <SuperadminDashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </SuperadminDashboardLayout>
+    }>
+      <SuperadminProfilePageContent />
+    </Suspense>
   )
 }

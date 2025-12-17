@@ -36,7 +36,7 @@ import {
   Trash2,
   UserPlus
 } from "lucide-react"
-import { Lead, LeadStats, User, api } from "@/lib/api"
+import { Lead, LeadStats, LeadStatus, LeadSource, LeadPriority, User, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
@@ -97,9 +97,9 @@ export default function LeadsPage() {
           conversion_rate: 0,
           average_conversion_time_days: null,
           overdue_follow_ups: 0,
-          leads_by_status: {},
-          leads_by_source: {},
-          leads_by_priority: {},
+          leads_by_status: {} as Record<LeadStatus, number>,
+          leads_by_source: {} as Record<LeadSource, number>,
+          leads_by_priority: {} as Record<LeadPriority, number>,
           leads_trend_last_30_days: []
         })
       }
@@ -123,9 +123,9 @@ export default function LeadsPage() {
         conversion_rate: 0,
         average_conversion_time_days: null,
         overdue_follow_ups: 0,
-        leads_by_status: {},
-        leads_by_source: {},
-        leads_by_priority: {},
+        leads_by_status: {} as Record<LeadStatus, number>,
+        leads_by_source: {} as Record<LeadSource, number>,
+        leads_by_priority: {} as Record<LeadPriority, number>,
         leads_trend_last_30_days: []
       })
     } finally {
@@ -144,7 +144,7 @@ export default function LeadsPage() {
     if (!token) return
 
     try {
-      const doctorsData = await api.getMyTenantUsers(token, 'user')
+      const doctorsData = await api.getMyTenantUsers(token, 'medico')
       setDoctors(doctorsData)
     } catch (error) {
       console.warn('Could not load doctors:', error)

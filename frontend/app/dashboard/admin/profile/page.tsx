@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { Suspense, useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -43,7 +43,7 @@ import { api, User as UserType, UserUpdate } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { toast } from "sonner"
 
-export default function TenantAdminProfilePage() {
+function TenantAdminProfilePageContent() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab") || "profile"
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -643,5 +643,19 @@ export default function TenantAdminProfilePage() {
         </DialogContent>
       </Dialog>
     </AdminDashboardLayout>
+  )
+}
+
+export default function TenantAdminProfilePage() {
+  return (
+    <Suspense fallback={
+      <AdminDashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </AdminDashboardLayout>
+    }>
+      <TenantAdminProfilePageContent />
+    </Suspense>
   )
 }
