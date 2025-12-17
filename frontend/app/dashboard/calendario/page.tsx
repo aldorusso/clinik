@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { CalendarView, CalendarViewType } from "@/components/calendar/calendar-view"
 import { InventoryUsageDialog } from "@/components/appointments/inventory-usage-dialog"
 import {
@@ -26,10 +25,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { 
-  Calendar, 
-  Plus, 
-  Search, 
+import {
+  Calendar,
+  Plus,
+  Search,
   Filter,
   Clock,
   User,
@@ -57,11 +56,12 @@ import {
 import { Appointment, AppointmentStatus, AppointmentCreate, AppointmentType, User as UserType, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/contexts/user-context"
 
 export default function CalendarioPage() {
   const { toast } = useToast()
+  const { user: currentUser } = useUser()
   const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   const [availableProviders, setAvailableProviders] = useState<UserType[]>([])
   const [loading, setLoading] = useState(true)
   
@@ -127,10 +127,6 @@ export default function CalendarioPage() {
 
       try {
         setLoading(true)
-        
-        // Load current user
-        const userData = await api.getCurrentUser(token)
-        setCurrentUser(userData)
 
         // Load appointments with extended date range for calendar
         const startDate = new Date(currentDate)
@@ -497,8 +493,7 @@ export default function CalendarioPage() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -517,7 +512,7 @@ export default function CalendarioPage() {
             </Button>
             {currentUser?.role !== 'medico' && (
               <Button 
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 onClick={() => setIsNewAppointmentOpen(true)}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -813,7 +808,7 @@ export default function CalendarioPage() {
                 <X className="mr-2 h-4 w-4" />
                 Cancelar
               </Button>
-              <Button onClick={handleCreateAppointment} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={handleCreateAppointment} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <CalendarCheck className="mr-2 h-4 w-4" />
                 Agendar Cita
               </Button>
@@ -905,7 +900,7 @@ export default function CalendarioPage() {
                     
                     {selectedAppointment.status === 'confirmed' && (
                       <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                         onClick={() => {
                           handleStatusUpdate(selectedAppointment.id, 'in_progress')
                           setIsAppointmentDetailsOpen(false)
@@ -1116,6 +1111,5 @@ export default function CalendarioPage() {
           }}
         />
       </div>
-    </DashboardLayout>
   )
 }

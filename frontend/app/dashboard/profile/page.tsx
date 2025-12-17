@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { useUser } from "@/contexts/user-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -50,8 +50,7 @@ function ProfilePageContent() {
   const initialTab = searchParams.get("tab") || "profile"
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [user, setUser] = useState<UserType | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user } = useUser()
   const [saving, setSaving] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
 
@@ -82,11 +81,21 @@ function ProfilePageContent() {
   const [notificationStats, setNotificationStats] = useState({ total: 0, unread: 0, read: 0 })
 
   useEffect(() => {
-    loadUser()
+    if (user) {
+      setFirstName(user.first_name || "")
+      setLastName(user.last_name || "")
+      setPhone(user.phone || "")
+      setCountry(user.country || "")
+      setCity(user.city || "")
+      setOfficeAddress(user.office_address || "")
+      setCompanyName(user.company_name || "")
+      setProfilePhoto(user.profile_photo || "")
+    }
+
     if (initialTab === "notifications") {
       loadNotificationStats()
     }
-  }, [initialTab])
+  }, [user, initialTab])
 
   const loadNotificationStats = async () => {
     const token = auth.getToken()
@@ -101,34 +110,6 @@ function ProfilePageContent() {
       })
     } catch (error) {
       console.error("Error loading notification stats:", error)
-    }
-  }
-
-  const loadUser = async () => {
-    const token = auth.getToken()
-    if (!token) {
-      router.push("/")
-      return
-    }
-
-    try {
-      const userData = await api.getMe(token)
-      setUser(userData)
-      setFirstName(userData.first_name || "")
-      setLastName(userData.last_name || "")
-      setPhone(userData.phone || "")
-      setCountry(userData.country || "")
-      setCity(userData.city || "")
-      setOfficeAddress(userData.office_address || "")
-      setCompanyName(userData.company_name || "")
-      setProfilePhoto(userData.profile_photo || "")
-    } catch (error) {
-      console.error("Error loading user:", error)
-      toast.error("No se pudo cargar la informacion del perfil")
-      auth.removeToken()
-      router.push("/")
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -171,9 +152,9 @@ function ProfilePageContent() {
         profile_photo: profilePhoto || undefined,
       }
 
-      const updatedUser = await api.updateProfile(token, updateData)
-      setUser(updatedUser)
+      await api.updateProfile(token, updateData)
       toast.success("Perfil actualizado correctamente")
+      // User context will auto-update via polling
     } catch (error) {
       console.error("Error updating profile:", error)
       toast.error(error instanceof Error ? error.message : "No se pudo actualizar el perfil")
@@ -236,19 +217,8 @@ function ProfilePageContent() {
     return labels[role || ""] || role || "Usuario"
   }
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </DashboardLayout>
-    )
-  }
-
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Mi Cuenta</h1>
           <p className="text-muted-foreground">
@@ -707,7 +677,6 @@ function ProfilePageContent() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
 
       {/* Password Change Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -818,18 +787,16 @@ function ProfilePageContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </div>
   )
 }
 
 export default function ProfilePage() {
   return (
     <Suspense fallback={
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     }>
       <ProfilePageContent />
     </Suspense>

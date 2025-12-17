@@ -106,11 +106,12 @@ docker-compose exec backend flake8 app/
 PLATAFORMA (Superadmin)
     │
     ├── CLÍNICA A (Tenant)
-    │   ├── Admin Clínica
-    │   ├── Gestor de Leads
-    │   ├── Médicos
-    │   ├── Comerciales
-    │   └── Recepcionistas
+    │   ├── tenant_admin (Admin Clínica)
+    │   ├── manager (Gestor de Leads)
+    │   ├── medico (Médicos/Especialistas)
+    │   ├── closer (Comerciales/Closers)
+    │   ├── recepcionista (Recepción)
+    │   └── patient (Pacientes - Portal)
     │
     └── CLÍNICA B (Tenant)
         └── ... (misma estructura)
@@ -128,16 +129,17 @@ PLATAFORMA (Superadmin)
 - Se encuentran en: Tratamiento activo, historial de servicios  
 - Objetivo: Brindar atención médica y seguimiento
 
-### Roles del Sistema (6 roles)
+### Roles del Sistema (7 roles)
 
 | Rol | Descripción | Pertenece a Tenant | Ve en Dashboard |
 |-----|-------------|--------------------|-----------------|
 | `superadmin` | Admin global de la plataforma | No | Gestión total de clínicas |
-| `tenant_admin` | Admin de clínica (admin_clinica) | Sí | Todos los leads y pacientes |
-| `manager` | Gestor de leads (gestor_leads) | Sí | Leads, Pacientes, Citas, Estadísticas, Servicios |
-| `user` | Médico (medico) | Sí | Mis Leads Asignados, Mis Pacientes, Mis Citas |
-| `client` | Comercial (comercial) | Sí | Mis Leads, Mis Pacientes, Mis Citas, Mi Performance, Mis Objetivos |
-| `recepcionista` | Recepcionista | Sí | Leads, Pacientes, Citas, Servicios |
+| `tenant_admin` | Admin de clínica | Sí | Todos los leads y pacientes |
+| `manager` | Gestor de leads y supervisor comercial | Sí | Leads, Pacientes, Citas, Estadísticas, Servicios |
+| `medico` | Médico/especialista | Sí | Mis Leads Asignados, Mis Pacientes, Mis Citas |
+| `closer` | Comercial/Closer (primer contacto, cierra ventas) | Sí | Mis Leads, Mis Pacientes, Mis Citas, Mi Performance, Mis Objetivos |
+| `recepcionista` | Personal de recepción | Sí | Leads, Pacientes, Citas, Servicios |
+| `patient` | Paciente (accede al portal de pacientes) | Sí | Portal: Mis Citas, Mi Historial, Consentimientos |
 
 ### Estructura de Directorios
 ```
@@ -574,17 +576,33 @@ NEXT_PUBLIC_GOOGLE_MAPS_KEY=your-key  # Para mapas de sucursales
 
 ### Usuarios de Prueba
 ```
-# Superadmin
+# Superadmin (gestiona toda la plataforma)
+email: superadmin@example.com
+password: admin123
+
+# Admin Clínica (tenant_admin)
 email: admin@example.com
 password: admin123
 
-# Admin Clínica (crear después)
-email: clinica@example.com
-password: clinica123
+# Manager (gestor de leads)
+email: manager@example.com
+password: admin123
 
-# Médico (crear después)
+# Médico
 email: medico@example.com
-password: medico123
+password: admin123
+
+# Closer (comercial)
+email: closer@example.com
+password: admin123
+
+# Recepcionista
+email: recepcionista@example.com
+password: admin123
+
+# Paciente (portal de pacientes)
+email: patient@example.com
+password: admin123
 ```
 
 ### Flujo de Prueba Completo

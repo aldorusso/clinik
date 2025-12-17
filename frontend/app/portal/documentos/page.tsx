@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ClientPortalLayout } from "@/components/dashboard/client-portal-layout"
 import { 
   FileText, 
   Clock, 
@@ -221,20 +220,17 @@ export default function DocumentosPage() {
 
   if (loading) {
     return (
-      <ClientPortalLayout>
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
-            <p>Cargando documentos...</p>
-          </div>
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
+          <p>Cargando documentos...</p>
         </div>
-      </ClientPortalLayout>
+      </div>
     )
   }
 
   return (
-    <ClientPortalLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">Mis Documentos</h1>
@@ -544,6 +540,5 @@ export default function DocumentosPage() {
           </CardContent>
         </Card>
       </div>
-    </ClientPortalLayout>
   )
 }

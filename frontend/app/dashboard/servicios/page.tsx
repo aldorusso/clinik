@@ -10,11 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { 
-  Building2, 
-  Plus, 
-  Search, 
+import {
+  Building2,
+  Plus,
+  Search,
   Filter,
   Clock,
   DollarSign,
@@ -29,12 +28,13 @@ import {
 import { api, Service, ServiceCategory, ServiceCreate, ServiceUpdate, ServiceCategoryCreate, User, UserRole } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/contexts/user-context"
 
 export default function ServiciosPage() {
   const { toast } = useToast()
+  const { user: currentUser } = useUser()
   const [services, setServices] = useState<Service[]>([])
   const [categories, setCategories] = useState<ServiceCategory[]>([])
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
@@ -85,10 +85,6 @@ export default function ServiciosPage() {
 
     try {
       setLoading(true)
-      
-      // Get current user
-      const userData = await api.getCurrentUser(token)
-      setCurrentUser(userData)
 
       // Load categories and services in parallel
       const [categoriesData, servicesData] = await Promise.all([
@@ -291,17 +287,14 @@ export default function ServiciosPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -533,7 +526,6 @@ export default function ServiciosPage() {
             </CardContent>
           </Card>
         )}
-      </div>
 
       {/* Service Dialog */}
       <Dialog open={showServiceDialog} onOpenChange={setShowServiceDialog}>
@@ -543,7 +535,7 @@ export default function ServiciosPage() {
               {editingService ? "Editar Servicio" : "Crear Nuevo Servicio"}
             </DialogTitle>
             <DialogDescription>
-              {editingService 
+              {editingService
                 ? "Actualiza la información del servicio."
                 : "Completa los datos para crear un nuevo servicio médico."
               }
@@ -563,8 +555,8 @@ export default function ServiciosPage() {
               </div>
               <div>
                 <Label htmlFor="category">Categoría</Label>
-                <Select 
-                  value={serviceForm.category_id} 
+                <Select
+                  value={serviceForm.category_id}
                   onValueChange={(value) => setServiceForm({...serviceForm, category_id: value})}
                 >
                   <SelectTrigger>
@@ -740,6 +732,6 @@ export default function ServiciosPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </div>
   )
 }

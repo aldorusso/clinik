@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { 
   Target, 
   Plus, 
@@ -357,30 +356,25 @@ export default function AdminObjetivosPage() {
 
   if (loading) {
     return (
-      <AdminDashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </AdminDashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   if (currentUser?.role !== 'tenant_admin') {
     return (
-      <AdminDashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <AlertTriangle className="mx-auto h-12 w-12 text-red-500" />
-            <h2 className="mt-2 text-lg font-semibold">Acceso Denegado</h2>
-            <p className="text-muted-foreground">Solo los administradores pueden acceder a esta página.</p>
-          </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-red-500" />
+          <h2 className="mt-2 text-lg font-semibold">Acceso Denegado</h2>
+          <p className="text-muted-foreground">Solo los administradores pueden acceder a esta página.</p>
         </div>
-      </AdminDashboardLayout>
+      </div>
     )
   }
 
   return (
-    <AdminDashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -640,10 +634,9 @@ export default function AdminObjetivosPage() {
             </CardContent>
           </Card>
         )}
-      </div>
 
-      {/* Objective Create/Edit Dialog */}
-      <Dialog open={showObjectiveDialog} onOpenChange={setShowObjectiveDialog}>
+        {/* Objective Create/Edit Dialog */}
+        <Dialog open={showObjectiveDialog} onOpenChange={setShowObjectiveDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
@@ -936,6 +929,6 @@ export default function AdminObjetivosPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </AdminDashboardLayout>
+    </div>
   )
 }

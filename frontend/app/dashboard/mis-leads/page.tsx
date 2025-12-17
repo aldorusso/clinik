@@ -6,12 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { useUser } from "@/contexts/user-context"
 import { LeadFormModal } from "@/components/leads/lead-form-modal"
-import { 
-  Users, 
-  Plus, 
-  Search, 
+import {
+  Users,
+  Plus,
+  Search,
   Filter,
   TrendingUp,
   UserCheck,
@@ -23,14 +23,14 @@ import {
   Star,
   Target
 } from "lucide-react"
-import { api, User, Lead } from "@/lib/api"
+import { api, Lead } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
 export default function MisLeadsPage() {
   const { toast } = useToast()
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
+  const { user } = useUser()
   const [leads, setLeads] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -46,21 +46,12 @@ export default function MisLeadsPage() {
     }
 
     try {
-      // Verificar que sea un usuario con rol client
-      const userData = await api.getCurrentUser(token)
-      setUser(userData)
-
-      if (userData.role !== "closer") {
-        router.push("/dashboard")
-        return
-      }
-
       // Cargar solo MIS leads (asignados a mí)
       const response = await api.get(`/api/v1/leads?assigned_to_me=true`)
-      const leadsData = Array.isArray(response) 
-        ? response 
+      const leadsData = Array.isArray(response)
+        ? response
         : response.items || response.leads || []
-      
+
       setLeads(leadsData)
     } catch (error: any) {
       console.error('Error loading data:', error)
@@ -134,17 +125,14 @@ export default function MisLeadsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -337,8 +325,7 @@ export default function MisLeadsPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-      
+
       {/* Modal para crear lead */}
       <LeadFormModal
         isOpen={isCreateModalOpen}
@@ -350,6 +337,6 @@ export default function MisLeadsPage() {
         mode="create"
         currentUser={user}
       />
-    </DashboardLayout>
+    </div>
   )
 }

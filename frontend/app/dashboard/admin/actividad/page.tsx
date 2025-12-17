@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -149,8 +148,7 @@ export default function ActividadPage() {
   }
 
   return (
-    <AdminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
@@ -419,10 +417,9 @@ export default function ActividadPage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Log Detail Dialog */}
-      <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
+        {/* Log Detail Dialog */}
+        <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Detalles del Evento</DialogTitle>
@@ -479,6 +476,6 @@ export default function ActividadPage() {
           )}
         </DialogContent>
       </Dialog>
-    </AdminDashboardLayout>
+    </div>
   )
 }

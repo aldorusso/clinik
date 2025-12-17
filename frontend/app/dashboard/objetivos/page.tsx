@@ -9,11 +9,11 @@ import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { 
-  Target, 
-  Plus, 
-  Search, 
+import { useUser } from "@/contexts/user-context"
+import {
+  Target,
+  Plus,
+  Search,
   Filter,
   TrendingUp,
   Users,
@@ -28,27 +28,26 @@ import {
   PhoneCall,
   MessageSquare
 } from "lucide-react"
-import { 
-  api, 
-  CommercialObjective, 
-  ObjectiveType, 
-  ObjectivePeriod, 
+import {
+  api,
+  CommercialObjective,
+  ObjectiveType,
+  ObjectivePeriod,
   ObjectiveStatus,
   ObjectiveProgressCreate,
-  CommercialDashboard,
-  User
+  CommercialDashboard
 } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
 export default function ObjetivosPage() {
   const { toast } = useToast()
+  const { user } = useUser()
   const [objectives, setObjectives] = useState<CommercialObjective[]>([])
   const [dashboard, setDashboard] = useState<CommercialDashboard | null>(null)
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  
+
   // Progress dialog
   const [showProgressDialog, setShowProgressDialog] = useState(false)
   const [selectedObjective, setSelectedObjective] = useState<CommercialObjective | null>(null)
@@ -68,10 +67,6 @@ export default function ObjetivosPage() {
 
     try {
       setLoading(true)
-      
-      // Get current user
-      const userData = await api.getCurrentUser(token)
-      setCurrentUser(userData)
 
       // Load dashboard and objectives in parallel
       const [dashboardData, objectivesData] = await Promise.all([
@@ -81,7 +76,7 @@ export default function ObjetivosPage() {
 
       setDashboard(dashboardData)
       setObjectives(objectivesData)
-      
+
     } catch (error: any) {
       console.error('Error loading data:', error)
       toast({
@@ -212,17 +207,14 @@ export default function ObjetivosPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -474,7 +466,6 @@ export default function ObjetivosPage() {
             </CardContent>
           </Card>
         )}
-      </div>
 
       {/* Progress Update Dialog */}
       <Dialog open={showProgressDialog} onOpenChange={setShowProgressDialog}>
@@ -529,6 +520,6 @@ export default function ObjetivosPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </div>
   )
 }

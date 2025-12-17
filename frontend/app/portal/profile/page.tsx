@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ClientPortalLayout } from "@/components/dashboard/client-portal-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -207,17 +206,14 @@ function ClientProfilePageContent() {
 
   if (loading) {
     return (
-      <ClientPortalLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </ClientPortalLayout>
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     )
   }
 
   return (
-    <ClientPortalLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Mi Cuenta</h1>
           <p className="text-muted-foreground">
@@ -537,7 +533,6 @@ function ClientProfilePageContent() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
 
       {/* Password Change Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -648,18 +643,16 @@ function ClientProfilePageContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </ClientPortalLayout>
+    </div>
   )
 }
 
 export default function ClientProfilePage() {
   return (
     <Suspense fallback={
-      <ClientPortalLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </ClientPortalLayout>
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     }>
       <ClientProfilePageContent />
     </Suspense>

@@ -5,12 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { PatientCard } from "@/components/patients/patient-card"
 import { ScheduleAppointmentModal } from "@/components/patients/schedule-appointment-modal"
-import { 
-  Users, 
-  Search, 
+import {
+  Users,
+  Search,
   Shield,
   Eye,
   EyeOff,
@@ -20,6 +19,7 @@ import {
 import { api, User } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/contexts/user-context"
 
 interface Patient {
   id: string
@@ -36,24 +36,20 @@ interface Patient {
 
 export default function PacientesPage() {
   const { toast } = useToast()
+  const { user: currentUser } = useUser()
   const [patients, setPatients] = useState<Patient[]>([])
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
 
-  // Load current user and patients
+  // Load patients
   useEffect(() => {
     const loadData = async () => {
       const token = auth.getToken()
       if (!token) return
 
       try {
-        // Get current user to determine access level
-        const userData = await api.getCurrentUser(token)
-        setCurrentUser(userData)
-
         // Get patients with role-based access
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/patients/`, {
           headers: {
@@ -152,17 +148,14 @@ export default function PacientesPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -305,6 +298,5 @@ export default function PacientesPage() {
           patient={selectedPatient}
         />
       </div>
-    </DashboardLayout>
   )
 }

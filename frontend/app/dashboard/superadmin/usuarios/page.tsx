@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { SuperadminDashboardLayout } from "@/components/dashboard/superadmin-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -296,17 +295,14 @@ export default function SuperadminUsuariosPage() {
 
   if (loading) {
     return (
-      <SuperadminDashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </SuperadminDashboardLayout>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <SuperadminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -707,103 +703,102 @@ export default function SuperadminUsuariosPage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Editar Usuario</DialogTitle>
-            <DialogDescription>
-              Modifica la informacion del usuario
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Editar Usuario</DialogTitle>
+              <DialogDescription>
+                Modifica la informacion del usuario
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_first_name">Nombre</Label>
+                  <Input
+                    id="edit_first_name"
+                    value={editFormData.first_name}
+                    onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit_last_name">Apellido</Label>
+                  <Input
+                    id="edit_last_name"
+                    value={editFormData.last_name}
+                    onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })}
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_first_name">Nombre</Label>
+                <Label htmlFor="edit_email">Email</Label>
                 <Input
-                  id="edit_first_name"
-                  value={editFormData.first_name}
-                  onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })}
+                  id="edit_email"
+                  type="email"
+                  value={editFormData.email}
+                  disabled
+                  className="bg-muted"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_last_name">Apellido</Label>
+                <Label htmlFor="edit_phone">Telefono</Label>
                 <Input
-                  id="edit_last_name"
-                  value={editFormData.last_name}
-                  onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })}
+                  id="edit_phone"
+                  value={editFormData.phone}
+                  onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_role">Rol</Label>
+                <Select
+                  value={editFormData.role}
+                  onValueChange={(value: UserRole) => setEditFormData({ ...editFormData, role: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="superadmin">Superadmin</SelectItem>
+                    <SelectItem value="tenant_admin">Admin de Tenant</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="medico">Usuario</SelectItem>
+                    <SelectItem value="closer">Closer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit_email">Email</Label>
-              <Input
-                id="edit_email"
-                type="email"
-                value={editFormData.email}
-                disabled
-                className="bg-muted"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit_phone">Telefono</Label>
-              <Input
-                id="edit_phone"
-                value={editFormData.phone}
-                onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit_role">Rol</Label>
-              <Select
-                value={editFormData.role}
-                onValueChange={(value: UserRole) => setEditFormData({ ...editFormData, role: value })}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleEdit}>Guardar Cambios</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Eliminar Usuario</AlertDialogTitle>
+              <AlertDialogDescription>
+                Estas seguro de que deseas eliminar al usuario{" "}
+                <strong>{selectedUser?.email}</strong>? Esta accion no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="superadmin">Superadmin</SelectItem>
-                  <SelectItem value="tenant_admin">Admin de Tenant</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="medico">Usuario</SelectItem>
-                  <SelectItem value="closer">Closer</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleEdit}>Guardar Cambios</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar Usuario</AlertDialogTitle>
-            <AlertDialogDescription>
-              Estas seguro de que deseas eliminar al usuario{" "}
-              <strong>{selectedUser?.email}</strong>? Esta accion no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </SuperadminDashboardLayout>
-  )
-}
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    )
+  }

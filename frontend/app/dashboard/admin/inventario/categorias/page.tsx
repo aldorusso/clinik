@@ -15,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { 
   Package, 
   Plus,
@@ -193,17 +192,14 @@ export default function InventoryCategoriesPage() {
 
   if (loading) {
     return (
-      <AdminDashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </AdminDashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <AdminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -661,6 +657,5 @@ export default function InventoryCategoriesPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </AdminDashboardLayout>
   )
 }

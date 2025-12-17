@@ -4,12 +4,12 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { api, CommercialStatsResponse } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
-import { 
-  BarChart3, 
+import { useUser } from "@/contexts/user-context"
+import {
+  BarChart3,
   TrendingUp,
   TrendingDown,
   Users,
@@ -23,6 +23,7 @@ import {
 
 export default function EstadisticasPage() {
   const { toast } = useToast()
+  const { user } = useUser()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<CommercialStatsResponse | null>(null)
 
@@ -70,31 +71,26 @@ export default function EstadisticasPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   if (!stats) {
     return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center h-64">
-          <h3 className="text-lg font-semibold mb-2">No se pudieron cargar las estadísticas</h3>
-          <p className="text-muted-foreground mb-4">Ocurrió un error al obtener los datos</p>
-          <Button onClick={() => window.location.reload()}>
-            Reintentar
-          </Button>
-        </div>
-      </DashboardLayout>
+      <div className="flex flex-col items-center justify-center h-64">
+        <h3 className="text-lg font-semibold mb-2">No se pudieron cargar las estadísticas</h3>
+        <p className="text-muted-foreground mb-4">Ocurrió un error al obtener los datos</p>
+        <Button onClick={() => window.location.reload()}>
+          Reintentar
+        </Button>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -294,6 +290,5 @@ export default function EstadisticasPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   )
 }

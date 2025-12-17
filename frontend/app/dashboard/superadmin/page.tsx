@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { SuperadminDashboardLayout } from "@/components/dashboard/superadmin-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Users, UserCheck, TrendingUp } from "lucide-react"
 import { api, TenantWithStats } from "@/lib/api"
@@ -35,7 +34,6 @@ export default function SuperadminDashboardPage() {
   const totalClients = tenants.reduce((acc, t) => acc + (t.client_count || 0), 0)
 
   return (
-    <SuperadminDashboardLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard SuperAdmin</h1>
@@ -170,6 +168,5 @@ export default function SuperadminDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </SuperadminDashboardLayout>
   )
 }

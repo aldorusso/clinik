@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ClientPortalLayout } from "@/components/dashboard/client-portal-layout"
 import { 
   Calendar, 
   Clock,
@@ -105,17 +104,14 @@ export default function PatientAppointmentsPage() {
 
   if (loading) {
     return (
-      <ClientPortalLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </ClientPortalLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <ClientPortalLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -255,6 +251,5 @@ export default function PatientAppointmentsPage() {
           </Card>
         )}
       </div>
-    </ClientPortalLayout>
   )
 }

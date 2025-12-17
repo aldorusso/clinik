@@ -20,13 +20,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { LeadFormModal } from "@/components/leads/lead-form-modal"
 import { ConvertToPatientForm } from "@/components/leads/convert-to-patient-form"
-import { 
-  Users, 
-  Plus, 
-  Search, 
+import {
+  Users,
+  Plus,
+  Search,
   Filter,
   TrendingUp,
   UserCheck,
@@ -39,9 +38,11 @@ import {
 import { Lead, LeadStats, LeadStatus, LeadSource, LeadPriority, User, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/contexts/user-context"
 
 export default function LeadsPage() {
   const { toast } = useToast()
+  const { user } = useUser()
   const [leads, setLeads] = useState<Lead[]>([])
   const [stats, setStats] = useState<LeadStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -297,7 +298,7 @@ export default function LeadsPage() {
   const getPriorityColor = (priority: string) => {
     const colors = {
       alta: "text-red-600",
-      media: "text-yellow-600", 
+      media: "text-yellow-600",
       baja: "text-green-600",
       urgente: "text-red-800"
     }
@@ -306,17 +307,14 @@ export default function LeadsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -590,6 +588,5 @@ export default function LeadsPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
   )
 }

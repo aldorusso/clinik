@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ClientPortalLayout } from "@/components/dashboard/client-portal-layout"
 import { 
   Stethoscope, 
   Calendar,
@@ -37,8 +36,7 @@ export default function PatientTreatmentsPage() {
   }
 
   return (
-    <ClientPortalLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -92,6 +90,5 @@ export default function PatientTreatmentsPage() {
           </Card>
         )}
       </div>
-    </ClientPortalLayout>
   )
 }

@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { ArrowLeft, Save, Package } from "lucide-react"
 import { auth } from "@/lib/auth"
 import {
@@ -172,8 +171,7 @@ export default function NewProductPage() {
   }
 
   return (
-    <AdminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Link href="/dashboard/admin/inventario/productos">
@@ -475,6 +473,5 @@ export default function NewProductPage() {
           </div>
         </form>
       </div>
-    </AdminDashboardLayout>
   )
 }

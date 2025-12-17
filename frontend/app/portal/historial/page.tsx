@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ClientPortalLayout } from "@/components/dashboard/client-portal-layout"
 import { 
   FileHeart, 
   Calendar,
@@ -93,17 +92,14 @@ export default function PatientMedicalHistoryPage() {
 
   if (loading) {
     return (
-      <ClientPortalLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </ClientPortalLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <ClientPortalLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -354,6 +350,5 @@ export default function PatientMedicalHistoryPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </ClientPortalLayout>
   )
 }

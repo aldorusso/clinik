@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
-import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -209,17 +208,14 @@ function TenantAdminProfilePageContent() {
 
   if (loading) {
     return (
-      <AdminDashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </AdminDashboardLayout>
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     )
   }
 
   return (
-    <AdminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Mi Cuenta</h1>
           <p className="text-muted-foreground">
@@ -531,10 +527,9 @@ function TenantAdminProfilePageContent() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
 
-      {/* Password Change Dialog */}
-      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        {/* Password Change Dialog */}
+        <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cambiar Contrasena</DialogTitle>
@@ -642,18 +637,16 @@ function TenantAdminProfilePageContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminDashboardLayout>
+    </div>
   )
 }
 
 export default function TenantAdminProfilePage() {
   return (
     <Suspense fallback={
-      <AdminDashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </AdminDashboardLayout>
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     }>
       <TenantAdminProfilePageContent />
     </Suspense>

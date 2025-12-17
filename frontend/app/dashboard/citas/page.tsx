@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import {
   Dialog,
   DialogContent,
@@ -24,10 +23,10 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { 
-  Calendar, 
-  Plus, 
-  Search, 
+import {
+  Calendar,
+  Plus,
+  Search,
   Filter,
   Clock,
   User,
@@ -52,11 +51,12 @@ import {
 import { Appointment, AppointmentStatus, AppointmentCreate, User as UserType, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/contexts/user-context"
 
 export default function CitasPage() {
   const { toast } = useToast()
+  const { user: currentUser } = useUser()
   const [citas, setCitas] = useState<Appointment[]>([])
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   const [availableProviders, setAvailableProviders] = useState<UserType[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -88,10 +88,6 @@ export default function CitasPage() {
       if (!token) return
 
       try {
-        // Load current user
-        const userData = await api.getCurrentUser(token)
-        setCurrentUser(userData)
-
         // Load appointments
         const appointmentsData = await api.getAppointments(token, {
           page_size: 100,
@@ -385,17 +381,14 @@ export default function CitasPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header with Role-specific Actions */}
         <div className="flex justify-between items-center">
           <div>
@@ -415,7 +408,7 @@ export default function CitasPage() {
             {currentUser?.role !== 'medico' && (
               <Dialog open={isNewAppointmentOpen} onOpenChange={setIsNewAppointmentOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                     <Plus className="mr-2 h-4 w-4" />
                     Nueva Cita
                   </Button>
@@ -543,7 +536,7 @@ export default function CitasPage() {
                     <X className="mr-2 h-4 w-4" />
                     Cancelar
                   </Button>
-                  <Button onClick={handleCreateAppointment} className="bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={handleCreateAppointment} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                     <CalendarCheck className="mr-2 h-4 w-4" />
                     Agendar Cita
                   </Button>
@@ -808,7 +801,7 @@ export default function CitasPage() {
                                 <Button 
                                   size="sm"
                                   onClick={() => handleStatusUpdate(cita.id, 'in_progress')}
-                                  className="bg-blue-600 hover:bg-blue-700"
+                                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                                 >
                                   <UserPlus className="h-4 w-4 mr-1" />
                                   Iniciar
@@ -855,6 +848,5 @@ export default function CitasPage() {
           </Tabs>
         </div>
       </div>
-    </DashboardLayout>
   )
 }

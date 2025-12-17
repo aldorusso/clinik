@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { SuperadminDashboardLayout } from "@/components/dashboard/superadmin-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -134,32 +133,27 @@ export default function TenantDetailPage() {
 
   if (loading) {
     return (
-      <SuperadminDashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </SuperadminDashboardLayout>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   if (!tenant) {
     return (
-      <SuperadminDashboardLayout>
-        <div className="flex flex-col items-center justify-center h-full space-y-4">
-          <Building2 className="h-12 w-12 text-muted-foreground" />
-          <p className="text-muted-foreground">Organizacion no encontrada</p>
-          <Button onClick={() => router.push("/dashboard/superadmin/tenants")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
-          </Button>
-        </div>
-      </SuperadminDashboardLayout>
+      <div className="flex flex-col items-center justify-center h-full space-y-4">
+        <Building2 className="h-12 w-12 text-muted-foreground" />
+        <p className="text-muted-foreground">Organizacion no encontrada</p>
+        <Button onClick={() => router.push("/dashboard/superadmin/tenants")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Volver
+        </Button>
+      </div>
     )
   }
 
   return (
-    <SuperadminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -362,7 +356,6 @@ export default function TenantDetailPage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
       {/* Delete User Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -385,6 +378,6 @@ export default function TenantDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </SuperadminDashboardLayout>
+    </div>
   )
 }

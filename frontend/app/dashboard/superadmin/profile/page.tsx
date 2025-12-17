@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { SuperadminDashboardLayout } from "@/components/dashboard/superadmin-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -142,17 +141,14 @@ function SuperadminProfilePageContent() {
 
   if (loading) {
     return (
-      <SuperadminDashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </SuperadminDashboardLayout>
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     )
   }
 
   return (
-    <SuperadminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Mi Cuenta</h1>
           <p className="text-muted-foreground">
@@ -399,7 +395,6 @@ function SuperadminProfilePageContent() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
 
       {/* Password Change Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -510,18 +505,16 @@ function SuperadminProfilePageContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SuperadminDashboardLayout>
+    </div>
   )
 }
 
 export default function SuperadminProfilePage() {
   return (
     <Suspense fallback={
-      <SuperadminDashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </SuperadminDashboardLayout>
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     }>
       <SuperadminProfilePageContent />
     </Suspense>

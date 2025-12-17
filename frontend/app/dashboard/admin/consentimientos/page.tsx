@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { AlertTriangle, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -20,8 +19,7 @@ export default function ConsentimientosPage() {
   }, [router])
 
   return (
-    <AdminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -103,7 +101,6 @@ export default function ConsentimientosPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </AdminDashboardLayout>
+    </div>
   )
 }

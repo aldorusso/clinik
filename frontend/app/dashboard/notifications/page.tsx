@@ -18,15 +18,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Bell, CheckCheck, Trash2, ExternalLink, Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react"
-import { api, Notification, NotificationType, User } from "@/lib/api"
+import { api, Notification, NotificationType } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { useToast } from "@/hooks/use-toast"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
-import { SuperadminDashboardLayout } from "@/components/dashboard/superadmin-dashboard-layout"
-import { ClientPortalLayout } from "@/components/dashboard/client-portal-layout"
+import { useUser } from "@/contexts/user-context"
 
 /**
  * Página de Notificaciones
@@ -46,7 +43,7 @@ import { ClientPortalLayout } from "@/components/dashboard/client-portal-layout"
 export default function NotificationsPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [user, setUser] = useState<User | null>(null)
+  const { user } = useUser()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [totalCount, setTotalCount] = useState(0)
@@ -86,25 +83,8 @@ export default function NotificationsPage() {
     }
   }
 
-  // Load user and notifications
+  // Load notifications
   useEffect(() => {
-    const loadUser = async () => {
-      const token = auth.getToken()
-      if (!token) {
-        router.push("/")
-        return
-      }
-
-      try {
-        const userData = await api.getCurrentUser(token)
-        setUser(userData)
-      } catch (error) {
-        auth.removeToken()
-        router.push("/")
-      }
-    }
-
-    loadUser()
     fetchNotifications()
   }, [])
 
@@ -473,28 +453,5 @@ export default function NotificationsPage() {
     </div>
   )
 
-  // Renderizar con el layout apropiado según el rol
-  if (!user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p>Cargando...</p>
-      </div>
-    )
-  }
-
-  // Seleccionar el layout según el rol del usuario
-  if (user.role === "superadmin") {
-    return <SuperadminDashboardLayout>{notificationsContent}</SuperadminDashboardLayout>
-  }
-
-  if (user.role === "tenant_admin") {
-    return <AdminDashboardLayout>{notificationsContent}</AdminDashboardLayout>
-  }
-
-  if (user.role === "closer") {
-    return <ClientPortalLayout>{notificationsContent}</ClientPortalLayout>
-  }
-
-  // Default: user, manager roles
-  return <DashboardLayout>{notificationsContent}</DashboardLayout>
+  return notificationsContent
 }

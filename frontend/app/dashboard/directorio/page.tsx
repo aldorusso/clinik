@@ -12,11 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { 
-  Users, 
-  Search, 
-  Mail, 
+import {
+  Users,
+  Search,
+  Mail,
   Phone,
   User,
   Shield,
@@ -35,9 +34,11 @@ import {
 import { User as UserType, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/contexts/user-context"
 
 export default function DirectorioPage() {
   const { toast } = useToast()
+  const { user } = useUser()
   const [users, setUsers] = useState<UserType[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -184,17 +185,14 @@ export default function DirectorioPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -462,6 +460,5 @@ export default function DirectorioPage() {
           </div>
         )}
       </div>
-    </DashboardLayout>
   )
 }

@@ -5,27 +5,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Phone, 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle, 
+import { useUser } from "@/contexts/user-context"
+import {
+  Calendar,
+  Clock,
+  User,
+  Phone,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
   Eye,
   Mail,
   Stethoscope
 } from "lucide-react"
-import { Appointment, AppointmentStatus, User as UserType, api } from "@/lib/api"
+import { Appointment, AppointmentStatus, api } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
 export default function MisCitasPage() {
   const { toast } = useToast()
+  const { user } = useUser()
   const [citas, setCitas] = useState<Appointment[]>([])
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
@@ -33,21 +33,17 @@ export default function MisCitasPage() {
   useEffect(() => {
     const loadData = async () => {
       const token = auth.getToken()
-      if (!token) return
+      if (!token || !user) return
 
       try {
-        // Load current user
-        const userData = await api.getCurrentUser(token)
-        setCurrentUser(userData)
-
         // Load my appointments (as provider)
         const appointmentsData = await api.getAppointments(token, {
-          provider_id: userData.id, // Filter by current doctor
+          provider_id: user.id, // Filter by current doctor
           page_size: 100,
           order_by: 'scheduled_at',
           order_direction: 'desc'
         })
-        
+
         setCitas(appointmentsData)
       } catch (error: any) {
         console.error('Error loading data:', error)
@@ -62,7 +58,7 @@ export default function MisCitasPage() {
     }
 
     loadData()
-  }, [toast])
+  }, [user, toast])
 
   const getStatusBadge = (status: AppointmentStatus) => {
     const statusConfig = {
@@ -124,17 +120,14 @@ export default function MisCitasPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -143,7 +136,7 @@ export default function MisCitasPage() {
               Mis Citas
             </h1>
             <p className="text-muted-foreground">
-              Gestiona tus citas médicas - Dr. {currentUser?.first_name} {currentUser?.last_name}
+              Gestiona tus citas médicas - Dr. {user?.first_name} {user?.last_name}
             </p>
           </div>
         </div>
@@ -310,6 +303,5 @@ export default function MisCitasPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   )
 }

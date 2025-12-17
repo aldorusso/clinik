@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { CalendarView, CalendarViewType } from "@/components/calendar/calendar-view"
 import {
   Dialog,
@@ -494,8 +493,7 @@ export default function CalendarioPage() {
   }
 
   return (
-    <AdminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -514,7 +512,7 @@ export default function CalendarioPage() {
             </Button>
             {currentUser?.role !== 'medico' && (
               <Button 
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 onClick={() => setIsNewAppointmentOpen(true)}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -810,7 +808,7 @@ export default function CalendarioPage() {
                 <X className="mr-2 h-4 w-4" />
                 Cancelar
               </Button>
-              <Button onClick={handleCreateAppointment} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={handleCreateAppointment} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <CalendarCheck className="mr-2 h-4 w-4" />
                 Agendar Cita
               </Button>
@@ -902,7 +900,7 @@ export default function CalendarioPage() {
                     
                     {selectedAppointment.status === 'confirmed' && (
                       <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                         onClick={() => {
                           handleStatusUpdate(selectedAppointment.id, 'in_progress')
                           setIsAppointmentDetailsOpen(false)
@@ -1083,7 +1081,6 @@ export default function CalendarioPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-    </AdminDashboardLayout>
+    </div>
   )
 }

@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import {
   Dialog,
   DialogContent,
@@ -14,10 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { 
-  UserCheck, 
-  Plus, 
-  Search, 
+import {
+  UserCheck,
+  Plus,
+  Search,
   Filter,
   Calendar,
   Phone,
@@ -96,17 +95,14 @@ export default function MisPacientesPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -258,7 +254,7 @@ export default function MisPacientesPage() {
                       {paciente.can_view_details && (
                         <Button 
                           onClick={() => loadPatientDetails(paciente.id)}
-                          className="bg-blue-600 hover:bg-blue-700"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground"
                           size="sm"
                         >
                           <Eye className="h-4 w-4 mr-1" />
@@ -388,6 +384,5 @@ export default function MisPacientesPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
   )
 }

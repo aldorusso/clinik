@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { SuperadminDashboardLayout } from "@/components/dashboard/superadmin-dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -92,11 +91,9 @@ export default function EditEmailTemplatePage() {
 
   if (loading) {
     return (
-      <SuperadminDashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </SuperadminDashboardLayout>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
@@ -105,8 +102,7 @@ export default function EditEmailTemplatePage() {
   }
 
   return (
-    <SuperadminDashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -232,6 +228,5 @@ export default function EditEmailTemplatePage() {
           </div>
         </div>
       </div>
-    </SuperadminDashboardLayout>
   )
 }

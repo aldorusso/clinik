@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { AdminDashboardLayout } from "@/components/dashboard/admin-dashboard-layout"
 import { 
   Users, 
   Search, 
@@ -184,16 +183,13 @@ export default function AdminDirectorioPage() {
 
   if (loading) {
     return (
-      <AdminDashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </AdminDashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <AdminDashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -483,7 +479,6 @@ export default function AdminDirectorioPage() {
             )}
           </div>
         )}
-      </div>
-    </AdminDashboardLayout>
+    </div>
   )
 }
