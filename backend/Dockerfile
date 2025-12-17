@@ -1,45 +1,65 @@
-FROM python:3.11-slim
+# ===========================================
+# Clinik - Backend Production Dockerfile
+# Optimized for Dokploy deployment
+# ===========================================
+
+# Stage 1: Builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     libpq-dev \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies (production only)
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy and install requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Production Runner
+FROM python:3.11-slim AS runner
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user for security
+RUN groupadd --system --gid 1001 appgroup && \
+    useradd --system --uid 1001 --gid appgroup appuser
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy application code
-COPY . .
+COPY --chown=appuser:appgroup . .
 
-# Test that app can be imported (will fail build if there's an error)
-RUN echo "=== Testing App Import ===" && \
-    python -c "from app.main import app; print('App import test: OK')"
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/uploads && \
+    chown -R appuser:appgroup /app/uploads
 
-# Make startup script executable
-RUN chmod +x start.sh
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV ENVIRONMENT=production
 
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# Switch to non-root user
 USER appuser
 
 # Expose port
 EXPOSE 8000
 
-# DEBUG: Sleep to keep container alive for inspection
-# Remove this and use the uvicorn CMD below for production
-CMD sh -c 'echo "=== DEBUG MODE - Container will sleep ===" && \
-    echo "DATABASE_URL set: $([ -n \"$DATABASE_URL\" ] && echo YES || echo NO)" && \
-    echo "SECRET_KEY set: $([ -n \"$SECRET_KEY\" ] && echo YES || echo NO)" && \
-    echo "ALLOWED_ORIGINS: $ALLOWED_ORIGINS" && \
-    echo "Use terminal to run: uvicorn app.main:app --host 0.0.0.0 --port 8000" && \
-    sleep infinity'
-
-# PRODUCTION CMD (uncomment when debug is done):
-# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run with Uvicorn directly
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
