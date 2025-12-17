@@ -30,5 +30,9 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
+# Health check - give container time to start
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+
 # Start command with startup script
 CMD ["./start.sh"]
