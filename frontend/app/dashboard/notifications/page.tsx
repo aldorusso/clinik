@@ -491,7 +491,7 @@ export default function NotificationsPage() {
     return <AdminDashboardLayout>{notificationsContent}</AdminDashboardLayout>
   }
 
-  if (user.role === "client") {
+  if (user.role === "closer") {
     return <ClientPortalLayout>{notificationsContent}</ClientPortalLayout>
   }
 

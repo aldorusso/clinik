@@ -306,7 +306,7 @@ export default function TenantDetailPage() {
                             ? `${user.first_name} ${user.last_name}`
                             : user.full_name || "Sin nombre"}
                         </div>
-                        {user.role === "client" && user.client_company_name && (
+                        {user.role === "closer" && user.client_company_name && (
                           <p className="text-xs text-muted-foreground">
                             {user.client_company_name}
                           </p>

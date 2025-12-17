@@ -74,8 +74,8 @@ export function Sidebar({ user }: SidebarProps) {
         return "Gestor de Leads"
       case "user":
         return "Médico"
-      case "client":
-        return "Comercial"
+      case "closer":
+        return "Closer/Comercial"
       case "recepcionista":
         return "Recepcionista"
       default:
@@ -88,7 +88,7 @@ export function Sidebar({ user }: SidebarProps) {
 
     const isManager = user.role === "manager"
     const isDoctor = user.role === "user"
-    const isCommercial = user.role === "client"
+    const isCommercial = user.role === "closer"
     const isReceptionist = user.role === "recepcionista"
 
     return (

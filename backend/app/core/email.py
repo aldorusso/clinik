@@ -248,7 +248,7 @@ async def send_invitation_email(
         "tenant_admin": "Administrador",
         "manager": "Manager",
         "user": "Usuario",
-        "client": "Cliente"
+        "closer": "Closer/Comercial"
     }
     role_display = role_translations.get(role, role)
 

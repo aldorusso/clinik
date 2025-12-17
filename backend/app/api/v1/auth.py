@@ -531,7 +531,7 @@ async def accept_invitation(
             UserRole.tenant_admin: "Administrador",
             UserRole.manager: "Manager",
             UserRole.user: "Usuario",
-            UserRole.client: "Cliente"
+            UserRole.closer: "Closer/Comercial"
         }.get(user.role, user.role.value)
 
         await create_notification(

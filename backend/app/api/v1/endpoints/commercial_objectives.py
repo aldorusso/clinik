@@ -59,7 +59,7 @@ async def get_objectives(
     - client (commercial): Can only see their own objectives
     - Others: No access
     """
-    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.client]:
+    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.closer]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para ver objetivos"
@@ -71,7 +71,7 @@ async def get_objectives(
     ).filter(CommercialObjective.tenant_id == current_user.tenant_id)
     
     # Role-based filtering
-    if current_user.role == UserRole.client:
+    if current_user.role == UserRole.closer:
         # Commercials can only see their own objectives
         query = query.filter(CommercialObjective.commercial_id == current_user.id)
     elif commercial_id:
@@ -167,7 +167,7 @@ async def get_objective(
     current_user: User = Depends(get_current_tenant_member)
 ):
     """Get a specific objective by ID with role-based access control"""
-    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.client]:
+    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.closer]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para ver objetivos"
@@ -185,7 +185,7 @@ async def get_objective(
         raise HTTPException(status_code=404, detail="Objetivo no encontrado")
     
     # Check if commercial can only see their own objectives
-    if current_user.role == UserRole.client and objective.commercial_id != current_user.id:
+    if current_user.role == UserRole.closer and objective.commercial_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Solo puedes ver tus propios objetivos"
@@ -248,7 +248,7 @@ async def create_objective(
     commercial = db.query(User).filter(
         User.id == objective_in.commercial_id,
         User.tenant_id == current_user.tenant_id,
-        User.role == UserRole.client
+        User.role == UserRole.closer
     ).first()
     
     if not commercial:
@@ -431,7 +431,7 @@ async def get_objective_progress(
     current_user: User = Depends(get_current_tenant_member)
 ):
     """Get progress history for an objective"""
-    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.client]:
+    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.closer]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para ver el progreso de objetivos"
@@ -447,7 +447,7 @@ async def get_objective_progress(
         raise HTTPException(status_code=404, detail="Objetivo no encontrado")
     
     # Check access for commercials
-    if current_user.role == UserRole.client and objective.commercial_id != current_user.id:
+    if current_user.role == UserRole.closer and objective.commercial_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Solo puedes ver el progreso de tus propios objetivos"
@@ -472,7 +472,7 @@ async def add_objective_progress(
 ):
     """Add progress to an objective"""
     # Only commercials, managers, and admins can add progress
-    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.client]:
+    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.closer]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para actualizar el progreso de objetivos"
@@ -488,7 +488,7 @@ async def add_objective_progress(
         raise HTTPException(status_code=404, detail="Objetivo no encontrado")
     
     # Check if commercial can only update their own objectives
-    if current_user.role == UserRole.client and objective.commercial_id != current_user.id:
+    if current_user.role == UserRole.closer and objective.commercial_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Solo puedes actualizar tus propios objetivos"
@@ -546,7 +546,7 @@ async def get_commercial_dashboard(
     """
     # Determine which commercial's dashboard to show
     target_commercial_id = commercial_id
-    if current_user.role == UserRole.client:
+    if current_user.role == UserRole.closer:
         # Commercials can only see their own dashboard
         target_commercial_id = current_user.id
     elif commercial_id is None:
@@ -560,7 +560,7 @@ async def get_commercial_dashboard(
     commercial = db.query(User).filter(
         User.id == target_commercial_id,
         User.tenant_id == current_user.tenant_id,
-        User.role == UserRole.client
+        User.role == UserRole.closer
     ).first()
     
     if not commercial:
@@ -669,7 +669,7 @@ async def get_admin_objectives_dashboard(
     # Get total commercials
     total_commercials = db.query(func.count(User.id)).filter(
         User.tenant_id == current_user.tenant_id,
-        User.role == UserRole.client,
+        User.role == UserRole.closer,
         User.is_active == True
     ).scalar()
     

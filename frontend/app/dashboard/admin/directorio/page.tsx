@@ -98,10 +98,10 @@ export default function AdminDirectorioPage() {
           color: "text-green-600",
           bgColor: "bg-green-50"
         }
-      case "client":
-        return { 
-          label: "Comercial", 
-          icon: Briefcase, 
+      case "closer":
+        return {
+          label: "Closer",
+          icon: Briefcase,
           variant: "outline" as const,
           color: "text-purple-600",
           bgColor: "bg-purple-50"
@@ -177,9 +177,9 @@ export default function AdminDirectorioPage() {
     tenant_admin: filteredUsers.filter(u => u.role === "tenant_admin"),
     manager: filteredUsers.filter(u => u.role === "manager"),
     user: filteredUsers.filter(u => u.role === "user"),
-    client: filteredUsers.filter(u => u.role === "client"),
+    closer: filteredUsers.filter(u => u.role === "closer"),
     recepcionista: filteredUsers.filter(u => u.role === "recepcionista"),
-    others: filteredUsers.filter(u => !["tenant_admin", "manager", "user", "client", "recepcionista"].includes(u.role))
+    others: filteredUsers.filter(u => !["tenant_admin", "manager", "user", "closer", "recepcionista"].includes(u.role))
   }
 
   if (loading) {
@@ -268,10 +268,10 @@ export default function AdminDirectorioPage() {
                     Médico
                   </div>
                 </SelectItem>
-                <SelectItem value="client">
+                <SelectItem value="closer">
                   <div className="flex items-center gap-2">
                     <Briefcase className="h-4 w-4" />
-                    Comercial
+                    Closer
                   </div>
                 </SelectItem>
                 <SelectItem value="recepcionista">

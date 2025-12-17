@@ -34,7 +34,7 @@ export function SuperadminDashboardLayout({ children }: SuperadminDashboardLayou
           // Redirigir segun rol
           if (userData.role === "tenant_admin") {
             router.push("/dashboard/admin")
-          } else if (userData.role === "client") {
+          } else if (userData.role === "patient") {
             router.push("/portal")
           } else {
             router.push("/dashboard")

@@ -50,7 +50,7 @@ export default function MisLeadsPage() {
       const userData = await api.getCurrentUser(token)
       setUser(userData)
 
-      if (userData.role !== "client") {
+      if (userData.role !== "closer") {
         router.push("/dashboard")
         return
       }

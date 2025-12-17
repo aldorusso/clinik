@@ -49,7 +49,7 @@ class CommercialObjective(Base):
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True)
     
     # Asignación del objetivo
-    commercial_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)  # Usuario con rol 'client'
+    commercial_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)  # Usuario con rol 'closer'
     created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)  # Admin que lo creó
     
     # Información del objetivo

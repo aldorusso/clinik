@@ -84,7 +84,7 @@ async def list_tenants_with_stats(
 
         client_count = db.query(func.count(User.id)).filter(
             User.tenant_id == tenant.id,
-            User.role == UserRole.client
+            User.role == UserRole.closer
         ).scalar()
 
         tenant_data = TenantWithStats(
@@ -217,7 +217,7 @@ async def get_tenant(
 
     client_count = db.query(func.count(User.id)).filter(
         User.tenant_id == tenant.id,
-        User.role == UserRole.client
+        User.role == UserRole.closer
     ).scalar()
 
     return TenantWithStats(

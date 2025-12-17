@@ -47,10 +47,10 @@ export function ClientPortalLayout({ children }: ClientPortalLayoutProps) {
           return
         }
         // En nuestro sistema de gestión de leads:
-        // - "client" = comercial interno → dashboard principal 
+        // - "closer" = comercial/closer interno → dashboard principal
         // - "patient" = paciente real → portal de pacientes
-        
-        if (userData.role === "client") {
+
+        if (userData.role === "closer") {
           router.push("/dashboard")
           return
         }

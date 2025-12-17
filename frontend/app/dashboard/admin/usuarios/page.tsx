@@ -64,7 +64,7 @@ import { toast } from "sonner"
 const roleConfig: Record<string, { label: string; icon: any; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   manager: { label: "Gestor de Leads", icon: Briefcase, variant: "secondary" },
   user: { label: "Médico", icon: Stethoscope, variant: "outline" },
-  client: { label: "Comercial", icon: UserIcon, variant: "default" },
+  closer: { label: "Closer", icon: UserIcon, variant: "default" },
   recepcionista: { label: "Recepcionista", icon: HeadphonesIcon, variant: "outline" },
 }
 
@@ -385,7 +385,7 @@ export default function TenantAdminUsuariosPage() {
                             Médico
                           </div>
                         </SelectItem>
-                        <SelectItem value="client">
+                        <SelectItem value="closer">
                           <div className="flex items-center gap-2">
                             <UserIcon className="h-4 w-4" />
                             Comercial
@@ -535,7 +535,7 @@ export default function TenantAdminUsuariosPage() {
                           Médico
                         </div>
                       </SelectItem>
-                      <SelectItem value="client">
+                      <SelectItem value="closer">
                         <div className="flex items-center gap-2">
                           <UserIcon className="h-4 w-4" />
                           Comercial
@@ -588,12 +588,12 @@ export default function TenantAdminUsuariosPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Comerciales</CardTitle>
+              <CardTitle className="text-sm font-medium">Closers</CardTitle>
               <UserIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {users.filter((u) => u.role === "client").length}
+                {users.filter((u) => u.role === "closer").length}
               </div>
             </CardContent>
           </Card>
@@ -630,7 +630,7 @@ export default function TenantAdminUsuariosPage() {
                     <SelectItem value="all">Todos los roles</SelectItem>
                     <SelectItem value="manager">Gestor de Leads</SelectItem>
                     <SelectItem value="user">Médico</SelectItem>
-                    <SelectItem value="client">Comercial</SelectItem>
+                    <SelectItem value="closer">Closer</SelectItem>
                     <SelectItem value="recepcionista">Recepcionista</SelectItem>
                   </SelectContent>
                 </Select>
@@ -784,7 +784,7 @@ export default function TenantAdminUsuariosPage() {
                 <SelectContent>
                   <SelectItem value="manager">Gestor de Leads</SelectItem>
                   <SelectItem value="user">Médico</SelectItem>
-                  <SelectItem value="client">Comercial</SelectItem>
+                  <SelectItem value="closer">Closer</SelectItem>
                   <SelectItem value="recepcionista">Recepcionista</SelectItem>
                 </SelectContent>
               </Select>

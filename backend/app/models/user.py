@@ -15,7 +15,7 @@ class UserRole(str, enum.Enum):
     - tenant_admin: Administrador de clínica/centro médico (admin_clinica)
     - manager: Gestor de leads y supervisor comercial
     - user: Médico/especialista (recibe leads asignados)
-    - client: Comercial (primer contacto con leads)
+    - closer: Comercial/Closer (primer contacto con leads, cierra ventas)
     - recepcionista: Personal de recepción (agenda, registro manual)
     - patient: Paciente real que accede al portal de pacientes
     """
@@ -23,7 +23,7 @@ class UserRole(str, enum.Enum):
     tenant_admin = "tenant_admin"
     manager = "manager"
     user = "user"
-    client = "client"
+    closer = "closer"
     recepcionista = "recepcionista"
     patient = "patient"
 
@@ -110,8 +110,8 @@ class User(Base):
         return self.role == UserRole.user
 
     @property
-    def is_client(self) -> bool:
-        return self.role == UserRole.client
+    def is_closer(self) -> bool:
+        return self.role == UserRole.closer
 
     @property
     def is_recepcionista(self) -> bool:
@@ -143,5 +143,5 @@ class User(Base):
 
     @property
     def is_comercial(self) -> bool:
-        """Alias para client en contexto médico"""
-        return self.role == UserRole.client
+        """Alias para closer en contexto médico"""
+        return self.role == UserRole.closer

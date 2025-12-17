@@ -203,7 +203,7 @@ async def list_leads(
     query = db.query(LeadModel).filter(LeadModel.tenant_id == current_user.tenant_id)
     
     # Role-based filtering
-    if current_user.role in [UserRole.user, UserRole.client]:
+    if current_user.role in [UserRole.user, UserRole.closer]:
         # médicos and comerciales only see their assigned leads
         query = query.filter(LeadModel.assigned_to_id == current_user.id)
     
@@ -306,7 +306,7 @@ async def get_lead(
         )
     
     # Check role-based access
-    if current_user.role in [UserRole.user, UserRole.client]:
+    if current_user.role in [UserRole.user, UserRole.closer]:
         if lead.assigned_to_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -341,7 +341,7 @@ async def update_lead(
         )
     
     # Check role-based access for updates
-    if current_user.role in [UserRole.user, UserRole.client]:
+    if current_user.role in [UserRole.user, UserRole.closer]:
         if lead.assigned_to_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -552,7 +552,7 @@ async def update_lead_status(
         )
     
     # Check role-based access
-    if current_user.role in [UserRole.user, UserRole.client]:
+    if current_user.role in [UserRole.user, UserRole.closer]:
         if lead.assigned_to_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -614,7 +614,7 @@ async def list_lead_interactions(
         )
     
     # Check role-based access
-    if current_user.role in [UserRole.user, UserRole.client]:
+    if current_user.role in [UserRole.user, UserRole.closer]:
         if lead.assigned_to_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -661,7 +661,7 @@ async def create_lead_interaction(
         )
     
     # Check role-based access
-    if current_user.role in [UserRole.user, UserRole.client]:
+    if current_user.role in [UserRole.user, UserRole.closer]:
         if lead.assigned_to_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -714,7 +714,7 @@ async def get_lead_stats(
     )
     
     # Role-based filtering
-    if current_user.role in [UserRole.user, UserRole.client]:
+    if current_user.role in [UserRole.user, UserRole.closer]:
         base_query = base_query.filter(LeadModel.assigned_to_id == current_user.id)
     
     now = datetime.utcnow()
@@ -813,7 +813,7 @@ async def get_lead_funnel_stats(
     )
     
     # Role-based filtering
-    if current_user.role in [UserRole.user, UserRole.client]:
+    if current_user.role in [UserRole.user, UserRole.closer]:
         base_query = base_query.filter(LeadModel.assigned_to_id == current_user.id)
     
     # Count by each funnel stage
@@ -868,7 +868,7 @@ async def get_lead_source_performance(
     )
     
     # Role-based filtering
-    if current_user.role in [UserRole.user, UserRole.client]:
+    if current_user.role in [UserRole.user, UserRole.closer]:
         base_query = base_query.filter(LeadModel.assigned_to_id == current_user.id)
     
     source_performance = []

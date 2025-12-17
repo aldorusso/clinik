@@ -386,7 +386,7 @@ async def list_my_tenant_users(
     List all users in my tenant. Accessible by all tenant members.
     """
     # Check permissions - all tenant members can see the directory
-    if current_user.role not in [UserRole.superadmin, UserRole.tenant_admin, UserRole.manager, UserRole.user, UserRole.client, UserRole.recepcionista]:
+    if current_user.role not in [UserRole.superadmin, UserRole.tenant_admin, UserRole.manager, UserRole.user, UserRole.closer, UserRole.recepcionista]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para ver la lista de usuarios"
@@ -431,12 +431,12 @@ async def create_my_tenant_user(
         )
 
     # Tenant admins can create all roles except superadmin and other tenant_admins
-    allowed_roles = [UserRole.manager, UserRole.user, UserRole.client, UserRole.recepcionista]
+    allowed_roles = [UserRole.manager, UserRole.user, UserRole.closer, UserRole.recepcionista]
     role = user_in.role or UserRole.user
     if role not in allowed_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo puedes crear usuarios con rol 'manager', 'user', 'client' o 'recepcionista'"
+            detail="Solo puedes crear usuarios con rol 'manager', 'user', 'closer' o 'recepcionista'"
         )
 
     # Create new user in the same tenant
@@ -504,11 +504,11 @@ async def invite_user(
         )
 
     # Tenant admins can only invite managers, users, and clients
-    allowed_roles = [UserRole.manager, UserRole.user, UserRole.client]
+    allowed_roles = [UserRole.manager, UserRole.user, UserRole.closer]
     if invitation.role not in allowed_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo puedes invitar usuarios con rol 'manager', 'user' o 'client'"
+            detail="Solo puedes invitar usuarios con rol 'manager', 'user' o 'closer'"
         )
 
     # Generate invitation token
@@ -596,7 +596,7 @@ async def create_client(
         phone=client_in.phone,
         client_company_name=client_in.client_company_name,
         client_tax_id=client_in.client_tax_id,
-        role=UserRole.client,
+        role=UserRole.closer,
         tenant_id=current_user.tenant_id,
         is_active=True
     )
@@ -641,7 +641,7 @@ async def list_my_tenant_clients(
 
     query = db.query(User).filter(
         User.tenant_id == current_user.tenant_id,
-        User.role == UserRole.client
+        User.role == UserRole.closer
     )
 
     clients = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
@@ -682,7 +682,7 @@ async def create_tenant_client(
         phone=client_in.phone,
         client_company_name=client_in.client_company_name,
         client_tax_id=client_in.client_tax_id,
-        role=UserRole.client,
+        role=UserRole.closer,
         tenant_id=current_user.tenant_id,
         is_active=True
     )
@@ -723,7 +723,7 @@ async def update_tenant_client(
 
     client = db.query(User).filter(
         User.id == client_id,
-        User.role == UserRole.client
+        User.role == UserRole.closer
     ).first()
 
     if not client:
@@ -776,7 +776,7 @@ async def delete_tenant_client(
 
     client = db.query(User).filter(
         User.id == client_id,
-        User.role == UserRole.client
+        User.role == UserRole.closer
     ).first()
 
     if not client:

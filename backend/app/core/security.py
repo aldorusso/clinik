@@ -169,11 +169,11 @@ async def get_current_manager_or_above(
 async def get_current_tenant_member(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
-    """Get any internal tenant member (tenant_admin, manager, user, client/comercial, or recepcionista)."""
+    """Get any internal tenant member (tenant_admin, manager, user, closer/comercial, or recepcionista)."""
     if current_user.role == UserRole.superadmin:
         return current_user  # Superadmin can access everything
-    # In our medical leads system, 'client' role represents internal comercials, not external clients
-    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.user, UserRole.client, UserRole.recepcionista]:
+    # In our medical leads system, 'closer' role represents internal comercials/closers
+    if current_user.role not in [UserRole.tenant_admin, UserRole.manager, UserRole.user, UserRole.closer, UserRole.recepcionista]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Internal access only"
@@ -187,22 +187,22 @@ async def get_current_tenant_member(
 
 
 # ============================================
-# CLIENT: External client portal access
+# CLOSER: Internal sales/closer access
 # ============================================
 
-async def get_current_client(
+async def get_current_closer(
     current_user: User = Depends(get_current_active_user)
 ) -> User:
-    """Get the current client user (external client of a tenant)."""
-    if current_user.role != UserRole.client:
+    """Get the current closer user (internal comercial/closer of a tenant)."""
+    if current_user.role != UserRole.closer:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Client access only"
+            detail="Closer access only"
         )
     if current_user.tenant_id is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Client must belong to a tenant"
+            detail="Closer must belong to a tenant"
         )
     return current_user
 

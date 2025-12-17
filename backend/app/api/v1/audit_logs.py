@@ -288,7 +288,7 @@ async def list_tenant_activity_logs(
             detail="Superadmin should use the main audit logs endpoint"
         )
 
-    if current_user.role == UserRole.client:
+    if current_user.role == UserRole.closer:
         raise HTTPException(
             status_code=403,
             detail="Clients cannot access activity logs"
@@ -363,7 +363,7 @@ async def get_tenant_activity_stats(
             detail="Superadmin should use the main audit stats endpoint"
         )
 
-    if current_user.role == UserRole.client:
+    if current_user.role == UserRole.closer:
         raise HTTPException(
             status_code=403,
             detail="Clients cannot access activity stats"

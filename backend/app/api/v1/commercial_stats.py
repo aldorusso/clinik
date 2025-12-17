@@ -23,11 +23,11 @@ async def get_commercial_stats(
 ):
     """
     Obtener estadísticas completas para usuario comercial.
-    Solo usuarios con rol 'client' (comercial) pueden ver sus propias estadísticas.
+    Solo usuarios con rol 'closer' (comercial) pueden ver sus propias estadísticas.
     """
     
     # Solo comerciales pueden acceder a este endpoint
-    if current_user.role != UserRole.client:
+    if current_user.role != UserRole.closer:
         # Para otros roles, mostrar estadísticas generales del tenant
         pass
     
@@ -48,7 +48,7 @@ async def get_commercial_stats(
         Appointment.tenant_id == current_user.tenant_id
     )
     
-    if current_user.role == UserRole.client:
+    if current_user.role == UserRole.closer:
         lead_query = lead_query.filter(Lead.assigned_to_id == current_user.id)
         appointment_query = appointment_query.filter(Appointment.provider_id == current_user.id)
     

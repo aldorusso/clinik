@@ -195,7 +195,7 @@ def commercial_user(db_session, test_tenant):
         hashed_password=get_password_hash("testpass123"),
         first_name="Test",
         last_name="Commercial",
-        role=UserRole.client,
+        role=UserRole.closer,
         tenant_id=test_tenant.id,
         is_active=True
     )

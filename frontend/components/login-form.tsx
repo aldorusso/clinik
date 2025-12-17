@@ -18,12 +18,12 @@ function getRedirectPath(role: UserRole): string {
       return "/dashboard/superadmin"
     case "tenant_admin":
       return "/dashboard/admin"
-    case "client":
-      return "/portal"
     case "patient":
       return "/portal"
+    case "closer":
     case "manager":
     case "user":
+    case "recepcionista":
     default:
       return "/dashboard"
   }

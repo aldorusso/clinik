@@ -34,11 +34,11 @@ export function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
           router.push("/dashboard/superadmin")
           return
         }
-        if (userData.role === "client") {
+        if (userData.role === "patient") {
           router.push("/portal")
           return
         }
-        if (userData.role === "user") {
+        if (userData.role === "user" || userData.role === "closer") {
           router.push("/dashboard")
           return
         }

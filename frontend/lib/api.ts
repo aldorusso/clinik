@@ -19,8 +19,8 @@ export interface ResetPasswordRequest {
   new_password: string;
 }
 
-// User roles for medical leads management system (6 roles)
-export type UserRole = 'superadmin' | 'tenant_admin' | 'manager' | 'user' | 'client' | 'recepcionista' | 'patient';
+// User roles for medical leads management system (7 roles)
+export type UserRole = 'superadmin' | 'tenant_admin' | 'manager' | 'user' | 'closer' | 'recepcionista' | 'patient';
 
 // ============================================
 // LEAD TYPES

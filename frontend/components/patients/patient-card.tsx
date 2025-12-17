@@ -153,10 +153,10 @@ export function PatientCard({
         <div className="mt-3 pt-2 border-t text-xs">
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">
-              Tu rol: {currentUserRole === "user" ? "Médico" : 
-                      currentUserRole === "manager" ? "Gestor" : 
-                      currentUserRole === "client" ? "Comercial" : 
-                      currentUserRole === "recepcionista" ? "Recepcionista" : 
+              Tu rol: {currentUserRole === "user" ? "Médico" :
+                      currentUserRole === "manager" ? "Gestor" :
+                      currentUserRole === "closer" ? "Closer" :
+                      currentUserRole === "recepcionista" ? "Recepcionista" :
                       currentUserRole}
             </span>
             {isDoctor && (
