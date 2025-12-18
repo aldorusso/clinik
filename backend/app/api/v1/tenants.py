@@ -12,6 +12,7 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.tenant import Tenant
+from app.models.tenant_membership import TenantMembership
 from app.models.user import User, UserRole
 from app.models.audit_log import AuditAction, AuditCategory
 from app.schemas.tenant import (
@@ -108,6 +109,10 @@ async def create_tenant_with_admin(
 ):
     """
     Create a new tenant with its first tenant_admin user. Only accessible by superadmins.
+
+    Two options for admin:
+    1. existing_admin_id: Use an existing user as admin (creates membership)
+    2. admin_email + admin_password: Create a new user as admin
     """
     # Check if slug already exists
     existing = db.query(Tenant).filter(Tenant.slug == data.slug).first()
@@ -117,32 +122,96 @@ async def create_tenant_with_admin(
             detail="El slug ya está en uso"
         )
 
-    # Check if admin email already exists
-    existing_user = db.query(User).filter(User.email == data.admin_email).first()
-    if existing_user:
+    # Validate admin options
+    has_existing_admin = data.existing_admin_id is not None
+    has_new_admin = data.admin_email is not None and data.admin_password is not None
+
+    if not has_existing_admin and not has_new_admin:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email del administrador ya está registrado"
+            detail="Debes proporcionar existing_admin_id o (admin_email + admin_password)"
         )
 
+    if has_existing_admin and has_new_admin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No puedes usar ambas opciones. Usa existing_admin_id O crea un nuevo admin"
+        )
+
+    db_admin = None
+    admin_email_for_log = None
+    is_new_user = False
+
+    # Option 1: Use existing user
+    if has_existing_admin:
+        db_admin = db.query(User).filter(User.id == data.existing_admin_id).first()
+        if not db_admin:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Usuario no encontrado"
+            )
+
+        # Check user is not superadmin
+        if db_admin.is_superadmin:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Un superadmin no puede ser asignado como admin de un tenant"
+            )
+
+        admin_email_for_log = db_admin.email
+
+    # Option 2: Create new user
+    else:
+        # Check if admin email already exists
+        existing_user = db.query(User).filter(User.email == data.admin_email).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El email del administrador ya está registrado. Usa existing_admin_id para asignar un usuario existente."
+            )
+        is_new_user = True
+        admin_email_for_log = data.admin_email
+
     # Create tenant
-    tenant_data = data.model_dump(exclude={'admin_email', 'admin_password', 'admin_first_name', 'admin_last_name'})
+    tenant_data = data.model_dump(exclude={
+        'existing_admin_id', 'admin_email', 'admin_password',
+        'admin_first_name', 'admin_last_name'
+    })
     db_tenant = Tenant(**tenant_data)
     db.add(db_tenant)
     db.flush()  # Get the tenant ID without committing
 
-    # Create admin user for this tenant
-    hashed_password = get_password_hash(data.admin_password)
-    db_admin = User(
-        email=data.admin_email,
-        hashed_password=hashed_password,
-        first_name=data.admin_first_name,
-        last_name=data.admin_last_name,
-        role=UserRole.tenant_admin,
+    # Create or assign admin
+    if is_new_user:
+        # Create new admin user
+        hashed_password = get_password_hash(data.admin_password)
+        db_admin = User(
+            email=data.admin_email,
+            hashed_password=hashed_password,
+            first_name=data.admin_first_name,
+            last_name=data.admin_last_name,
+            role=UserRole.tenant_admin,
+            tenant_id=db_tenant.id,
+            is_active=True
+        )
+        db.add(db_admin)
+        db.flush()
+
+    # Create membership for the admin (both new and existing users)
+    membership = TenantMembership(
+        user_id=db_admin.id,
         tenant_id=db_tenant.id,
-        is_active=True
+        role=UserRole.tenant_admin,
+        is_active=True,
+        is_default=not has_existing_admin,  # Solo default si es usuario nuevo
+        invited_by_id=current_user.id,
     )
-    db.add(db_admin)
+    db.add(membership)
+
+    # For existing users, also update their legacy tenant_id if they don't have one
+    if has_existing_admin and db_admin.tenant_id is None:
+        db_admin.tenant_id = db_tenant.id
+        db_admin.role = UserRole.tenant_admin
 
     db.commit()
     db.refresh(db_tenant)
@@ -159,18 +228,24 @@ async def create_tenant_with_admin(
         entity_id=str(db_tenant.id),
         ip_address=get_client_ip(request),
         user_agent=request.headers.get("User-Agent", "")[:500],
-        details={"tenant_name": db_tenant.name, "tenant_slug": db_tenant.slug, "admin_email": db_admin.email}
+        details={
+            "tenant_name": db_tenant.name,
+            "tenant_slug": db_tenant.slug,
+            "admin_email": admin_email_for_log,
+            "admin_type": "new_user" if is_new_user else "existing_user"
+        }
     )
 
-    # Enviar email de bienvenida al admin del tenant
-    try:
-        await send_welcome_email(
-            db=db,
-            email_to=db_admin.email,
-            user_name=db_admin.first_name or db_admin.email.split('@')[0]
-        )
-    except Exception as e:
-        print(f"Error enviando email de bienvenida: {e}")
+    # Enviar email de bienvenida al admin del tenant (solo para usuarios nuevos)
+    if is_new_user:
+        try:
+            await send_welcome_email(
+                db=db,
+                email_to=db_admin.email,
+                user_name=db_admin.first_name or db_admin.email.split('@')[0]
+            )
+        except Exception as e:
+            print(f"Error enviando email de bienvenida: {e}")
 
     return db_tenant
 

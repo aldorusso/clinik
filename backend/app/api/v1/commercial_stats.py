@@ -40,12 +40,12 @@ async def get_commercial_stats(
     
     # Filtrar por comercial si es usuario comercial
     lead_query = db.query(Lead).filter(
-        Lead.tenant_id == current_user.tenant_id,
+        Lead.tenant_id == current_user.current_tenant_id,
         Lead.is_active == True
     )
     
     appointment_query = db.query(Appointment).filter(
-        Appointment.tenant_id == current_user.tenant_id
+        Appointment.tenant_id == current_user.current_tenant_id
     )
     
     if current_user.role == UserRole.closer:
@@ -206,7 +206,7 @@ async def get_commercial_stats(
     
     # Obtener médicos del tenant
     doctors = db.query(User).filter(
-        User.tenant_id == current_user.tenant_id,
+        User.tenant_id == current_user.current_tenant_id,
         User.role == UserRole.medico,
         User.is_active == True
     ).all()

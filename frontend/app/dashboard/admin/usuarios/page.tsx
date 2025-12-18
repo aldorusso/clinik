@@ -71,7 +71,6 @@ export default function TenantAdminUsuariosPage() {
   const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -79,22 +78,6 @@ export default function TenantAdminUsuariosPage() {
 
   // Filters
   const [filterRole, setFilterRole] = useState<string>("all")
-
-  // Form data for creating users
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    first_name: "",
-    last_name: "",
-    full_name: "",
-    phone: "",
-    country: "",
-    city: "",
-    office_address: "",
-    company_name: "",
-    job_title: "",
-    role: "medico" as UserRole,
-  })
 
   // Form data for inviting users
   const [inviteFormData, setInviteFormData] = useState({
@@ -143,47 +126,6 @@ export default function TenantAdminUsuariosPage() {
     if (filterRole !== "all" && user.role !== filterRole) return false
     return true
   })
-
-  const handleCreate = async () => {
-    const token = auth.getToken()
-    if (!token) return
-
-    try {
-      await api.createMyTenantUser(token, {
-        email: formData.email,
-        password: formData.password,
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        full_name: formData.full_name || `${formData.first_name} ${formData.last_name}`.trim(),
-        phone: formData.phone,
-        country: formData.country,
-        city: formData.city,
-        office_address: formData.office_address,
-        company_name: formData.company_name,
-        job_title: formData.job_title,
-        role: formData.role,
-      })
-      toast.success("Usuario creado exitosamente")
-      setIsCreateDialogOpen(false)
-      setFormData({
-        email: "",
-        password: "",
-        first_name: "",
-        last_name: "",
-        full_name: "",
-        phone: "",
-        country: "",
-        city: "",
-        office_address: "",
-        company_name: "",
-        job_title: "",
-        role: "medico",
-      })
-      loadData()
-    } catch (error: any) {
-      toast.error(error.message || "Error al crear usuario")
-    }
-  }
 
   const handleInvite = async () => {
     const token = auth.getToken()
@@ -313,207 +255,56 @@ export default function TenantAdminUsuariosPage() {
               Gestiona los managers y usuarios de tu organizacion
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Mail className="mr-2 h-4 w-4" />
-                  Invitar Usuario
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Invitar Usuario por Email</DialogTitle>
-                  <DialogDescription>
-                    Envia una invitacion por email. El usuario recibira un link para completar su registro.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="invite_email">Email *</Label>
-                    <Input
-                      id="invite_email"
-                      type="email"
-                      value={inviteFormData.email}
-                      onChange={(e) => setInviteFormData({ ...inviteFormData, email: e.target.value })}
-                      placeholder="usuario@ejemplo.com"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="invite_first_name">Nombre (opcional)</Label>
-                      <Input
-                        id="invite_first_name"
-                        value={inviteFormData.first_name}
-                        onChange={(e) => setInviteFormData({ ...inviteFormData, first_name: e.target.value })}
-                        placeholder="Juan"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="invite_last_name">Apellido (opcional)</Label>
-                      <Input
-                        id="invite_last_name"
-                        value={inviteFormData.last_name}
-                        onChange={(e) => setInviteFormData({ ...inviteFormData, last_name: e.target.value })}
-                        placeholder="Perez"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="invite_role">Rol *</Label>
-                    <Select
-                      value={inviteFormData.role}
-                      onValueChange={(value: UserRole) => setInviteFormData({ ...inviteFormData, role: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="manager">
-                          <div className="flex items-center gap-2">
-                            <Briefcase className="h-4 w-4" />
-                            Gestor de Leads
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="medico">
-                          <div className="flex items-center gap-2">
-                            <UserIcon className="h-4 w-4" />
-                            Médico
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="closer">
-                          <div className="flex items-center gap-2">
-                            <UserIcon className="h-4 w-4" />
-                            Comercial
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="recepcionista">
-                          <div className="flex items-center gap-2">
-                            <UserIcon className="h-4 w-4" />
-                            Recepcionista
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleInvite}>Enviar Invitación</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Nuevo Usuario
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Invitar Usuario
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Crear Nuevo Usuario</DialogTitle>
+                <DialogTitle>Invitar Usuario</DialogTitle>
                 <DialogDescription>
-                  Crea un usuario para tu organización con toda la información necesaria
+                  Envia una invitacion por email. El usuario recibira un enlace para unirse a tu organizacion.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invite_email">Email *</Label>
+                  <Input
+                    id="invite_email"
+                    type="email"
+                    value={inviteFormData.email}
+                    onChange={(e) => setInviteFormData({ ...inviteFormData, email: e.target.value })}
+                    placeholder="usuario@ejemplo.com"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="first_name">Nombre</Label>
+                    <Label htmlFor="invite_first_name">Nombre (opcional)</Label>
                     <Input
-                      id="first_name"
-                      value={formData.first_name}
-                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                      id="invite_first_name"
+                      value={inviteFormData.first_name}
+                      onChange={(e) => setInviteFormData({ ...inviteFormData, first_name: e.target.value })}
                       placeholder="Juan"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="last_name">Apellido</Label>
+                    <Label htmlFor="invite_last_name">Apellido (opcional)</Label>
                     <Input
-                      id="last_name"
-                      value={formData.last_name}
-                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                      id="invite_last_name"
+                      value={inviteFormData.last_name}
+                      onChange={(e) => setInviteFormData({ ...inviteFormData, last_name: e.target.value })}
                       placeholder="Perez"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="usuario@ejemplo.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Contrasena *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Minimo 6 caracteres"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Teléfono</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="+52 55 1234 5678"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="job_title">Cargo/Posición</Label>
-                    <Input
-                      id="job_title"
-                      value={formData.job_title}
-                      onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-                      placeholder="Ej: Cirujano plástico, Gestor comercial"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">Ciudad</Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      placeholder="México, Guadalajara, etc."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="country">País</Label>
-                    <Input
-                      id="country"
-                      value={formData.country}
-                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                      placeholder="México, Colombia, etc."
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="office_address">Dirección de Oficina</Label>
-                  <Input
-                    id="office_address"
-                    value={formData.office_address}
-                    onChange={(e) => setFormData({ ...formData, office_address: e.target.value })}
-                    placeholder="Dirección completa del lugar de trabajo"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Rol *</Label>
+                  <Label htmlFor="invite_role">Rol *</Label>
                   <Select
-                    value={formData.role}
-                    onValueChange={(value: UserRole) => setFormData({ ...formData, role: value })}
+                    value={inviteFormData.role}
+                    onValueChange={(value: UserRole) => setInviteFormData({ ...inviteFormData, role: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -548,14 +339,13 @@ export default function TenantAdminUsuariosPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleCreate}>Crear Usuario</Button>
+                <Button onClick={handleInvite}>Enviar Invitacion</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          </div>
         </div>
 
         {/* Stats Cards */}

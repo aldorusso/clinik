@@ -44,7 +44,7 @@ async def get_service_products(
     service = db.query(Service).filter(
         and_(
             Service.id == service_id,
-            Service.tenant_id == current_user.tenant_id
+            Service.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -77,7 +77,7 @@ async def add_product_to_service(
     service = db.query(Service).filter(
         and_(
             Service.id == service_id,
-            Service.tenant_id == current_user.tenant_id
+            Service.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -88,7 +88,7 @@ async def add_product_to_service(
     product = db.query(InventoryProduct).filter(
         and_(
             InventoryProduct.id == service_product.product_id,
-            InventoryProduct.tenant_id == current_user.tenant_id
+            InventoryProduct.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -111,7 +111,7 @@ async def add_product_to_service(
     
     # Crear la asociación
     db_service_product = ServiceProduct(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         service_id=service_id,
         **service_product.model_dump()
     )
@@ -136,7 +136,7 @@ async def update_service_product(
         and_(
             ServiceProduct.service_id == service_id,
             ServiceProduct.product_id == product_id,
-            ServiceProduct.tenant_id == current_user.tenant_id
+            ServiceProduct.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -165,7 +165,7 @@ async def remove_product_from_service(
         and_(
             ServiceProduct.service_id == service_id,
             ServiceProduct.product_id == product_id,
-            ServiceProduct.tenant_id == current_user.tenant_id
+            ServiceProduct.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -194,7 +194,7 @@ async def get_appointment_inventory_usage(
     appointment = db.query(Appointment).filter(
         and_(
             Appointment.id == appointment_id,
-            Appointment.tenant_id == current_user.tenant_id
+            Appointment.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -228,7 +228,7 @@ async def record_inventory_usage(
     appointment = db.query(Appointment).filter(
         and_(
             Appointment.id == appointment_id,
-            Appointment.tenant_id == current_user.tenant_id
+            Appointment.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -243,7 +243,7 @@ async def record_inventory_usage(
     product = db.query(InventoryProduct).filter(
         and_(
             InventoryProduct.id == usage.product_id,
-            InventoryProduct.tenant_id == current_user.tenant_id
+            InventoryProduct.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -259,7 +259,7 @@ async def record_inventory_usage(
     
     # Registrar el uso
     db_usage = AppointmentInventoryUsage(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         appointment_id=appointment_id,
         product_id=usage.product_id,
         quantity_used=usage.quantity_used,
@@ -273,7 +273,7 @@ async def record_inventory_usage(
     
     # Crear movimiento de inventario
     movement = InventoryMovement(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         product_id=usage.product_id,
         movement_type=MovementType.OUT_USAGE,
         quantity=-usage.quantity_used,  # Negativo porque es salida
@@ -310,7 +310,7 @@ async def update_inventory_usage(
         and_(
             AppointmentInventoryUsage.id == usage_id,
             AppointmentInventoryUsage.appointment_id == appointment_id,
-            AppointmentInventoryUsage.tenant_id == current_user.tenant_id
+            AppointmentInventoryUsage.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -343,7 +343,7 @@ async def update_inventory_usage(
         
         # Crear movimiento de ajuste
         movement = InventoryMovement(
-            tenant_id=current_user.tenant_id,
+            tenant_id=current_user.current_tenant_id,
             product_id=db_usage.product_id,
             movement_type=MovementType.OUT_ADJUSTMENT if quantity_difference > 0 else MovementType.IN_ADJUSTMENT,
             quantity=-quantity_difference,  # Negativo si es salida adicional
@@ -385,7 +385,7 @@ async def delete_inventory_usage(
         and_(
             AppointmentInventoryUsage.id == usage_id,
             AppointmentInventoryUsage.appointment_id == appointment_id,
-            AppointmentInventoryUsage.tenant_id == current_user.tenant_id
+            AppointmentInventoryUsage.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -405,7 +405,7 @@ async def delete_inventory_usage(
     
     # Crear movimiento de reversión
     movement = InventoryMovement(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         product_id=db_usage.product_id,
         movement_type=MovementType.IN_RETURN,
         quantity=db_usage.quantity_used,
@@ -443,7 +443,7 @@ async def auto_consume_service_products(
     ).filter(
         and_(
             Appointment.id == appointment_id,
-            Appointment.tenant_id == current_user.tenant_id
+            Appointment.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -497,7 +497,7 @@ async def auto_consume_service_products(
                         
                         # Crear movimiento
                         movement = InventoryMovement(
-                            tenant_id=current_user.tenant_id,
+                            tenant_id=current_user.current_tenant_id,
                             product_id=product.id,
                             movement_type=MovementType.OUT_USAGE,
                             quantity=-additional_quantity,
@@ -522,7 +522,7 @@ async def auto_consume_service_products(
             else:
                 # Crear nuevo registro de uso
                 usage = AppointmentInventoryUsage(
-                    tenant_id=current_user.tenant_id,
+                    tenant_id=current_user.current_tenant_id,
                     appointment_id=appointment_id,
                     product_id=product.id,
                     quantity_used=quantity_needed,
@@ -536,7 +536,7 @@ async def auto_consume_service_products(
                 
                 # Crear movimiento
                 movement = InventoryMovement(
-                    tenant_id=current_user.tenant_id,
+                    tenant_id=current_user.current_tenant_id,
                     product_id=product.id,
                     movement_type=MovementType.OUT_USAGE,
                     quantity=-quantity_needed,

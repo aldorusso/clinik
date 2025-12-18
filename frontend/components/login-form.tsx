@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
-import { AlertCircle } from "lucide-react"
-import { api, UserRole } from "@/lib/api"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertCircle, Building2, ChevronRight, ArrowLeft } from "lucide-react"
+import { api, UserRole, AvailableTenant } from "@/lib/api"
 import { auth } from "@/lib/auth"
 
 // Helper to get redirect path based on user role
@@ -29,14 +30,19 @@ function getRedirectPath(role: UserRole): string {
   }
 }
 
+type LoginStep = "credentials" | "select-tenant"
+
 export function LoginForm() {
   const router = useRouter()
+  const [step, setStep] = useState<LoginStep>("credentials")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [availableTenants, setAvailableTenants] = useState<AvailableTenant[]>([])
+  const [tempToken, setTempToken] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
@@ -54,13 +60,20 @@ export function LoginForm() {
         password: password,
       })
 
-      auth.setToken(response.access_token)
+      // Process login response
+      const result = auth.processLoginResponse(response)
 
-      // Get user data to determine redirect
-      const user = await api.getCurrentUser(response.access_token)
-      const redirectPath = getRedirectPath(user.role)
-
-      router.push(redirectPath)
+      if (result.requiresTenantSelection && result.tenants) {
+        // Multi-tenant: show tenant selector
+        setAvailableTenants(result.tenants)
+        setTempToken(response.access_token)
+        setStep("select-tenant")
+      } else {
+        // Direct login - get user and redirect
+        const user = await api.getCurrentUser(response.access_token)
+        const redirectPath = getRedirectPath(user.role)
+        router.push(redirectPath)
+      }
     } catch (err: any) {
       setError(err.message || "Credenciales inválidas. Verifique su email y contraseña.")
     } finally {
@@ -68,6 +81,123 @@ export function LoginForm() {
     }
   }
 
+  const handleTenantSelect = async (tenant: AvailableTenant) => {
+    setError("")
+    setIsLoading(true)
+
+    try {
+      const response = await api.selectTenant(tempToken, tenant.tenant_id)
+      auth.completeTenantSelection(response)
+
+      // Redirect based on role
+      const redirectPath = getRedirectPath(response.role)
+      router.push(redirectPath)
+    } catch (err: any) {
+      setError(err.message || "Error al seleccionar organización")
+      setIsLoading(false)
+    }
+  }
+
+  const handleBackToCredentials = () => {
+    setStep("credentials")
+    setAvailableTenants([])
+    setTempToken("")
+    setError("")
+    auth.clearPendingTenantSelection()
+  }
+
+  // Tenant Selection Step
+  if (step === "select-tenant") {
+    return (
+      <div className="w-full">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
+          <h2 className="text-3xl font-bold text-foreground mb-4">Selecciona tu organización</h2>
+          <p className="text-muted-foreground">
+            Tu cuenta tiene acceso a múltiples organizaciones.
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Selecciona con cuál deseas trabajar.
+          </p>
+        </div>
+
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Tenant Cards */}
+        <div className="space-y-3">
+          {availableTenants.map((tenant) => (
+            <Card
+              key={tenant.tenant_id}
+              className={`cursor-pointer transition-all hover:shadow-md hover:border-primary ${
+                isLoading ? "opacity-50 pointer-events-none" : ""
+              }`}
+              onClick={() => handleTenantSelect(tenant)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {tenant.tenant_logo ? (
+                      <img
+                        src={tenant.tenant_logo}
+                        alt={tenant.tenant_name}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-primary" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-foreground">
+                        {tenant.tenant_name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground capitalize">
+                        {tenant.role.replace("_", " ")}
+                        {tenant.is_default && (
+                          <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                            Por defecto
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Loading overlay */}
+        {isLoading && (
+          <div className="flex items-center justify-center mt-4">
+            <Spinner size="sm" className="mr-2" />
+            <span className="text-muted-foreground">Accediendo...</span>
+          </div>
+        )}
+
+        {/* Back button */}
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full mt-6"
+          onClick={handleBackToCredentials}
+          disabled={isLoading}
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Usar otra cuenta
+        </Button>
+      </div>
+    )
+  }
+
+  // Credentials Step (original form)
   return (
     <div className="w-full">
       {/* Header */}
@@ -86,7 +216,7 @@ export function LoginForm() {
       </div>
 
       {/* Login Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleCredentialsSubmit} className="space-y-6">
         <div className="space-y-4">
           <Input
             id="email"

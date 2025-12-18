@@ -38,7 +38,7 @@ def get_patient_medical_history(
     # Verify patient exists and belongs to same tenant
     patient = db.query(models.User).filter(
         models.User.id == patient_id,
-        models.User.tenant_id == current_user.tenant_id
+        models.User.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not patient:
@@ -47,7 +47,7 @@ def get_patient_medical_history(
     # Get medical history
     query = db.query(models.MedicalHistory).filter(
         models.MedicalHistory.patient_id == patient_id,
-        models.MedicalHistory.tenant_id == current_user.tenant_id
+        models.MedicalHistory.tenant_id == current_user.current_tenant_id
     )
     
     # If user is a doctor, only show their own entries
@@ -84,7 +84,7 @@ def create_medical_history(
     # Verify patient exists and belongs to same tenant
     patient = db.query(models.User).filter(
         models.User.id == patient_id,
-        models.User.tenant_id == current_user.tenant_id
+        models.User.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not patient:
@@ -92,7 +92,7 @@ def create_medical_history(
     
     # Create medical history
     db_history = models.MedicalHistory(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         patient_id=patient_id,
         medic_id=current_user.id,
         content=history_in.content
@@ -116,7 +116,7 @@ def update_medical_history(
     # Get medical history
     history = db.query(models.MedicalHistory).filter(
         models.MedicalHistory.id == history_id,
-        models.MedicalHistory.tenant_id == current_user.tenant_id
+        models.MedicalHistory.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not history:
@@ -148,7 +148,7 @@ async def upload_attachment(
     # Get medical history
     history = db.query(models.MedicalHistory).filter(
         models.MedicalHistory.id == history_id,
-        models.MedicalHistory.tenant_id == current_user.tenant_id
+        models.MedicalHistory.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not history:
@@ -166,7 +166,7 @@ async def upload_attachment(
         raise HTTPException(status_code=400, detail=f"File type not allowed. Allowed types: {allowed_types}")
     
     # Create upload directory
-    upload_dir = f"uploads/{current_user.tenant_id}/medical/{history_id}"
+    upload_dir = f"uploads/{current_user.current_tenant_id}/medical/{history_id}"
     os.makedirs(upload_dir, exist_ok=True)
     
     # Save file
@@ -179,7 +179,7 @@ async def upload_attachment(
     
     # Create attachment record
     attachment = models.MedicalAttachment(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         medical_history_id=history_id,
         filename=file.filename,
         file_path=file_path,
@@ -205,7 +205,7 @@ def delete_attachment(
     # Get attachment
     attachment = db.query(models.MedicalAttachment).filter(
         models.MedicalAttachment.id == attachment_id,
-        models.MedicalAttachment.tenant_id == current_user.tenant_id
+        models.MedicalAttachment.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not attachment:

@@ -294,7 +294,7 @@ async def list_tenant_activity_logs(
             detail="Clients cannot access activity logs"
         )
 
-    if not current_user.tenant_id:
+    if not current_user.current_tenant_id:
         raise HTTPException(
             status_code=400,
             detail="User does not belong to a tenant"
@@ -303,7 +303,7 @@ async def list_tenant_activity_logs(
     query = db.query(AuditLog)
 
     # IMPORTANT: Always filter by tenant_id for security
-    query = query.filter(AuditLog.tenant_id == current_user.tenant_id)
+    query = query.filter(AuditLog.tenant_id == current_user.current_tenant_id)
 
     # Apply additional filters
     if action:
@@ -369,7 +369,7 @@ async def get_tenant_activity_stats(
             detail="Clients cannot access activity stats"
         )
 
-    if not current_user.tenant_id:
+    if not current_user.current_tenant_id:
         raise HTTPException(
             status_code=400,
             detail="User does not belong to a tenant"
@@ -378,7 +378,7 @@ async def get_tenant_activity_stats(
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
 
     # All queries filtered by tenant_id
-    tenant_filter = AuditLog.tenant_id == current_user.tenant_id
+    tenant_filter = AuditLog.tenant_id == current_user.current_tenant_id
 
     # Total logs for this tenant
     total_logs = db.query(func.count(AuditLog.id)).filter(tenant_filter).scalar()

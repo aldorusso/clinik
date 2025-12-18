@@ -200,7 +200,7 @@ async def list_leads(
     - recepcionista: All leads in tenant
     """
     # Base query with tenant filtering
-    query = db.query(LeadModel).filter(LeadModel.tenant_id == current_user.tenant_id)
+    query = db.query(LeadModel).filter(LeadModel.tenant_id == current_user.current_tenant_id)
     
     # Role-based filtering
     if current_user.role in [UserRole.medico, UserRole.closer]:
@@ -258,7 +258,7 @@ async def create_lead(
     if lead_in.service_interest_id:
         service = db.query(Service).filter(
             Service.id == lead_in.service_interest_id,
-            Service.tenant_id == current_user.tenant_id
+            Service.tenant_id == current_user.current_tenant_id
         ).first()
         if not service:
             raise HTTPException(
@@ -268,7 +268,7 @@ async def create_lead(
     
     # Create lead
     lead_data = lead_in.model_dump()
-    lead_data['tenant_id'] = current_user.tenant_id
+    lead_data['tenant_id'] = current_user.current_tenant_id
     lead_data['status'] = LeadStatus.nuevo
     lead_data['is_active'] = True
     lead_data['is_duplicate'] = False
@@ -296,7 +296,7 @@ async def get_lead(
     """Get lead by ID"""
     lead = db.query(LeadModel).filter(
         LeadModel.id == lead_id,
-        LeadModel.tenant_id == current_user.tenant_id
+        LeadModel.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not lead:
@@ -331,7 +331,7 @@ async def update_lead(
     """Update lead by ID"""
     lead = db.query(LeadModel).filter(
         LeadModel.id == lead_id,
-        LeadModel.tenant_id == current_user.tenant_id
+        LeadModel.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not lead:
@@ -353,7 +353,7 @@ async def update_lead(
     if 'service_interest_id' in update_data and update_data['service_interest_id']:
         service = db.query(Service).filter(
             Service.id == update_data['service_interest_id'],
-            Service.tenant_id == current_user.tenant_id
+            Service.tenant_id == current_user.current_tenant_id
         ).first()
         if not service:
             raise HTTPException(
@@ -396,7 +396,7 @@ async def delete_lead(
         )
     lead = db.query(LeadModel).filter(
         LeadModel.id == lead_id,
-        LeadModel.tenant_id == current_user.tenant_id
+        LeadModel.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not lead:
@@ -436,7 +436,7 @@ async def assign_lead(
     # Get lead
     lead = db.query(LeadModel).filter(
         LeadModel.id == lead_id,
-        LeadModel.tenant_id == current_user.tenant_id
+        LeadModel.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not lead:
@@ -448,7 +448,7 @@ async def assign_lead(
     # Validate assigned user
     assigned_user = db.query(User).filter(
         User.id == assignment.assigned_to_id,
-        User.tenant_id == current_user.tenant_id,
+        User.tenant_id == current_user.current_tenant_id,
         User.is_active == True
     ).first()
     
@@ -500,7 +500,7 @@ async def unassign_lead(
     """
     lead = db.query(LeadModel).filter(
         LeadModel.id == lead_id,
-        LeadModel.tenant_id == current_user.tenant_id
+        LeadModel.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not lead:
@@ -542,7 +542,7 @@ async def update_lead_status(
     """Update lead status with notes"""
     lead = db.query(LeadModel).filter(
         LeadModel.id == lead_id,
-        LeadModel.tenant_id == current_user.tenant_id
+        LeadModel.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not lead:
@@ -604,7 +604,7 @@ async def list_lead_interactions(
     # Verify lead access
     lead = db.query(LeadModel).filter(
         LeadModel.id == lead_id,
-        LeadModel.tenant_id == current_user.tenant_id
+        LeadModel.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not lead:
@@ -651,7 +651,7 @@ async def create_lead_interaction(
     # Verify lead access
     lead = db.query(LeadModel).filter(
         LeadModel.id == lead_id,
-        LeadModel.tenant_id == current_user.tenant_id
+        LeadModel.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not lead:
@@ -709,7 +709,7 @@ async def get_lead_stats(
     """Get lead statistics overview"""
     # Base query with tenant filtering
     base_query = db.query(LeadModel).filter(
-        LeadModel.tenant_id == current_user.tenant_id,
+        LeadModel.tenant_id == current_user.current_tenant_id,
         LeadModel.is_active == True
     )
     
@@ -808,7 +808,7 @@ async def get_lead_funnel_stats(
     """Get lead funnel conversion statistics"""
     # Base query with tenant filtering
     base_query = db.query(LeadModel).filter(
-        LeadModel.tenant_id == current_user.tenant_id,
+        LeadModel.tenant_id == current_user.current_tenant_id,
         LeadModel.is_active == True
     )
     
@@ -863,7 +863,7 @@ async def get_lead_source_performance(
     """Get performance statistics by lead source"""
     # Base query with tenant filtering
     base_query = db.query(LeadModel).filter(
-        LeadModel.tenant_id == current_user.tenant_id,
+        LeadModel.tenant_id == current_user.current_tenant_id,
         LeadModel.is_active == True
     )
     
@@ -961,7 +961,7 @@ async def convert_lead_to_patient(
         existing_user = db.query(User).filter(User.email == lead.email).first()
         if existing_user:
             # If user already exists, link it as patient
-            if existing_user.tenant_id != current_user.tenant_id:
+            if existing_user.tenant_id != current_user.current_tenant_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Ya existe un usuario con este email en otro tenant"
@@ -988,7 +988,7 @@ async def convert_lead_to_patient(
                 full_name=lead.full_name,
                 phone=lead.phone,
                 role=UserRole.patient,  # Patients now have dedicated patient role
-                tenant_id=current_user.tenant_id,
+                tenant_id=current_user.current_tenant_id,
                 is_active=True
             )
             

@@ -36,8 +36,12 @@ class TenantCreate(TenantBase):
 
 # Schema for creating a tenant with its first admin
 class TenantCreateWithAdmin(TenantBase):
-    admin_email: EmailStr
-    admin_password: str = Field(..., min_length=6)
+    # Opción 1: Usuario existente (solo se necesita el ID)
+    existing_admin_id: Optional[UUID] = Field(None, description="ID de usuario existente para asignar como admin")
+
+    # Opción 2: Crear usuario nuevo (se requieren estos campos)
+    admin_email: Optional[EmailStr] = Field(None, description="Email para crear nuevo admin")
+    admin_password: Optional[str] = Field(None, min_length=6, description="Password para nuevo admin")
     admin_first_name: Optional[str] = None
     admin_last_name: Optional[str] = None
 

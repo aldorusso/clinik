@@ -53,6 +53,14 @@ class Tenant(Base):
     # Relationships
     users = relationship("User", back_populates="tenant", lazy="dynamic")
     notifications = relationship("Notification", back_populates="tenant", cascade="all, delete-orphan")
+
+    # Membresías de usuarios en este tenant
+    memberships = relationship(
+        "TenantMembership",
+        back_populates="tenant",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )
     
     # Lead Management System Relationships
     leads = relationship("Lead", back_populates="tenant", cascade="all, delete-orphan")

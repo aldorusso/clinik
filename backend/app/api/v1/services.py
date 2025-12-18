@@ -35,7 +35,7 @@ async def get_service_categories(
     Accessible by all tenant members.
     """
     query = db.query(ServiceCategory).filter(
-        ServiceCategory.tenant_id == current_user.tenant_id
+        ServiceCategory.tenant_id == current_user.current_tenant_id
     )
     
     if active_only:
@@ -57,7 +57,7 @@ async def create_service_category(
     """
     # Check if category name already exists in this tenant
     existing = db.query(ServiceCategory).filter(
-        ServiceCategory.tenant_id == current_user.tenant_id,
+        ServiceCategory.tenant_id == current_user.current_tenant_id,
         ServiceCategory.name == category_in.name
     ).first()
     
@@ -68,7 +68,7 @@ async def create_service_category(
         )
     
     category = ServiceCategory(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         name=category_in.name,
         description=category_in.description,
         icon=category_in.icon,
@@ -97,7 +97,7 @@ async def update_service_category(
     """
     category = db.query(ServiceCategory).filter(
         ServiceCategory.id == category_id,
-        ServiceCategory.tenant_id == current_user.tenant_id
+        ServiceCategory.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not category:
@@ -126,7 +126,7 @@ async def delete_service_category(
     """
     category = db.query(ServiceCategory).filter(
         ServiceCategory.id == category_id,
-        ServiceCategory.tenant_id == current_user.tenant_id
+        ServiceCategory.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not category:
@@ -166,7 +166,7 @@ async def get_services(
     query = db.query(Service).options(
         joinedload(Service.category)
     ).filter(
-        Service.tenant_id == current_user.tenant_id
+        Service.tenant_id == current_user.current_tenant_id
     )
     
     # Apply filters
@@ -218,7 +218,7 @@ async def get_service(
         joinedload(Service.category)
     ).filter(
         Service.id == service_id,
-        Service.tenant_id == current_user.tenant_id
+        Service.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not service:
@@ -240,7 +240,7 @@ async def create_service(
     # Verify category exists and belongs to tenant
     category = db.query(ServiceCategory).filter(
         ServiceCategory.id == service_in.category_id,
-        ServiceCategory.tenant_id == current_user.tenant_id
+        ServiceCategory.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not category:
@@ -248,7 +248,7 @@ async def create_service(
     
     # Check if service name already exists in this tenant
     existing = db.query(Service).filter(
-        Service.tenant_id == current_user.tenant_id,
+        Service.tenant_id == current_user.current_tenant_id,
         Service.name == service_in.name
     ).first()
     
@@ -261,7 +261,7 @@ async def create_service(
     # Create service
     service_data = service_in.model_dump()
     service = Service(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         **service_data
     )
     
@@ -285,7 +285,7 @@ async def update_service(
     """
     service = db.query(Service).filter(
         Service.id == service_id,
-        Service.tenant_id == current_user.tenant_id
+        Service.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not service:
@@ -295,7 +295,7 @@ async def update_service(
     if service_in.category_id:
         category = db.query(ServiceCategory).filter(
             ServiceCategory.id == service_in.category_id,
-            ServiceCategory.tenant_id == current_user.tenant_id
+            ServiceCategory.tenant_id == current_user.current_tenant_id
         ).first()
         
         if not category:
@@ -324,7 +324,7 @@ async def delete_service(
     """
     service = db.query(Service).filter(
         Service.id == service_id,
-        Service.tenant_id == current_user.tenant_id
+        Service.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not service:

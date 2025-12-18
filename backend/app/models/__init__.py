@@ -2,6 +2,7 @@
 from app.db.session import Base
 from app.models.tenant import Tenant
 from app.models.user import User, UserRole
+from app.models.tenant_membership import TenantMembership
 from app.models.email_template import EmailTemplate, EmailTemplateType
 from app.models.plan import Plan
 from app.models.system_config import SystemConfig
@@ -46,6 +47,7 @@ __all__ = [
     "Tenant",
     "User",
     "UserRole",
+    "TenantMembership",
     "EmailTemplate",
     "EmailTemplateType",
     "Plan",

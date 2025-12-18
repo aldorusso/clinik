@@ -12,6 +12,7 @@ class EmailTemplateType(str, enum.Enum):
     WELCOME = "welcome"
     NOTIFICATION = "notification"
     USER_INVITATION = "user_invitation"
+    EXISTING_USER_INVITATION = "existing_user_invitation"  # For users that already have an account
 
 
 class EmailTemplate(Base):

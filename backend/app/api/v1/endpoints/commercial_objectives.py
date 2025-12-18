@@ -68,7 +68,7 @@ async def get_objectives(
     query = db.query(CommercialObjective).options(
         joinedload(CommercialObjective.commercial),
         joinedload(CommercialObjective.created_by)
-    ).filter(CommercialObjective.tenant_id == current_user.tenant_id)
+    ).filter(CommercialObjective.tenant_id == current_user.current_tenant_id)
     
     # Role-based filtering
     if current_user.role == UserRole.closer:
@@ -178,7 +178,7 @@ async def get_objective(
         joinedload(CommercialObjective.created_by)
     ).filter(
         CommercialObjective.id == objective_id,
-        CommercialObjective.tenant_id == current_user.tenant_id
+        CommercialObjective.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not objective:
@@ -247,7 +247,7 @@ async def create_objective(
     # Verify commercial exists and belongs to tenant
     commercial = db.query(User).filter(
         User.id == objective_in.commercial_id,
-        User.tenant_id == current_user.tenant_id,
+        User.tenant_id == current_user.current_tenant_id,
         User.role == UserRole.closer
     ).first()
     
@@ -257,7 +257,7 @@ async def create_objective(
     # Create objective
     objective_data = objective_in.model_dump()
     objective = CommercialObjective(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         created_by_id=current_user.id,
         **objective_data
     )
@@ -328,7 +328,7 @@ async def update_objective(
     """
     objective = db.query(CommercialObjective).filter(
         CommercialObjective.id == objective_id,
-        CommercialObjective.tenant_id == current_user.tenant_id
+        CommercialObjective.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not objective:
@@ -410,7 +410,7 @@ async def delete_objective(
     """
     objective = db.query(CommercialObjective).filter(
         CommercialObjective.id == objective_id,
-        CommercialObjective.tenant_id == current_user.tenant_id
+        CommercialObjective.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not objective:
@@ -440,7 +440,7 @@ async def get_objective_progress(
     # Verify objective exists and user has access
     objective = db.query(CommercialObjective).filter(
         CommercialObjective.id == objective_id,
-        CommercialObjective.tenant_id == current_user.tenant_id
+        CommercialObjective.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not objective:
@@ -481,7 +481,7 @@ async def add_objective_progress(
     # Get objective
     objective = db.query(CommercialObjective).filter(
         CommercialObjective.id == objective_id,
-        CommercialObjective.tenant_id == current_user.tenant_id
+        CommercialObjective.tenant_id == current_user.current_tenant_id
     ).first()
     
     if not objective:
@@ -559,7 +559,7 @@ async def get_commercial_dashboard(
     # Verify commercial exists
     commercial = db.query(User).filter(
         User.id == target_commercial_id,
-        User.tenant_id == current_user.tenant_id,
+        User.tenant_id == current_user.current_tenant_id,
         User.role == UserRole.closer
     ).first()
     
@@ -668,14 +668,14 @@ async def get_admin_objectives_dashboard(
     """
     # Get total commercials
     total_commercials = db.query(func.count(User.id)).filter(
-        User.tenant_id == current_user.tenant_id,
+        User.tenant_id == current_user.current_tenant_id,
         User.role == UserRole.closer,
         User.is_active == True
     ).scalar()
     
     # Get total active objectives
     total_active_objectives = db.query(func.count(CommercialObjective.id)).filter(
-        CommercialObjective.tenant_id == current_user.tenant_id,
+        CommercialObjective.tenant_id == current_user.current_tenant_id,
         CommercialObjective.is_active == True,
         CommercialObjective.status == ObjectiveStatus.active
     ).scalar()
@@ -685,7 +685,7 @@ async def get_admin_objectives_dashboard(
         joinedload(CommercialObjective.commercial),
         joinedload(CommercialObjective.created_by)
     ).filter(
-        CommercialObjective.tenant_id == current_user.tenant_id,
+        CommercialObjective.tenant_id == current_user.current_tenant_id,
         CommercialObjective.end_date < datetime.utcnow(),
         CommercialObjective.status.in_([ObjectiveStatus.active, ObjectiveStatus.overdue])
     ).all()
@@ -739,7 +739,7 @@ async def get_admin_objectives_dashboard(
     objectives_by_status = {}
     for status_value in ObjectiveStatus:
         count = db.query(func.count(CommercialObjective.id)).filter(
-            CommercialObjective.tenant_id == current_user.tenant_id,
+            CommercialObjective.tenant_id == current_user.current_tenant_id,
             CommercialObjective.status == status_value
         ).scalar()
         objectives_by_status[status_value.value] = count or 0
@@ -748,7 +748,7 @@ async def get_admin_objectives_dashboard(
     objectives_by_type = {}
     for type_value in ObjectiveType:
         count = db.query(func.count(CommercialObjective.id)).filter(
-            CommercialObjective.tenant_id == current_user.tenant_id,
+            CommercialObjective.tenant_id == current_user.current_tenant_id,
             CommercialObjective.type == type_value
         ).scalar()
         objectives_by_type[type_value.value] = count or 0
@@ -790,7 +790,7 @@ async def get_objective_templates(
     query = db.query(ObjectiveTemplate).options(
         joinedload(ObjectiveTemplate.created_by)
     ).filter(
-        ObjectiveTemplate.tenant_id == current_user.tenant_id
+        ObjectiveTemplate.tenant_id == current_user.current_tenant_id
     )
     
     if is_active is not None:
@@ -812,7 +812,7 @@ async def create_objective_template(
     """
     template_data = template_in.model_dump()
     template = ObjectiveTemplate(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         created_by_id=current_user.id,
         **template_data
     )

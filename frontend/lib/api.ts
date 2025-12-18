@@ -5,9 +5,64 @@ export interface LoginCredentials {
   password: string;
 }
 
+// Legacy simple login response
+export interface LoginResponseSimple {
+  access_token: string;
+  token_type: string;
+}
+
+// Multi-tenant available tenant for selection
+export interface AvailableTenant {
+  membership_id: string;
+  tenant_id: string;
+  tenant_name: string;
+  tenant_slug: string;
+  tenant_logo?: string;
+  role: UserRole;
+  is_default: boolean;
+  last_access_at?: string;
+}
+
+// Multi-tenant login response
 export interface LoginResponse {
   access_token: string;
   token_type: string;
+  requires_tenant_selection: boolean;
+  available_tenants: AvailableTenant[];
+  user_id?: string;
+  email?: string;
+  is_superadmin: boolean;
+  selected_tenant_id?: string;
+  selected_role?: UserRole;
+}
+
+// Select tenant request/response
+export interface SelectTenantRequest {
+  tenant_id: string;
+}
+
+export interface SelectTenantResponse {
+  access_token: string;
+  token_type: string;
+  tenant_id: string;
+  tenant_name: string;
+  role: UserRole;
+}
+
+// My tenants response (for tenant switcher)
+export interface MyTenantsResponse {
+  is_superadmin: boolean;
+  tenants: Array<{
+    membership_id: string;
+    tenant_id: string;
+    tenant_name: string;
+    tenant_slug: string;
+    tenant_logo?: string;
+    role: string;
+    is_default: boolean;
+    is_current: boolean;
+  }>;
+  current_tenant_id?: string;
 }
 
 export interface ForgotPasswordRequest {
@@ -273,8 +328,12 @@ export interface TenantCreate {
 }
 
 export interface TenantCreateWithAdmin extends TenantCreate {
-  admin_email: string;
-  admin_password: string;
+  // Option 1: Use existing user (only need ID)
+  existing_admin_id?: string;
+
+  // Option 2: Create new user (need email + password)
+  admin_email?: string;
+  admin_password?: string;
   admin_first_name?: string;
   admin_last_name?: string;
 }
@@ -364,6 +423,60 @@ export const api = {
 
     if (!response.ok) {
       throw new Error('Token refresh failed');
+    }
+
+    return response.json();
+  },
+
+  // ============================================
+  // Multi-Tenant Endpoints
+  // ============================================
+
+  async selectTenant(token: string, tenantId: string): Promise<SelectTenantResponse> {
+    const response = await fetch(`${API_URL}/api/v1/auth/select-tenant`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tenant_id: tenantId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Error al seleccionar organización');
+    }
+
+    return response.json();
+  },
+
+  async switchTenant(token: string, tenantId: string): Promise<SelectTenantResponse> {
+    const response = await fetch(`${API_URL}/api/v1/auth/switch-tenant`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tenant_id: tenantId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Error al cambiar de organización');
+    }
+
+    return response.json();
+  },
+
+  async getMyTenants(token: string): Promise<MyTenantsResponse> {
+    const response = await fetch(`${API_URL}/api/v1/auth/my-tenants`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener organizaciones');
     }
 
     return response.json();
@@ -676,6 +789,24 @@ export const api = {
     return response.json();
   },
 
+  async getUsersAvailableForAdmin(token: string, search?: string): Promise<User[]> {
+    const searchParams = new URLSearchParams();
+    if (search) searchParams.append('search', search);
+
+    const url = `${API_URL}/api/v1/users/available-for-admin${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch available users');
+    }
+
+    return response.json();
+  },
+
   async getTenantUsers(token: string, tenantId: string, role?: UserRole): Promise<User[]> {
     const searchParams = new URLSearchParams();
     if (role) searchParams.append('role', role);
@@ -882,7 +1013,25 @@ export const api = {
     return response.json();
   },
 
-  async acceptInvitation(data: { token: string; password: string; first_name?: string; last_name?: string; phone?: string }): Promise<User> {
+  async getInvitationInfo(token: string): Promise<{
+    is_valid: boolean;
+    is_existing_user: boolean;
+    tenant_name?: string;
+    role?: string;
+    inviter_name?: string;
+    user_email?: string;
+    requires_password: boolean;
+  }> {
+    const response = await fetch(`${API_URL}/api/v1/auth/invitation-info/${token}`);
+
+    if (!response.ok) {
+      return { is_valid: false, is_existing_user: false, requires_password: true };
+    }
+
+    return response.json();
+  },
+
+  async acceptInvitation(data: { token: string; password?: string; first_name?: string; last_name?: string; phone?: string }): Promise<User> {
     const response = await fetch(`${API_URL}/api/v1/auth/accept-invitation`, {
       method: 'POST',
       headers: {

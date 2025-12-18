@@ -132,7 +132,7 @@ class UserInvite(BaseModel):
 # Schema for accepting an invitation
 class AcceptInvitation(BaseModel):
     token: str = Field(..., description="Invitation token from email")
-    password: str = Field(..., min_length=6)
+    password: Optional[str] = Field(None, min_length=6, description="Required for new users, optional for existing users")
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None

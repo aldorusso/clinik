@@ -225,7 +225,7 @@ async def send_invitation_email(
     role: str
 ):
     """
-    Send invitation email to join a tenant.
+    Send invitation email to join a tenant (for NEW users who need to create an account).
 
     Args:
         db: Database session
@@ -275,6 +275,72 @@ async def send_invitation_email(
         <p><a href="{invitation_link}">{invitation_link}</a></p>
         <p><strong>Esta invitación expirará en 72 horas.</strong></p>
         """
+
+    await send_email(
+        email_to=email_to,
+        subject=subject,
+        html_content=html_content
+    )
+
+
+async def send_existing_user_invitation_email(
+    db: Session,
+    email_to: EmailStr,
+    invitation_token: str,
+    inviter_name: str,
+    tenant_name: str,
+    role: str,
+    user_name: str = None
+):
+    """
+    Send invitation email to join a tenant for EXISTING users who already have an account.
+    The email acknowledges they have an account and can use their existing credentials.
+
+    Args:
+        db: Database session
+        email_to: Invitee email address
+        invitation_token: Unique invitation token
+        inviter_name: Name of the person sending the invitation
+        tenant_name: Name of the tenant/organization
+        role: Role being offered
+        user_name: User's name (optional)
+    """
+    from datetime import datetime
+
+    # Try to get template from database
+    template = await get_email_template_from_db(db, EmailTemplateType.EXISTING_USER_INVITATION)
+
+    # Build invitation link - same page but user already has account
+    invitation_link = f"{settings.FRONTEND_URL}/accept-invitation?token={invitation_token}"
+
+    # Role translation
+    role_translations = {
+        "tenant_admin": "Administrador",
+        "manager": "Manager",
+        "medico": "Médico",
+        "closer": "Closer/Comercial",
+        "recepcionista": "Recepcionista"
+    }
+    role_display = role_translations.get(role, role)
+
+    # Prepare context
+    context = {
+        "project_name": settings.PROJECT_NAME,
+        "inviter_name": inviter_name,
+        "tenant_name": tenant_name,
+        "role": role_display,
+        "invitation_link": invitation_link,
+        "user_name": user_name,
+        "current_year": datetime.now().year
+    }
+
+    if template:
+        # Use database template
+        subject, html_content = await render_email_template(template, context)
+    else:
+        # Fallback to hardcoded template
+        subject = f"Te han invitado a unirte a {tenant_name}"
+        html_content = get_default_existing_user_invitation_template(context)
 
     await send_email(
         email_to=email_to,
@@ -492,6 +558,112 @@ def get_default_notification_template(context: dict) -> str:
             </div>
 
             <div class="footer">
+                <p>&copy; {{ project_name }} - {{ current_year }}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    template = Template(html)
+    return template.render(**context)
+
+
+def get_default_existing_user_invitation_template(context: dict) -> str:
+    """Get default template for existing user invitations."""
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .container {
+                background-color: #f9f9f9;
+                border-radius: 10px;
+                padding: 30px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .header {
+                text-align: center;
+                color: #4a5568;
+                margin-bottom: 30px;
+            }
+            .button {
+                display: inline-block;
+                padding: 14px 35px;
+                background-color: #4299e1;
+                color: white !important;
+                text-decoration: none;
+                border-radius: 5px;
+                margin: 20px 0;
+                font-weight: bold;
+            }
+            .info-box {
+                background-color: #e6fffa;
+                border: 1px solid #38b2ac;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 20px 0;
+            }
+            .info-box-title {
+                color: #234e52;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            .footer {
+                margin-top: 30px;
+                text-align: center;
+                font-size: 12px;
+                color: #718096;
+            }
+            .highlight {
+                background-color: #fef3c7;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>{{ project_name }}</h1>
+                <h2>Nueva invitación a organización</h2>
+            </div>
+
+            {% if user_name %}
+            <p>Hola {{ user_name }},</p>
+            {% else %}
+            <p>Hola,</p>
+            {% endif %}
+
+            <p><strong>{{ inviter_name }}</strong> te ha invitado a unirte a <strong>{{ tenant_name }}</strong> como <strong>{{ role }}</strong>.</p>
+
+            <div class="info-box">
+                <div class="info-box-title">✓ Ya tienes una cuenta en {{ project_name }}</div>
+                <p style="margin: 5px 0 0 0;">Puedes usar tus credenciales existentes para aceptar esta invitación. No necesitas crear una cuenta nueva.</p>
+            </div>
+
+            <p>Al aceptar, tendrás acceso a <strong>{{ tenant_name }}</strong> además de las organizaciones en las que ya participas.</p>
+
+            <div style="text-align: center;">
+                <a href="{{ invitation_link }}" class="button" style="color: white !important;">Aceptar invitación</a>
+            </div>
+
+            <p style="font-size: 14px; color: #718096;">O copia y pega el siguiente enlace en tu navegador:</p>
+            <p style="word-break: break-all; font-size: 12px; background: #edf2f7; padding: 10px; border-radius: 5px;">{{ invitation_link }}</p>
+
+            <p><strong>⏱️ Esta invitación expirará en 72 horas.</strong></p>
+
+            <p style="font-size: 13px; color: #718096;">Si no reconoces a quien te invitó o no deseas unirte, simplemente ignora este correo.</p>
+
+            <div class="footer">
+                <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
                 <p>&copy; {{ project_name }} - {{ current_year }}</p>
             </div>
         </div>

@@ -52,7 +52,7 @@ async def get_inventory_categories(
     """Obtener categorías de inventario del tenant actual"""
     
     query = db.query(InventoryCategory).filter(
-        InventoryCategory.tenant_id == current_user.tenant_id
+        InventoryCategory.tenant_id == current_user.current_tenant_id
     )
     
     if is_active is not None:
@@ -81,7 +81,7 @@ async def create_inventory_category(
     # Verificar si ya existe una categoría con el mismo nombre
     existing = db.query(InventoryCategory).filter(
         and_(
-            InventoryCategory.tenant_id == current_user.tenant_id,
+            InventoryCategory.tenant_id == current_user.current_tenant_id,
             InventoryCategory.name == category.name
         )
     ).first()
@@ -93,7 +93,7 @@ async def create_inventory_category(
         )
     
     db_category = InventoryCategory(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         **category.model_dump()
     )
     db.add(db_category)
@@ -114,7 +114,7 @@ async def update_inventory_category(
     db_category = db.query(InventoryCategory).filter(
         and_(
             InventoryCategory.id == category_id,
-            InventoryCategory.tenant_id == current_user.tenant_id
+            InventoryCategory.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -125,7 +125,7 @@ async def update_inventory_category(
     if category.name and category.name != db_category.name:
         existing = db.query(InventoryCategory).filter(
             and_(
-                InventoryCategory.tenant_id == current_user.tenant_id,
+                InventoryCategory.tenant_id == current_user.current_tenant_id,
                 InventoryCategory.name == category.name,
                 InventoryCategory.id != category_id
             )
@@ -166,7 +166,7 @@ async def get_inventory_products(
     query = db.query(InventoryProduct).options(
         joinedload(InventoryProduct.category)
     ).filter(
-        InventoryProduct.tenant_id == current_user.tenant_id
+        InventoryProduct.tenant_id == current_user.current_tenant_id
     )
     
     if category_id:
@@ -251,7 +251,7 @@ async def get_inventory_product(
     ).filter(
         and_(
             InventoryProduct.id == product_id,
-            InventoryProduct.tenant_id == current_user.tenant_id
+            InventoryProduct.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -310,7 +310,7 @@ async def create_inventory_product(
     category = db.query(InventoryCategory).filter(
         and_(
             InventoryCategory.id == product.category_id,
-            InventoryCategory.tenant_id == current_user.tenant_id
+            InventoryCategory.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -321,7 +321,7 @@ async def create_inventory_product(
     if product.sku:
         existing_sku = db.query(InventoryProduct).filter(
             and_(
-                InventoryProduct.tenant_id == current_user.tenant_id,
+                InventoryProduct.tenant_id == current_user.current_tenant_id,
                 InventoryProduct.sku == product.sku
             )
         ).first()
@@ -333,7 +333,7 @@ async def create_inventory_product(
             )
     
     db_product = InventoryProduct(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         **product.model_dump()
     )
     db.add(db_product)
@@ -343,7 +343,7 @@ async def create_inventory_product(
     # Crear movimiento inicial de entrada si hay stock
     if db_product.current_stock > 0:
         movement = InventoryMovement(
-            tenant_id=current_user.tenant_id,
+            tenant_id=current_user.current_tenant_id,
             product_id=db_product.id,
             movement_type=MovementType.IN_ADJUSTMENT,
             quantity=db_product.current_stock,
@@ -371,7 +371,7 @@ async def update_inventory_product(
     db_product = db.query(InventoryProduct).filter(
         and_(
             InventoryProduct.id == product_id,
-            InventoryProduct.tenant_id == current_user.tenant_id
+            InventoryProduct.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -383,7 +383,7 @@ async def update_inventory_product(
         category = db.query(InventoryCategory).filter(
             and_(
                 InventoryCategory.id == product.category_id,
-                InventoryCategory.tenant_id == current_user.tenant_id
+                InventoryCategory.tenant_id == current_user.current_tenant_id
             )
         ).first()
         
@@ -394,7 +394,7 @@ async def update_inventory_product(
     if product.sku and product.sku != db_product.sku:
         existing_sku = db.query(InventoryProduct).filter(
             and_(
-                InventoryProduct.tenant_id == current_user.tenant_id,
+                InventoryProduct.tenant_id == current_user.current_tenant_id,
                 InventoryProduct.sku == product.sku,
                 InventoryProduct.id != product_id
             )
@@ -428,7 +428,7 @@ async def update_product_stock(
     db_product = db.query(InventoryProduct).filter(
         and_(
             InventoryProduct.id == product_id,
-            InventoryProduct.tenant_id == current_user.tenant_id
+            InventoryProduct.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -452,7 +452,7 @@ async def update_product_stock(
     
     # Crear movimiento de inventario
     movement = InventoryMovement(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         product_id=product_id,
         movement_type=stock_update.movement_type,
         quantity=quantity_change,
@@ -495,7 +495,7 @@ async def get_inventory_movements(
     query = db.query(InventoryMovement).options(
         joinedload(InventoryMovement.product)
     ).filter(
-        InventoryMovement.tenant_id == current_user.tenant_id
+        InventoryMovement.tenant_id == current_user.current_tenant_id
     )
     
     if product_id:
@@ -533,7 +533,7 @@ async def get_inventory_alerts(
     query = db.query(InventoryAlert).options(
         joinedload(InventoryAlert.product)
     ).filter(
-        InventoryAlert.tenant_id == current_user.tenant_id
+        InventoryAlert.tenant_id == current_user.current_tenant_id
     )
     
     if is_active is not None:
@@ -560,7 +560,7 @@ async def acknowledge_alert(
     alert = db.query(InventoryAlert).filter(
         and_(
             InventoryAlert.id == alert_id,
-            InventoryAlert.tenant_id == current_user.tenant_id
+            InventoryAlert.tenant_id == current_user.current_tenant_id
         )
     ).first()
     
@@ -589,21 +589,21 @@ async def get_inventory_stats(
     # Estadísticas básicas
     total_products = db.query(func.count(InventoryProduct.id)).filter(
         and_(
-            InventoryProduct.tenant_id == current_user.tenant_id,
+            InventoryProduct.tenant_id == current_user.current_tenant_id,
             InventoryProduct.is_active == True
         )
     ).scalar() or 0
     
     total_categories = db.query(func.count(InventoryCategory.id)).filter(
         and_(
-            InventoryCategory.tenant_id == current_user.tenant_id,
+            InventoryCategory.tenant_id == current_user.current_tenant_id,
             InventoryCategory.is_active == True
         )
     ).scalar() or 0
     
     products_low_stock = db.query(func.count(InventoryProduct.id)).filter(
         and_(
-            InventoryProduct.tenant_id == current_user.tenant_id,
+            InventoryProduct.tenant_id == current_user.current_tenant_id,
             InventoryProduct.current_stock <= InventoryProduct.minimum_stock,
             InventoryProduct.is_active == True
         )
@@ -611,7 +611,7 @@ async def get_inventory_stats(
     
     products_out_of_stock = db.query(func.count(InventoryProduct.id)).filter(
         and_(
-            InventoryProduct.tenant_id == current_user.tenant_id,
+            InventoryProduct.tenant_id == current_user.current_tenant_id,
             InventoryProduct.current_stock == 0,
             InventoryProduct.is_active == True
         )
@@ -623,7 +623,7 @@ async def get_inventory_stats(
     
     products_expired = db.query(func.count(InventoryProduct.id)).filter(
         and_(
-            InventoryProduct.tenant_id == current_user.tenant_id,
+            InventoryProduct.tenant_id == current_user.current_tenant_id,
             InventoryProduct.expiration_date < now,
             InventoryProduct.is_active == True
         )
@@ -631,7 +631,7 @@ async def get_inventory_stats(
     
     products_expiring_soon = db.query(func.count(InventoryProduct.id)).filter(
         and_(
-            InventoryProduct.tenant_id == current_user.tenant_id,
+            InventoryProduct.tenant_id == current_user.current_tenant_id,
             InventoryProduct.expiration_date.between(now, next_week),
             InventoryProduct.is_active == True
         )
@@ -642,7 +642,7 @@ async def get_inventory_stats(
         func.sum(InventoryProduct.current_stock * InventoryProduct.cost_per_unit)
     ).filter(
         and_(
-            InventoryProduct.tenant_id == current_user.tenant_id,
+            InventoryProduct.tenant_id == current_user.current_tenant_id,
             InventoryProduct.is_active == True,
             InventoryProduct.cost_per_unit.isnot(None)
         )
@@ -657,7 +657,7 @@ async def get_inventory_stats(
         InventoryMovement
     ).filter(
         and_(
-            InventoryProduct.tenant_id == current_user.tenant_id,
+            InventoryProduct.tenant_id == current_user.current_tenant_id,
             InventoryMovement.movement_type == MovementType.OUT_USAGE,
             InventoryMovement.created_at >= thirty_days_ago
         )
@@ -676,7 +676,7 @@ async def get_inventory_stats(
     recent_movements_query = db.query(InventoryMovement).options(
         joinedload(InventoryMovement.product)
     ).filter(
-        InventoryMovement.tenant_id == current_user.tenant_id
+        InventoryMovement.tenant_id == current_user.current_tenant_id
     ).order_by(
         desc(InventoryMovement.created_at)
     ).limit(10).all()
@@ -716,7 +716,7 @@ async def get_low_stock_alerts(
         joinedload(InventoryProduct.category)
     ).filter(
         and_(
-            InventoryProduct.tenant_id == current_user.tenant_id,
+            InventoryProduct.tenant_id == current_user.current_tenant_id,
             InventoryProduct.current_stock <= InventoryProduct.minimum_stock,
             InventoryProduct.is_active == True
         )

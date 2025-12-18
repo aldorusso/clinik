@@ -67,7 +67,7 @@ async def get_appointments(
         joinedload(Appointment.patient),
         joinedload(Appointment.lead)
     ).filter(
-        Appointment.tenant_id == current_user.tenant_id
+        Appointment.tenant_id == current_user.current_tenant_id
     )
     
     # Si el usuario es médico, solo mostrar sus citas
@@ -179,7 +179,7 @@ async def create_appointment(
     # Verificar que el proveedor pertenece al mismo tenant
     provider = db.query(User).filter(
         User.id == appointment_data.provider_id,
-        User.tenant_id == current_user.tenant_id,
+        User.tenant_id == current_user.current_tenant_id,
         User.role.in_(["tenant_admin", "manager", "medico", "closer", "recepcionista"])
     ).first()
     
@@ -194,7 +194,7 @@ async def create_appointment(
     if appointment_data.service_id:
         service = db.query(Service).filter(
             Service.id == appointment_data.service_id,
-            Service.tenant_id == current_user.tenant_id,
+            Service.tenant_id == current_user.current_tenant_id,
             Service.is_active == True
         ).first()
         
@@ -223,7 +223,7 @@ async def create_appointment(
     
     # Crear la cita
     appointment = Appointment(
-        tenant_id=current_user.tenant_id,
+        tenant_id=current_user.current_tenant_id,
         **appointment_data.model_dump()
     )
     
@@ -277,7 +277,7 @@ async def get_appointment(
         joinedload(Appointment.cancelled_by)
     ).filter(
         Appointment.id == appointment_id,
-        Appointment.tenant_id == current_user.tenant_id
+        Appointment.tenant_id == current_user.current_tenant_id
     )
     
     # Si el usuario es médico, solo puede ver sus propias citas
@@ -334,7 +334,7 @@ async def update_appointment(
     
     query = db.query(Appointment).filter(
         Appointment.id == appointment_id,
-        Appointment.tenant_id == current_user.tenant_id
+        Appointment.tenant_id == current_user.current_tenant_id
     )
     
     # Si el usuario es médico, solo puede editar sus propias citas
@@ -403,7 +403,7 @@ async def update_appointment_status(
     
     query = db.query(Appointment).filter(
         Appointment.id == appointment_id,
-        Appointment.tenant_id == current_user.tenant_id
+        Appointment.tenant_id == current_user.current_tenant_id
     )
     
     # Si el usuario es médico, solo puede actualizar sus propias citas
@@ -477,7 +477,7 @@ async def delete_appointment(
     
     query = db.query(Appointment).filter(
         Appointment.id == appointment_id,
-        Appointment.tenant_id == current_user.tenant_id
+        Appointment.tenant_id == current_user.current_tenant_id
     )
     
     # Si el usuario es médico, solo puede eliminar sus propias citas
@@ -521,7 +521,7 @@ async def get_appointment_stats(
     
     # Base query
     query = db.query(Appointment).filter(
-        Appointment.tenant_id == current_user.tenant_id
+        Appointment.tenant_id == current_user.current_tenant_id
     )
     
     # Aplicar filtro de fechas si se proporciona
