@@ -2457,23 +2457,41 @@ export const api = {
   async post(url: string, data: any, options: RequestInit = {}): Promise<any> {
     // Get token from localStorage for authentication
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-    
+
+    // Extract headers from options, don't spread the entire options object
+    const { headers: optionHeaders, ...restOptions } = options;
+
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...(optionHeaders as Record<string, string>),
+    };
+
     const response = await fetch(`${API_URL}${url}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        ...options.headers,
-      },
+      headers,
       body: JSON.stringify(data),
-      ...options,
+      // Only spread non-header options (like signal, credentials, etc.)
+      // but NOT body or headers which we control explicitly
+      ...(restOptions.signal ? { signal: restOptions.signal } : {}),
+      ...(restOptions.credentials ? { credentials: restOptions.credentials } : {}),
     });
 
     if (!response.ok) {
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
         const errorData = await response.json();
-        errorMessage = errorData.detail || errorData.message || errorMessage;
+        // Handle Pydantic validation errors (detail is an array)
+        if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail
+            .map((err: { loc?: string[]; msg?: string }) => {
+              const field = err.loc?.slice(1).join('.') || 'campo';
+              return `${field}: ${err.msg}`;
+            })
+            .join(', ');
+        } else {
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        }
       } catch (e) {
         // Error parsing response, use default message
       }

@@ -3,7 +3,7 @@ Endpoints para la gestión del sistema de inventario médico
 """
 
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_, desc, func
@@ -203,7 +203,7 @@ async def get_inventory_products(
         ).order_by(desc(InventoryMovement.created_at)).first()
         
         # Uso en el mes actual
-        current_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        current_month = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         total_used_this_month = db.query(func.sum(InventoryMovement.quantity)).filter(
             and_(
                 InventoryMovement.product_id == product.id,
@@ -211,21 +211,28 @@ async def get_inventory_products(
                 InventoryMovement.created_at >= current_month
             )
         ).scalar() or 0
-        
+
         # Días hasta vencimiento
         days_until_expiry = None
         if product.expiration_date:
-            days_until_expiry = (product.expiration_date - datetime.now()).days
+            # Make sure both datetimes are timezone-aware
+            now = datetime.now(timezone.utc)
+            exp_date = product.expiration_date
+            if exp_date.tzinfo is None:
+                exp_date = exp_date.replace(tzinfo=timezone.utc)
+            days_until_expiry = (exp_date - now).days
         
         # Crear el producto con estadísticas
         product_dict = {
-            **product.__dict__,
+            **{k: v for k, v in product.__dict__.items() if not k.startswith('_')},
+            'is_low_stock': product.is_low_stock,
+            'stock_percentage': product.stock_percentage,
             'total_movements': total_movements,
             'last_movement_date': last_movement.created_at if last_movement else None,
             'total_used_this_month': abs(total_used_this_month),
             'days_until_expiry': days_until_expiry
         }
-        
+
         products_with_stats.append(InventoryProductWithStats(**product_dict))
     
     return products_with_stats
@@ -260,7 +267,7 @@ async def get_inventory_product(
         InventoryMovement.product_id == product.id
     ).order_by(desc(InventoryMovement.created_at)).first()
     
-    current_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    current_month = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     total_used_this_month = db.query(func.sum(InventoryMovement.quantity)).filter(
         and_(
             InventoryMovement.product_id == product.id,
@@ -268,19 +275,26 @@ async def get_inventory_product(
             InventoryMovement.created_at >= current_month
         )
     ).scalar() or 0
-    
+
     days_until_expiry = None
     if product.expiration_date:
-        days_until_expiry = (product.expiration_date - datetime.now()).days
-    
+        # Make sure both datetimes are timezone-aware
+        now = datetime.now(timezone.utc)
+        exp_date = product.expiration_date
+        if exp_date.tzinfo is None:
+            exp_date = exp_date.replace(tzinfo=timezone.utc)
+        days_until_expiry = (exp_date - now).days
+
     product_dict = {
-        **product.__dict__,
+        **{k: v for k, v in product.__dict__.items() if not k.startswith('_')},
+        'is_low_stock': product.is_low_stock,
+        'stock_percentage': product.stock_percentage,
         'total_movements': total_movements,
         'last_movement_date': last_movement.created_at if last_movement else None,
         'total_used_this_month': abs(total_used_this_month),
         'days_until_expiry': days_until_expiry
     }
-    
+
     return InventoryProductWithStats(**product_dict)
 
 

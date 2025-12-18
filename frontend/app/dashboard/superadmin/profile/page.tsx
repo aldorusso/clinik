@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,7 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { User, Shield, Key, Save, Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react"
+import { ImageCropDialog } from "@/components/image-crop-dialog"
+import { User, Shield, Key, Save, Loader2, Eye, EyeOff, CheckCircle2, Camera } from "lucide-react"
 import { api, User as UserType, UserUpdate } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { toast } from "sonner"
@@ -25,6 +26,7 @@ import { toast } from "sonner"
 function SuperadminProfilePageContent() {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab") || "profile"
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [user, setUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(true)
@@ -37,6 +39,11 @@ function SuperadminProfilePageContent() {
   const [phone, setPhone] = useState("")
   const [country, setCountry] = useState("")
   const [city, setCity] = useState("")
+  const [profilePhoto, setProfilePhoto] = useState("")
+
+  // Image crop state
+  const [cropDialogOpen, setCropDialogOpen] = useState(false)
+  const [imageToCrop, setImageToCrop] = useState("")
 
   // Password change state
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
@@ -63,12 +70,35 @@ function SuperadminProfilePageContent() {
       setPhone(userData.phone || "")
       setCountry(userData.country || "")
       setCity(userData.city || "")
+      setProfilePhoto(userData.profile_photo || "")
     } catch (error) {
       console.error("Error loading user:", error)
       toast.error("No se pudo cargar la informacion del perfil")
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("La imagen es demasiado grande. Maximo 2MB")
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImageToCrop(reader.result as string)
+        setCropDialogOpen(true)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleCropComplete = (croppedImage: string) => {
+    setProfilePhoto(croppedImage)
+    toast.success("Foto actualizada. No olvides guardar los cambios")
   }
 
   const handleSaveProfile = async () => {
@@ -83,6 +113,7 @@ function SuperadminProfilePageContent() {
         phone: phone || undefined,
         country: country || undefined,
         city: city || undefined,
+        profile_photo: profilePhoto || undefined,
       }
 
       const updatedUser = await api.updateProfile(token, updateData)
@@ -174,12 +205,29 @@ function SuperadminProfilePageContent() {
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={user?.profile_photo || ""} />
-                    <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={profilePhoto || ""} />
+                      <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Camera className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <div>
                     <CardTitle className="text-2xl">
                       {firstName && lastName ? `${firstName} ${lastName}` : user?.email}
@@ -193,6 +241,14 @@ function SuperadminProfilePageContent() {
                 </div>
               </CardHeader>
             </Card>
+
+            {/* Image Crop Dialog */}
+            <ImageCropDialog
+              open={cropDialogOpen}
+              onOpenChange={setCropDialogOpen}
+              imageSrc={imageToCrop}
+              onCropComplete={handleCropComplete}
+            />
 
             {/* Edit Profile Form */}
             <Card>

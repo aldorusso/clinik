@@ -95,7 +95,14 @@ export default function InventoryCategoriesPage() {
 
   const handleCreate = async () => {
     const token = auth.getToken()
-    if (!token) return
+    if (!token) {
+      toast({
+        title: "Error de autenticación",
+        description: "No se encontró token de autenticación. Por favor, inicie sesión nuevamente.",
+        variant: "destructive",
+      })
+      return
+    }
 
     if (!formData.name.trim()) {
       toast({
@@ -107,7 +114,22 @@ export default function InventoryCategoriesPage() {
     }
 
     try {
-      await createInventoryCategory(token, formData)
+      // Clean empty strings to undefined for optional fields
+      // Only include fields with actual values
+      const cleanedData: Record<string, any> = {
+        name: formData.name.trim(),
+        is_active: formData.is_active,
+      }
+      if (formData.description && formData.description.trim()) {
+        cleanedData.description = formData.description.trim()
+      }
+      if (formData.color && formData.color.trim()) {
+        cleanedData.color = formData.color.trim()
+      }
+      if (formData.icon && formData.icon.trim()) {
+        cleanedData.icon = formData.icon.trim()
+      }
+      await createInventoryCategory(token, cleanedData as InventoryCategoryCreate)
       toast({
         title: "Categoría creada",
         description: "La categoría ha sido creada exitosamente",
