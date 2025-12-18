@@ -2162,6 +2162,7 @@ export const api = {
    * Crea un nuevo objetivo comercial (solo tenant_admin).
    */
   async createCommercialObjective(token: string, data: CommercialObjectiveCreate): Promise<CommercialObjective> {
+    console.log('Creating objective with data:', JSON.stringify(data, null, 2));
     const response = await fetch(`${API_URL}/api/v1/commercial/objectives`, {
       method: 'POST',
       headers: {
@@ -2173,6 +2174,12 @@ export const api = {
 
     if (!response.ok) {
       const error = await response.json();
+      console.log('Objective creation error:', error);
+      // Handle validation errors array
+      if (Array.isArray(error.detail)) {
+        const messages = error.detail.map((e: any) => `${e.loc?.join('.')}: ${e.msg}`).join(', ');
+        throw new Error(`Validation errors: ${messages}`);
+      }
       throw new Error(error.detail || 'Failed to create commercial objective');
     }
 

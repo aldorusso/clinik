@@ -96,10 +96,6 @@ export default function CitasPage() {
         })
         setCitas(appointmentsData)
         
-        // Debug appointments data
-        console.log('Loaded appointments:', appointmentsData)
-        console.log('Sample appointment:', appointmentsData[0])
-
         // Load available providers (doctors)
         const directoryData = await api.getMyTenantUsers(token)
         const providers = directoryData.filter(user => 
@@ -219,12 +215,22 @@ export default function CitasPage() {
     const token = auth.getToken()
     if (!token) return
 
-    if (!newAppointmentForm.patient_name || !newAppointmentForm.patient_phone || 
-        !newAppointmentForm.provider_id || !newAppointmentForm.scheduled_date || 
+    if (!newAppointmentForm.patient_name || !newAppointmentForm.patient_phone ||
+        !newAppointmentForm.provider_id || !newAppointmentForm.scheduled_date ||
         !newAppointmentForm.scheduled_time) {
       toast({
         title: "Campos requeridos",
         description: "Complete todos los campos obligatorios",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Validate phone length (backend requires min 10 characters)
+    if (newAppointmentForm.patient_phone.length < 10) {
+      toast({
+        title: "Teléfono inválido",
+        description: "El teléfono debe tener al menos 10 caracteres",
         variant: "destructive",
       })
       return
@@ -340,13 +346,6 @@ export default function CitasPage() {
     necesitan_confirmacion: citas.filter(cita => cita.needs_confirmation).length
   }
   
-  // Debug stats
-  console.log('Appointments stats:', stats)
-  console.log('Total appointments:', citas.length)
-  if (citas.length > 0) {
-    console.log('First appointment status:', citas[0]?.status)
-    console.log('First appointment is_today:', citas[0]?.is_today)
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {

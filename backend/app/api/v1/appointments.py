@@ -70,8 +70,8 @@ async def get_appointments(
         Appointment.tenant_id == current_user.tenant_id
     )
     
-    # Si el usuario es médico (role = "user"), solo mostrar sus citas
-    if current_user.role == "user":
+    # Si el usuario es médico, solo mostrar sus citas
+    if current_user.role == UserRole.medico:
         query = query.filter(Appointment.provider_id == current_user.id)
     
     # Aplicar filtros
@@ -180,7 +180,7 @@ async def create_appointment(
     provider = db.query(User).filter(
         User.id == appointment_data.provider_id,
         User.tenant_id == current_user.tenant_id,
-        User.role.in_(["tenant_admin", "manager", "user"])  # user = médico
+        User.role.in_(["tenant_admin", "manager", "medico", "closer", "recepcionista"])
     ).first()
     
     if not provider:
@@ -281,7 +281,7 @@ async def get_appointment(
     )
     
     # Si el usuario es médico, solo puede ver sus propias citas
-    if current_user.role == "user":
+    if current_user.role == UserRole.medico:
         appointment = appointment.filter(Appointment.provider_id == current_user.id)
     
     appointment = appointment.first()
@@ -338,7 +338,7 @@ async def update_appointment(
     )
     
     # Si el usuario es médico, solo puede editar sus propias citas
-    if current_user.role == "user":
+    if current_user.role == UserRole.medico:
         query = query.filter(Appointment.provider_id == current_user.id)
     
     appointment = query.first()
@@ -407,7 +407,7 @@ async def update_appointment_status(
     )
     
     # Si el usuario es médico, solo puede actualizar sus propias citas
-    if current_user.role == "user":
+    if current_user.role == UserRole.medico:
         query = query.filter(Appointment.provider_id == current_user.id)
     
     appointment = query.first()
@@ -481,7 +481,7 @@ async def delete_appointment(
     )
     
     # Si el usuario es médico, solo puede eliminar sus propias citas
-    if current_user.role == "user":
+    if current_user.role == UserRole.medico:
         query = query.filter(Appointment.provider_id == current_user.id)
     
     appointment = query.first()

@@ -32,7 +32,7 @@ def get_patient_medical_history(
 ):
     """Get medical history for a patient"""
     # Verify user has access to patient
-    if current_user.role not in ["user", "manager", "tenant_admin"]:
+    if current_user.role not in ["medico", "manager", "tenant_admin"]:
         raise HTTPException(status_code=403, detail="Not authorized to view medical history")
     
     # Verify patient exists and belongs to same tenant
@@ -51,7 +51,7 @@ def get_patient_medical_history(
     )
     
     # If user is a doctor, only show their own entries
-    if current_user.role == "user":
+    if current_user.role == "medico":
         query = query.filter(models.MedicalHistory.medic_id == current_user.id)
     
     total = query.count()
@@ -78,7 +78,7 @@ def create_medical_history(
 ):
     """Create medical history entry for a patient"""
     # Only doctors can create medical history
-    if current_user.role != "user":
+    if current_user.role != "medico":
         raise HTTPException(status_code=403, detail="Only doctors can create medical history")
     
     # Verify patient exists and belongs to same tenant
