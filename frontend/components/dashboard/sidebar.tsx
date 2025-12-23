@@ -30,6 +30,7 @@ import {
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import { Logo } from "@/components/logo"
 
 interface SidebarProps {
   user: UserType | null
@@ -264,16 +265,8 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <div className="flex h-screen w-64 flex-col bg-sidebar">
       {/* Logo Section */}
-      <div className="flex h-16 items-center px-4 border-b border-sidebar-border">
-        <div className="flex items-center space-x-3">
-          <div className="h-9 w-9 rounded-xl bg-sidebar-primary flex items-center justify-center shadow-lg">
-            <Stethoscope className="h-5 w-5 text-sidebar-primary-foreground" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-lg text-sidebar-foreground">Clinik</span>
-            <span className="text-[10px] text-sidebar-muted uppercase tracking-wider">CRM</span>
-          </div>
-        </div>
+      <div className="flex h-16 items-center justify-center border-b border-sidebar-border">
+        <Logo size="md" variant="light" />
       </div>
 
       {/* Tenant/Organization Name */}
@@ -313,7 +306,7 @@ export function Sidebar({ user }: SidebarProps) {
                 <span className="text-sm font-medium text-sidebar-foreground truncate w-full text-left">
                   {user?.first_name || user?.full_name || "Usuario"}
                 </span>
-                <span className="text-xs text-sidebar-muted truncate w-full text-left">
+                <span className="text-[10px] text-sidebar-primary font-medium uppercase tracking-wider">
                   {user ? getRoleName(user.role) : "Usuario"}
                 </span>
               </div>

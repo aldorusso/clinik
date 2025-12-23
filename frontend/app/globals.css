@@ -2,31 +2,34 @@
 
 :root {
   /* Background Colors */
-  --background: #F8F9FA;
-  --foreground: #1A1D21;
+  --background: #F2EFE9;
+  --foreground: #0E0E0F;
 
   /* Card Colors */
   --card: #FFFFFF;
-  --card-foreground: #1A1D21;
+  --card-foreground: #0E0E0F;
 
   /* Popover Colors */
   --popover: #FFFFFF;
-  --popover-foreground: #1A1D21;
+  --popover-foreground: #0E0E0F;
 
-  /* Primary - Gold Accent */
-  --primary: #FBC02D;
-  --primary-foreground: #1A1D21;
+  /* Primary - Dark buttons */
+  --primary: #0E0E0F;
+  --primary-foreground: #FFFFFF;
 
   /* Secondary */
-  --secondary: #F1F5F9;
-  --secondary-foreground: #475569;
+  --secondary: #E8E5DF;
+  --secondary-foreground: #3D3D3F;
 
   /* Muted */
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
+  --muted: #E8E5DF;
+  --muted-foreground: #212529B3;
 
-  /* Accent - Emerald */
-  --accent: #10B981;
+  /* Text body (common text, not titles) */
+  --text-body: #212529B3;
+
+  /* Accent - Mint Green */
+  --accent: #69BBA7;
   --accent-foreground: #FFFFFF;
 
   /* Destructive */
@@ -34,27 +37,27 @@
   --destructive-foreground: #FFFFFF;
 
   /* Borders */
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #FBC02D;
+  --border: #D9D6D0;
+  --input: #D9D6D0;
+  --ring: #69BBA7;
 
   /* Chart Colors */
-  --chart-1: #FBC02D;
-  --chart-2: #10B981;
+  --chart-1: #69BBA7;
+  --chart-2: #0E0E0F;
   --chart-3: #3B82F6;
   --chart-4: #8B5CF6;
   --chart-5: #F59E0B;
 
-  /* Sidebar - Dark Mode Always */
-  --sidebar: #12141D;
-  --sidebar-foreground: #E2E8F0;
-  --sidebar-primary: #FBC02D;
-  --sidebar-primary-foreground: #12141D;
-  --sidebar-accent: #1E2028;
-  --sidebar-accent-foreground: #F1F5F9;
-  --sidebar-border: #2A2D38;
-  --sidebar-ring: #FBC02D;
-  --sidebar-muted: #6B7280;
+  /* Sidebar - Dark */
+  --sidebar: #0E0E0F;
+  --sidebar-foreground: #E8E5DF;
+  --sidebar-primary: #69BBA7;
+  --sidebar-primary-foreground: #0E0E0F;
+  --sidebar-accent: #1A1A1B;
+  --sidebar-accent-foreground: #F2EFE9;
+  --sidebar-border: #2A2A2B;
+  --sidebar-ring: #69BBA7;
+  --sidebar-muted: #6B6B6D;
 
   /* Font Family */
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
@@ -79,60 +82,60 @@
 }
 
 .dark {
-  /* Background Colors - Keep light for premium feel */
-  --background: #F8F9FA;
-  --foreground: #1A1D21;
+  /* Background Colors - True dark mode */
+  --background: #0E0E0F;
+  --foreground: #F2EFE9;
 
   /* Card Colors */
-  --card: #FFFFFF;
-  --card-foreground: #1A1D21;
+  --card: #1A1A1B;
+  --card-foreground: #F2EFE9;
 
   /* Popover Colors */
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1D21;
+  --popover: #1A1A1B;
+  --popover-foreground: #F2EFE9;
 
-  /* Primary - Gold Accent */
-  --primary: #FBC02D;
-  --primary-foreground: #1A1D21;
+  /* Primary - Mint accent in dark mode */
+  --primary: #69BBA7;
+  --primary-foreground: #0E0E0F;
 
   /* Secondary */
-  --secondary: #F1F5F9;
-  --secondary-foreground: #475569;
+  --secondary: #2A2A2B;
+  --secondary-foreground: #D9D6D0;
 
   /* Muted */
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
+  --muted: #2A2A2B;
+  --muted-foreground: #8B8B8D;
 
-  /* Accent - Emerald */
-  --accent: #10B981;
-  --accent-foreground: #FFFFFF;
+  /* Accent - Mint Green */
+  --accent: #69BBA7;
+  --accent-foreground: #0E0E0F;
 
   /* Destructive */
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
 
   /* Borders */
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #FBC02D;
+  --border: #2A2A2B;
+  --input: #2A2A2B;
+  --ring: #69BBA7;
 
   /* Chart Colors */
-  --chart-1: #FBC02D;
-  --chart-2: #10B981;
+  --chart-1: #69BBA7;
+  --chart-2: #F2EFE9;
   --chart-3: #3B82F6;
   --chart-4: #8B5CF6;
   --chart-5: #F59E0B;
 
-  /* Sidebar - Dark Mode Always */
-  --sidebar: #12141D;
-  --sidebar-foreground: #E2E8F0;
-  --sidebar-primary: #FBC02D;
-  --sidebar-primary-foreground: #12141D;
-  --sidebar-accent: #1E2028;
-  --sidebar-accent-foreground: #F1F5F9;
-  --sidebar-border: #2A2D38;
-  --sidebar-ring: #FBC02D;
-  --sidebar-muted: #6B7280;
+  /* Sidebar - Same as light, always dark */
+  --sidebar: #0E0E0F;
+  --sidebar-foreground: #E8E5DF;
+  --sidebar-primary: #69BBA7;
+  --sidebar-primary-foreground: #0E0E0F;
+  --sidebar-accent: #1A1A1B;
+  --sidebar-accent-foreground: #F2EFE9;
+  --sidebar-border: #2A2A2B;
+  --sidebar-ring: #69BBA7;
+  --sidebar-muted: #6B6B6D;
 }
 
 @theme inline {
@@ -171,21 +174,26 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-muted: var(--sidebar-muted);
 
+  /* Text body color */
+  --color-body: var(--text-body);
+
   /* Custom Design System Colors */
-  --color-gold: #FBC02D;
-  --color-gold-dark: #F9A825;
-  --color-gold-light: #FDD835;
-  --color-emerald: #10B981;
-  --color-emerald-dark: #059669;
-  --color-emerald-light: #34D399;
-  --color-dark-bg: #12141D;
-  --color-dark-card: #1E2028;
-  --color-dark-border: #2A2D38;
+  --color-mint: #69BBA7;
+  --color-mint-dark: #4FA08C;
+  --color-mint-light: #8CCBBB;
+  --color-dark: #0E0E0F;
+  --color-dark-light: #1A1A1B;
+  --color-cream: #F2EFE9;
+  --color-cream-dark: #E8E5DF;
+  --color-dark-bg: #0E0E0F;
+  --color-dark-card: #1A1A1B;
+  --color-dark-border: #2A2A2B;
 
   /* Fonts */
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
+  --font-logo: var(--font-logo);
 
   /* Border Radius */
   --radius-sm: calc(var(--radius) - 4px);
@@ -304,17 +312,17 @@
   color: var(--sidebar-foreground);
 }
 
-/* Gold Accent Elements */
-.text-gold {
-  color: var(--color-gold);
+/* Mint Accent Elements */
+.text-mint {
+  color: var(--color-mint);
 }
 
-.bg-gold {
-  background-color: var(--color-gold);
+.bg-mint {
+  background-color: var(--color-mint);
 }
 
-.border-gold {
-  border-color: var(--color-gold);
+.border-mint {
+  border-color: var(--color-mint);
 }
 
 /* Pill Progress Bar */
@@ -381,40 +389,53 @@
 }
 
 /* Badge Styles */
-.badge-gold {
+.badge-mint {
   display: inline-flex;
   align-items: center;
   padding: 0.125rem 0.625rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
-  background-color: rgb(from var(--color-gold) r g b / 0.1);
-  color: var(--color-gold-dark);
+  background-color: rgb(from var(--color-mint) r g b / 0.1);
+  color: var(--color-mint-dark);
 }
 
-.badge-emerald {
+.badge-dark {
   display: inline-flex;
   align-items: center;
   padding: 0.125rem 0.625rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
-  background-color: rgb(from var(--color-emerald) r g b / 0.1);
-  color: var(--color-emerald-dark);
+  background-color: rgb(from var(--color-dark) r g b / 0.1);
+  color: var(--color-dark);
 }
 
 /* Button Styles */
-.btn-gold {
-  background-color: var(--color-gold);
-  color: var(--color-dark-bg);
+.btn-dark {
+  background-color: var(--color-dark);
+  color: var(--color-cream);
   font-weight: 500;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   transition: background-color 0.2s ease;
 }
 
-.btn-gold:hover {
-  background-color: var(--color-gold-dark);
+.btn-dark:hover {
+  background-color: var(--color-dark-light);
+}
+
+.btn-mint {
+  background-color: var(--color-mint);
+  color: var(--color-dark);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn-mint:hover {
+  background-color: var(--color-mint-dark);
 }
 
 /* Text utilities */
@@ -423,12 +444,12 @@
 }
 
 /* Gradient utilities */
-.gradient-gold {
-  background: linear-gradient(135deg, var(--color-gold-light) 0%, var(--color-gold) 100%);
+.gradient-mint {
+  background: linear-gradient(135deg, var(--color-mint-light) 0%, var(--color-mint) 100%);
 }
 
-.gradient-emerald {
-  background: linear-gradient(135deg, var(--color-emerald-light) 0%, var(--color-emerald) 100%);
+.gradient-dark {
+  background: linear-gradient(135deg, var(--color-dark-light) 0%, var(--color-dark) 100%);
 }
 
 /* Glass effect */

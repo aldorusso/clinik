@@ -29,6 +29,7 @@ import {
 import { auth } from "@/lib/auth"
 import { User as UserType } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import { Logo } from "@/components/logo"
 
 interface AdminSidebarProps {
   user: UserType | null
@@ -101,19 +102,23 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     </div>
   )
 
+  const getRoleDisplay = (role?: string) => {
+    const roleMap: Record<string, string> = {
+      tenant_admin: "Administrador",
+      manager: "Manager",
+      medico: "Médico",
+      closer: "Closer",
+      recepcionista: "Recepcionista",
+      superadmin: "Super Admin",
+    }
+    return roleMap[role || ""] || role || "Admin"
+  }
+
   return (
     <div className="flex h-screen w-64 flex-col bg-sidebar">
       {/* Logo Section */}
-      <div className="flex h-16 items-center px-4 border-b border-sidebar-border">
-        <div className="flex items-center space-x-3">
-          <div className="h-9 w-9 rounded-xl bg-sidebar-primary flex items-center justify-center shadow-lg">
-            <span className="text-sidebar-primary-foreground font-bold text-lg">C</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-lg text-sidebar-foreground">Clinik</span>
-            <span className="text-[10px] text-sidebar-muted uppercase tracking-wider">Admin</span>
-          </div>
-        </div>
+      <div className="flex h-16 items-center justify-center border-b border-sidebar-border">
+        <Logo size="md" variant="light" />
       </div>
 
       {/* Tenant/Organization Name */}
@@ -217,8 +222,8 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 <span className="text-sm font-medium text-sidebar-foreground truncate w-full text-left">
                   {user?.first_name || user?.full_name || "Admin"}
                 </span>
-                <span className="text-xs text-sidebar-muted truncate w-full text-left">
-                  {user?.email}
+                <span className="text-[10px] text-sidebar-primary font-medium uppercase tracking-wider">
+                  {getRoleDisplay(user?.role)}
                 </span>
               </div>
               <Settings className="h-4 w-4 text-sidebar-muted" />
