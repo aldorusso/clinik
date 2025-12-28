@@ -1,0 +1,6 @@
+export type { Document, Consultation, MedicalHistoryResponse } from "./document-types"
+export { formatDate, transformMedicalHistoryToDocuments, handleViewDocument, handleDownloadDocument } from "./document-helpers"
+export { DocumentStatsCards } from "./document-stats-cards"
+export { getStatusBadge, getCategoryBadge } from "./document-badges"
+export { DocumentsTable } from "./documents-table"
+export { DocumentsInfoCard } from "./documents-info-card"
