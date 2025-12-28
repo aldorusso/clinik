@@ -1,0 +1,6 @@
+export { ProfileHeaderCard } from "./profile-header-card"
+export { PersonalInfoForm } from "./personal-info-form"
+export { SecurityTab } from "./security-tab"
+export { NotificationsTab } from "./notifications-tab"
+export { ChangePasswordDialog } from "./change-password-dialog"
+export { getInitials, getRoleLabel } from "./profile-helpers"
