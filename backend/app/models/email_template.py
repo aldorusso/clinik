@@ -13,6 +13,7 @@ class EmailTemplateType(str, enum.Enum):
     NOTIFICATION = "notification"
     USER_INVITATION = "user_invitation"
     EXISTING_USER_INVITATION = "existing_user_invitation"  # For users that already have an account
+    TENANT_ASSIGNMENT = "tenant_assignment"  # For when a user is directly assigned to a tenant (no invitation needed)
 
 
 class EmailTemplate(Base):

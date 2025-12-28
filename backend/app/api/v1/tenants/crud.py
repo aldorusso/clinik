@@ -23,7 +23,7 @@ from app.schemas.tenant import (
     TenantWithStats,
     TenantCreateWithAdmin,
 )
-from app.core.email import send_welcome_email
+from app.core.email import send_welcome_email, send_tenant_assignment_email
 from app.api.v1.audit_logs import create_audit_log, get_client_ip
 
 router = APIRouter()
@@ -223,6 +223,19 @@ async def create_tenant_with_admin(
             )
         except Exception as e:
             print(f"Error enviando email de bienvenida: {e}")
+    else:
+        # Send assignment notification to existing user
+        try:
+            await send_tenant_assignment_email(
+                db=db,
+                email_to=db_admin.email,
+                assigner_name=current_user.first_name or current_user.email.split('@')[0],
+                tenant_name=db_tenant.name,
+                role="tenant_admin",
+                user_name=db_admin.first_name or db_admin.email.split('@')[0]
+            )
+        except Exception as e:
+            print(f"Error enviando email de asignación: {e}")
 
     return db_tenant
 

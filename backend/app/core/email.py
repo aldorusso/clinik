@@ -568,6 +568,166 @@ def get_default_notification_template(context: dict) -> str:
     return template.render(**context)
 
 
+async def send_tenant_assignment_email(
+    db: Session,
+    email_to: EmailStr,
+    assigner_name: str,
+    tenant_name: str,
+    role: str,
+    user_name: str = None
+):
+    """
+    Send notification email when a user is directly assigned to a tenant.
+    This is different from invitation - the user is already assigned and just needs to be notified.
+
+    Args:
+        db: Database session
+        email_to: User's email address
+        assigner_name: Name of the person who assigned them
+        tenant_name: Name of the tenant/organization
+        role: Role being assigned
+        user_name: User's name (optional)
+    """
+    from datetime import datetime
+
+    # Try to get template from database
+    template = await get_email_template_from_db(db, EmailTemplateType.TENANT_ASSIGNMENT)
+
+    # Role translation
+    role_translations = {
+        "tenant_admin": "Administrador",
+        "manager": "Manager",
+        "medico": "Médico",
+        "closer": "Closer/Comercial",
+        "recepcionista": "Recepcionista"
+    }
+    role_display = role_translations.get(role, role)
+
+    # Build login URL
+    login_url = f"{settings.FRONTEND_URL}/"
+
+    # Prepare context
+    context = {
+        "project_name": settings.PROJECT_NAME,
+        "user_name": user_name,
+        "assigner_name": assigner_name,
+        "tenant_name": tenant_name,
+        "role": role_display,
+        "login_url": login_url,
+        "current_year": datetime.now().year
+    }
+
+    if template:
+        # Use database template
+        subject, html_content = await render_email_template(template, context)
+    else:
+        # Fallback to hardcoded template
+        subject = f"Has sido asignado a {tenant_name}"
+        html_content = get_default_tenant_assignment_template(context)
+
+    await send_email(
+        email_to=email_to,
+        subject=subject,
+        html_content=html_content
+    )
+
+
+def get_default_tenant_assignment_template(context: dict) -> str:
+    """Get default template for tenant assignment notifications."""
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .container {
+                background-color: #f9f9f9;
+                border-radius: 10px;
+                padding: 30px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .header {
+                text-align: center;
+                color: #4a5568;
+                margin-bottom: 30px;
+            }
+            .button {
+                display: inline-block;
+                padding: 14px 35px;
+                background-color: #48bb78;
+                color: white !important;
+                text-decoration: none;
+                border-radius: 5px;
+                margin: 20px 0;
+                font-weight: bold;
+            }
+            .info-box {
+                background-color: #f0fff4;
+                border: 1px solid #48bb78;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 20px 0;
+            }
+            .info-box-title {
+                color: #276749;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            .footer {
+                margin-top: 30px;
+                text-align: center;
+                font-size: 12px;
+                color: #718096;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>{{ project_name }}</h1>
+                <h2>Nueva Organización Asignada</h2>
+            </div>
+
+            {% if user_name %}
+            <p>Hola {{ user_name }},</p>
+            {% else %}
+            <p>Hola,</p>
+            {% endif %}
+
+            <p>Te informamos que <strong>{{ assigner_name }}</strong> te ha asignado como <strong>{{ role }}</strong> en la organización <strong>{{ tenant_name }}</strong>.</p>
+
+            <div class="info-box">
+                <div class="info-box-title">✓ Ya tienes acceso</div>
+                <p style="margin: 5px 0 0 0;">No necesitas realizar ninguna acción. Ya puedes acceder a {{ tenant_name }} con tus credenciales actuales.</p>
+            </div>
+
+            <p>La próxima vez que inicies sesión, podrás seleccionar esta organización desde tu panel de control.</p>
+
+            <div style="text-align: center;">
+                <a href="{{ login_url }}" class="button" style="color: white !important;">Ir al Panel de Control</a>
+            </div>
+
+            <p style="font-size: 13px; color: #718096;">Si tienes alguna pregunta sobre este acceso, contacta a {{ assigner_name }} o al administrador de la organización.</p>
+
+            <div class="footer">
+                <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
+                <p>&copy; {{ project_name }} - {{ current_year }}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    template = Template(html)
+    return template.render(**context)
+
+
 def get_default_existing_user_invitation_template(context: dict) -> str:
     """Get default template for existing user invitations."""
     html = """
