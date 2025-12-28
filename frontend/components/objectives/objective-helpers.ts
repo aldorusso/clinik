@@ -35,3 +35,39 @@ export const getTypeLabel = (type: ObjectiveType): string => {
   }
   return labels[type] || type
 }
+
+export type ObjectivePeriod = "weekly" | "monthly" | "quarterly" | "yearly"
+
+export function getPeriodLabel(period: ObjectivePeriod): string {
+  const labels: Record<ObjectivePeriod, string> = {
+    weekly: "Semanal",
+    monthly: "Mensual",
+    quarterly: "Trimestral",
+    yearly: "Anual"
+  }
+  return labels[period] || period
+}
+
+export function formatValue(type: ObjectiveType, value: number, unit?: string): string {
+  if (unit) {
+    return `${value} ${unit}`
+  }
+
+  if (type === "revenue") {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(value)
+  }
+  if (type === "satisfaction") {
+    return `${value}/5`
+  }
+  return value.toString()
+}
+
+export function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(value)
+}
