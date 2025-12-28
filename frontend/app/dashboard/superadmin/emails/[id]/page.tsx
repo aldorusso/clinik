@@ -18,6 +18,9 @@ const templateTypeLabels: Record<EmailTemplateType, string> = {
   [EmailTemplateType.PASSWORD_RESET]: "Recuperacion de Contrasena",
   [EmailTemplateType.WELCOME]: "Bienvenida",
   [EmailTemplateType.NOTIFICATION]: "Notificacion",
+  [EmailTemplateType.USER_INVITATION]: "Invitacion de Usuario",
+  [EmailTemplateType.EXISTING_USER_INVITATION]: "Invitacion Usuario Existente",
+  [EmailTemplateType.TENANT_ASSIGNMENT]: "Asignacion de Organizacion",
 }
 
 export default function EditEmailTemplatePage() {
