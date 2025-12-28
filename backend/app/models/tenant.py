@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, DateTime, Text
+from sqlalchemy import Column, String, Boolean, DateTime, Text, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -23,6 +23,7 @@ class Tenant(Base):
     # Información de contacto
     email = Column(String(255), nullable=True)  # Email de contacto principal
     phone = Column(String(50), nullable=True)
+    website = Column(String(255), nullable=True)  # Sitio web
 
     # Dirección
     country = Column(String(100), nullable=True)
@@ -36,6 +37,17 @@ class Tenant(Base):
     # Branding
     logo = Column(String, nullable=True)  # URL o base64 del logo
     primary_color = Column(String(7), nullable=True)  # Color hex (#FFFFFF)
+
+    # Configuración SMTP personalizada
+    smtp_host = Column(String(255), nullable=True)
+    smtp_port = Column(Integer, nullable=True, default=587)
+    smtp_username = Column(String(255), nullable=True)
+    smtp_password_encrypted = Column(String(500), nullable=True)  # Encriptada
+    smtp_from_email = Column(String(255), nullable=True)
+    smtp_from_name = Column(String(255), nullable=True)
+    smtp_use_tls = Column(Boolean, default=True, nullable=False)
+    smtp_use_ssl = Column(Boolean, default=False, nullable=False)
+    smtp_enabled = Column(Boolean, default=False, nullable=False)
 
     # Configuración
     settings = Column(Text, nullable=True)  # JSON con configuraciones personalizadas

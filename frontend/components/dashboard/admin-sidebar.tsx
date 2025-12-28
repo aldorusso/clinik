@@ -204,6 +204,15 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
               isActive={pathname.startsWith("/dashboard/admin/actividad")}
             />
           </NavSection>
+
+          <NavSection title="Configuracion">
+            <NavItem
+              href="/dashboard/admin/configuracion"
+              icon={Settings}
+              label="Configuracion"
+              isActive={pathname.startsWith("/dashboard/admin/configuracion")}
+            />
+          </NavSection>
         </nav>
       </div>
 

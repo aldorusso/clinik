@@ -1,15 +1,19 @@
 from typing import Optional
+from uuid import UUID
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from pydantic import EmailStr
 from jinja2 import Template
 from sqlalchemy.orm import Session
+from cryptography.fernet import Fernet
+import base64
+import hashlib
 
 from app.core.config import settings
 from app.models.email_template import EmailTemplate, EmailTemplateType
 
 
-# Configure FastMail
-conf = ConnectionConfig(
+# Configure default FastMail (global configuration)
+default_conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
     MAIL_PASSWORD=settings.MAIL_PASSWORD,
     MAIL_FROM=settings.MAIL_FROM,
@@ -22,23 +26,99 @@ conf = ConnectionConfig(
     MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
 )
 
-fm = FastMail(conf)
+default_fm = FastMail(default_conf)
+
+# Backwards compatibility
+conf = default_conf
+fm = default_fm
+
+
+def _get_encryption_key() -> bytes:
+    """Genera una clave de encriptación basada en SECRET_KEY."""
+    key = hashlib.sha256(settings.SECRET_KEY.encode()).digest()
+    return base64.urlsafe_b64encode(key)
+
+
+def _decrypt_password(encrypted_password: str) -> str:
+    """Desencripta una contraseña usando Fernet."""
+    fernet = Fernet(_get_encryption_key())
+    return fernet.decrypt(encrypted_password.encode()).decode()
+
+
+def get_tenant_fastmail(db: Session, tenant_id: UUID) -> Optional[FastMail]:
+    """
+    Obtiene una instancia de FastMail configurada para el tenant.
+    Retorna None si el tenant no tiene SMTP configurado o habilitado.
+    """
+    from app.models.tenant import Tenant
+
+    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    if not tenant:
+        return None
+
+    # Verificar si SMTP está habilitado y configurado
+    if not tenant.smtp_enabled:
+        return None
+
+    if not tenant.smtp_host or not tenant.smtp_username or not tenant.smtp_password_encrypted:
+        return None
+
+    try:
+        smtp_password = _decrypt_password(tenant.smtp_password_encrypted)
+
+        tenant_conf = ConnectionConfig(
+            MAIL_USERNAME=tenant.smtp_username,
+            MAIL_PASSWORD=smtp_password,
+            MAIL_FROM=tenant.smtp_from_email or tenant.smtp_username,
+            MAIL_PORT=tenant.smtp_port or 587,
+            MAIL_SERVER=tenant.smtp_host,
+            MAIL_STARTTLS=tenant.smtp_use_tls,
+            MAIL_SSL_TLS=tenant.smtp_use_ssl,
+            USE_CREDENTIALS=True,
+            VALIDATE_CERTS=True,
+            MAIL_FROM_NAME=tenant.smtp_from_name or tenant.name,
+        )
+
+        return FastMail(tenant_conf)
+    except Exception:
+        # Si hay error desencriptando o configurando, usar default
+        return None
+
+
+def get_fastmail_for_tenant(db: Session, tenant_id: Optional[UUID] = None) -> FastMail:
+    """
+    Obtiene la instancia de FastMail apropiada.
+    Si el tenant tiene SMTP configurado y habilitado, usa esa configuración.
+    De lo contrario, usa la configuración global.
+    """
+    if tenant_id:
+        tenant_fm = get_tenant_fastmail(db, tenant_id)
+        if tenant_fm:
+            return tenant_fm
+
+    return default_fm
 
 
 async def send_email(
     email_to: EmailStr,
     subject: str,
     html_content: str,
-    text_content: str = None
+    text_content: str = None,
+    db: Session = None,
+    tenant_id: UUID = None
 ):
     """
     Send an email using FastMail.
+    If tenant_id is provided and the tenant has SMTP configured, uses tenant's SMTP.
+    Otherwise, uses global SMTP configuration.
 
     Args:
         email_to: Recipient email address
         subject: Email subject
         html_content: HTML content of the email
         text_content: Plain text content (optional)
+        db: Database session (required if tenant_id is provided)
+        tenant_id: UUID of the tenant (optional)
     """
     message = MessageSchema(
         subject=subject,
@@ -47,7 +127,13 @@ async def send_email(
         subtype=MessageType.html
     )
 
-    await fm.send_message(message)
+    # Use tenant SMTP if available, otherwise use global
+    if db and tenant_id:
+        mail_instance = get_fastmail_for_tenant(db, tenant_id)
+    else:
+        mail_instance = default_fm
+
+    await mail_instance.send_message(message)
 
 
 async def get_email_template_from_db(db: Session, template_type: EmailTemplateType) -> Optional[EmailTemplate]:

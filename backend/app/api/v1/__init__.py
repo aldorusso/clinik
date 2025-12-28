@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications, leads, appointments, patients, services, commercial_stats, inventory, inventory_usage, patient_portal
+from app.api.v1 import auth, users, email_templates, tenants, plans, system_config, audit_logs, notifications, leads, appointments, patients, services, commercial_stats, inventory, inventory_usage, patient_portal, tenant_settings
 from app.api.v1.endpoints import medical_history, commercial_objectives
 
 api_router = APIRouter()
@@ -57,6 +57,9 @@ api_router.include_router(inventory_usage.router, prefix="/inventory-usage", tag
 
 # Include patient portal router (patient-specific endpoints)
 api_router.include_router(patient_portal.router, prefix="/patient-portal", tags=["patient-portal"])
+
+# Include tenant settings router (tenant admin configuration)
+api_router.include_router(tenant_settings.router, prefix="/tenant-settings", tags=["tenant-settings"])
 
 # Include consent router (informed consent management system) - DISABLED
 # api_router.include_router(consents.router, prefix="/consents", tags=["consents"])

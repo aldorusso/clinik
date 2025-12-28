@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -100,3 +100,110 @@ class TenantList(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# =============================================================================
+# Schemas para configuración de tenant (solo tenant_admin)
+# =============================================================================
+
+class TenantSettingsUpdate(BaseModel):
+    """Schema para actualizar configuración del tenant"""
+    # Información de la organización
+    name: Optional[str] = Field(None, min_length=2, max_length=255)
+    email: Optional[str] = None  # Validado manualmente para permitir strings vacíos
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    tax_id: Optional[str] = None
+    legal_name: Optional[str] = None
+    logo: Optional[str] = None
+    primary_color: Optional[str] = None  # Validado manualmente
+
+    # Configuración SMTP
+    smtp_host: Optional[str] = Field(None, max_length=255)
+    smtp_port: Optional[int] = Field(None, ge=1, le=65535)
+    smtp_username: Optional[str] = Field(None, max_length=255)
+    smtp_password: Optional[str] = Field(None, max_length=255)  # Solo se actualiza si se envía
+    smtp_from_email: Optional[str] = None  # Validado manualmente
+    smtp_from_name: Optional[str] = Field(None, max_length=255)
+    smtp_use_tls: Optional[bool] = None
+    smtp_use_ssl: Optional[bool] = None
+    smtp_enabled: Optional[bool] = None
+
+    @field_validator('email', 'smtp_from_email', mode='before')
+    @classmethod
+    def empty_str_to_none_email(cls, v):
+        """Convierte strings vacíos a None para campos de email"""
+        if v == '' or v is None:
+            return None
+        return v
+
+    @field_validator('primary_color', mode='before')
+    @classmethod
+    def validate_color(cls, v):
+        """Valida el color hexadecimal o convierte vacío a None"""
+        if v == '' or v is None:
+            return None
+        if not re.match(r'^#[0-9A-Fa-f]{6}$', v):
+            raise ValueError('Color debe ser formato hex (#RRGGBB)')
+        return v
+
+    @field_validator('phone', 'website', 'address', 'city', 'country', 'tax_id', 'legal_name', 'logo', 'smtp_host', 'smtp_username', 'smtp_from_name', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        """Convierte strings vacíos a None"""
+        if v == '':
+            return None
+        return v
+
+
+class TenantSettingsResponse(BaseModel):
+    """Schema para respuesta de configuración del tenant"""
+    id: UUID
+    name: str
+    slug: str
+
+    # Información de contacto
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    website: Optional[str] = None
+
+    # Dirección
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+
+    # Información fiscal/legal
+    tax_id: Optional[str] = None
+    legal_name: Optional[str] = None
+
+    # Branding
+    logo: Optional[str] = None
+    primary_color: Optional[str] = None
+
+    # Configuración SMTP (sin contraseña)
+    smtp_host: Optional[str] = None
+    smtp_port: Optional[int] = None
+    smtp_username: Optional[str] = None
+    smtp_password_set: bool = False  # Indica si hay contraseña configurada
+    smtp_from_email: Optional[str] = None
+    smtp_from_name: Optional[str] = None
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
+    smtp_enabled: bool = False
+
+    # Metadata
+    plan: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class SmtpTestRequest(BaseModel):
+    """Schema para probar configuración SMTP"""
+    test_email: EmailStr = Field(..., description="Email donde enviar el correo de prueba")

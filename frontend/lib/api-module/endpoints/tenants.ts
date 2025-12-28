@@ -3,7 +3,16 @@
  */
 
 import { API_URL } from '../client';
-import type { Tenant, TenantWithStats, TenantCreate, TenantCreateWithAdmin, TenantUpdate } from '../types';
+import type {
+  Tenant,
+  TenantWithStats,
+  TenantCreate,
+  TenantCreateWithAdmin,
+  TenantUpdate,
+  TenantSettings,
+  TenantSettingsUpdate,
+  SmtpTestResponse
+} from '../types';
 
 export const tenantEndpoints = {
   async getTenants(token: string): Promise<Tenant[]> {
@@ -117,6 +126,70 @@ export const tenantEndpoints = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Failed to toggle tenant status');
+    }
+
+    return response.json();
+  },
+
+  // Tenant Settings (for tenant_admin)
+  async getMyTenantSettings(token: string): Promise<TenantSettings> {
+    const response = await fetch(`${API_URL}/api/v1/tenant-settings/my-tenant/settings`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to fetch tenant settings');
+    }
+
+    return response.json();
+  },
+
+  async updateMyTenantSettings(token: string, data: TenantSettingsUpdate): Promise<TenantSettings> {
+    const response = await fetch(`${API_URL}/api/v1/tenant-settings/my-tenant/settings`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update tenant settings');
+    }
+
+    return response.json();
+  },
+
+  async testSmtpConnection(token: string, testEmail: string): Promise<SmtpTestResponse> {
+    const response = await fetch(`${API_URL}/api/v1/tenant-settings/my-tenant/smtp/test`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ test_email: testEmail }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to test SMTP connection');
+    }
+
+    return response.json();
+  },
+
+  async clearSmtpPassword(token: string): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${API_URL}/api/v1/tenant-settings/my-tenant/smtp/password`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to clear SMTP password');
     }
 
     return response.json();
