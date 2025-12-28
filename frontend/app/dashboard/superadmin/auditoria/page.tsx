@@ -147,7 +147,7 @@ export default function AuditoriaPage() {
             endDate={endDate}
             setEndDate={setEndDate}
             onSearch={handleSearch}
-            onClear={clearFilters}
+            onClearFilters={clearFilters}
           />
 
           <AuditLogsTable

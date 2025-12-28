@@ -32,7 +32,7 @@ export function MedicalHistory({ patientId, patientName }: MedicalHistoryProps) 
     loadMedicalHistory()
   }, [patientId])
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = (): Record<string, string> => {
     const token = auth.getToken()
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
