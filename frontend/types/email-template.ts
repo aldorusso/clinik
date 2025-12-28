@@ -2,6 +2,9 @@ export enum EmailTemplateType {
   PASSWORD_RESET = "password_reset",
   WELCOME = "welcome",
   NOTIFICATION = "notification",
+  USER_INVITATION = "user_invitation",
+  EXISTING_USER_INVITATION = "existing_user_invitation",
+  TENANT_ASSIGNMENT = "tenant_assignment",
 }
 
 export interface EmailTemplate {
