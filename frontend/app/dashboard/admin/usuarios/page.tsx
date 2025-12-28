@@ -2,69 +2,34 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import {
-  Users,
-  UserPlus,
-  Mail,
-  Pencil,
-  Trash2,
-  CheckCircle,
-  XCircle,
-  Briefcase,
-  User as UserIcon,
-  Filter,
-  Stethoscope,
-  HeadphonesIcon,
-} from "lucide-react"
+import { Users } from "lucide-react"
 import { api, User, UserRole } from "@/lib/api"
 import { auth } from "@/lib/auth"
 import { toast } from "sonner"
+import {
+  UserStatsCards,
+  UsersTable,
+  InviteUserDialog,
+  EditUserDialog,
+  DeleteUserDialog,
+  InviteFormData,
+  EditFormData,
+} from "@/components/admin-users"
 
-// Configuration for all roles available in tenant admin
-const roleConfig: Record<string, { label: string; icon: any; variant: "default" | "secondary" | "outline" | "destructive" }> = {
-  manager: { label: "Gestor de Leads", icon: Briefcase, variant: "secondary" },
-  medico: { label: "Médico", icon: Stethoscope, variant: "outline" },
-  closer: { label: "Closer", icon: UserIcon, variant: "default" },
-  recepcionista: { label: "Recepcionista", icon: HeadphonesIcon, variant: "outline" },
+const defaultInviteForm: InviteFormData = {
+  email: "",
+  first_name: "",
+  last_name: "",
+  role: "medico",
+}
+
+const defaultEditForm: EditFormData = {
+  email: "",
+  first_name: "",
+  last_name: "",
+  phone: "",
+  role: "medico",
+  is_active: true,
 }
 
 export default function TenantAdminUsuariosPage() {
@@ -73,29 +38,15 @@ export default function TenantAdminUsuariosPage() {
   const [loading, setLoading] = useState(true)
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [deletingUser, setDeletingUser] = useState<User | null>(null)
 
   // Filters
   const [filterRole, setFilterRole] = useState<string>("all")
 
-  // Form data for inviting users
-  const [inviteFormData, setInviteFormData] = useState({
-    email: "",
-    first_name: "",
-    last_name: "",
-    role: "medico" as UserRole,
-  })
-
-  // Form data for editing users
-  const [editFormData, setEditFormData] = useState({
-    email: "",
-    first_name: "",
-    last_name: "",
-    phone: "",
-    role: "medico" as UserRole,
-    is_active: true,
-  })
+  // Form data
+  const [inviteFormData, setInviteFormData] = useState<InviteFormData>(defaultInviteForm)
+  const [editFormData, setEditFormData] = useState<EditFormData>(defaultEditForm)
 
   const loadData = async () => {
     const token = auth.getToken()
@@ -106,7 +57,6 @@ export default function TenantAdminUsuariosPage() {
 
     try {
       const usersData = await api.getMyTenantUsers(token)
-      // Show all users in the tenant (except superadmin and tenant_admin)
       const filteredUsers = usersData.filter(
         (u) => u.role !== "superadmin" && u.role !== "tenant_admin"
       )
@@ -145,12 +95,7 @@ export default function TenantAdminUsuariosPage() {
       })
       toast.success(`Invitación enviada a ${inviteFormData.email}`)
       setIsInviteDialogOpen(false)
-      setInviteFormData({
-        email: "",
-        first_name: "",
-        last_name: "",
-        role: "medico",
-      })
+      setInviteFormData(defaultInviteForm)
       loadData()
     } catch (error: any) {
       toast.error(error.message || "Error al enviar invitación")
@@ -180,15 +125,14 @@ export default function TenantAdminUsuariosPage() {
   }
 
   const handleDelete = async () => {
-    if (!selectedUser) return
+    if (!deletingUser) return
     const token = auth.getToken()
     if (!token) return
 
     try {
-      await api.deleteUser(token, selectedUser.id)
+      await api.deleteUser(token, deletingUser.id)
       toast.success("Usuario eliminado")
-      setIsDeleteDialogOpen(false)
-      setSelectedUser(null)
+      setDeletingUser(null)
       loadData()
     } catch (error: any) {
       toast.error(error.message || "Error al eliminar usuario")
@@ -221,19 +165,6 @@ export default function TenantAdminUsuariosPage() {
     setIsEditDialogOpen(true)
   }
 
-  const getRoleBadge = (role: UserRole) => {
-    const config = roleConfig[role]
-    if (!config) return <Badge variant="outline">{role}</Badge>
-
-    const Icon = config.icon
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
-        <Icon className="h-3 w-3" />
-        {config.label}
-      </Badge>
-    )
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -243,368 +174,56 @@ export default function TenantAdminUsuariosPage() {
   }
 
   return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="h-6 w-6" />
-              <h1 className="text-3xl font-bold">Usuarios del Equipo</h1>
-            </div>
-            <p className="text-muted-foreground">
-              Gestiona los managers y usuarios de tu organizacion
-            </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="h-6 w-6" />
+            <h1 className="text-3xl font-bold">Usuarios del Equipo</h1>
           </div>
-          <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Invitar Usuario
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Invitar Usuario</DialogTitle>
-                <DialogDescription>
-                  Envia una invitacion por email. El usuario recibira un enlace para unirse a tu organizacion.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="invite_email">Email *</Label>
-                  <Input
-                    id="invite_email"
-                    type="email"
-                    value={inviteFormData.email}
-                    onChange={(e) => setInviteFormData({ ...inviteFormData, email: e.target.value })}
-                    placeholder="usuario@ejemplo.com"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="invite_first_name">Nombre (opcional)</Label>
-                    <Input
-                      id="invite_first_name"
-                      value={inviteFormData.first_name}
-                      onChange={(e) => setInviteFormData({ ...inviteFormData, first_name: e.target.value })}
-                      placeholder="Juan"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="invite_last_name">Apellido (opcional)</Label>
-                    <Input
-                      id="invite_last_name"
-                      value={inviteFormData.last_name}
-                      onChange={(e) => setInviteFormData({ ...inviteFormData, last_name: e.target.value })}
-                      placeholder="Perez"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="invite_role">Rol *</Label>
-                  <Select
-                    value={inviteFormData.role}
-                    onValueChange={(value: UserRole) => setInviteFormData({ ...inviteFormData, role: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="manager">
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="h-4 w-4" />
-                          Gestor de Leads
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="medico">
-                        <div className="flex items-center gap-2">
-                          <Stethoscope className="h-4 w-4" />
-                          Médico
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="closer">
-                        <div className="flex items-center gap-2">
-                          <UserIcon className="h-4 w-4" />
-                          Comercial
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="recepcionista">
-                        <div className="flex items-center gap-2">
-                          <HeadphonesIcon className="h-4 w-4" />
-                          Recepcionista
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleInvite}>Enviar Invitacion</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <p className="text-muted-foreground">
+            Gestiona los managers y usuarios de tu organizacion
+          </p>
         </div>
+        <InviteUserDialog
+          open={isInviteDialogOpen}
+          onOpenChange={setIsInviteDialogOpen}
+          formData={inviteFormData}
+          setFormData={setInviteFormData}
+          onSubmit={handleInvite}
+        />
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Gestores</CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {users.filter((u) => u.role === "manager").length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Médicos</CardTitle>
-              <Stethoscope className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {users.filter((u) => u.role === "medico").length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Closers</CardTitle>
-              <UserIcon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {users.filter((u) => u.role === "closer").length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Recepcionistas</CardTitle>
-              <HeadphonesIcon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {users.filter((u) => u.role === "recepcionista").length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Stats Cards */}
+      <UserStatsCards users={users} />
 
-        {/* Filters and Table */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Lista de Usuarios</CardTitle>
-                <CardDescription>
-                  {filteredUsers.length} de {users.length} usuarios
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <Select value={filterRole} onValueChange={setFilterRole}>
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Filtrar por rol" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los roles</SelectItem>
-                    <SelectItem value="manager">Gestor de Leads</SelectItem>
-                    <SelectItem value="medico">Médico</SelectItem>
-                    <SelectItem value="closer">Closer</SelectItem>
-                    <SelectItem value="recepcionista">Recepcionista</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {filteredUsers.length === 0 ? (
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No hay usuarios que coincidan con los filtros</p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuario</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Rol</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <div className="font-medium">
-                          {user.first_name && user.last_name
-                            ? `${user.first_name} ${user.last_name}`
-                            : user.full_name || "Sin nombre"}
-                        </div>
-                        {user.phone && (
-                          <p className="text-xs text-muted-foreground">{user.phone}</p>
-                        )}
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell>
-                        {user.is_active ? (
-                          <Badge variant="outline" className="border-green-500 text-green-700">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Activo
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-red-500 text-red-700">
-                            <XCircle className="h-3 w-3 mr-1" />
-                            Inactivo
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleToggleActive(user)}
-                            title={user.is_active ? "Desactivar" : "Activar"}
-                          >
-                            {user.is_active ? (
-                              <XCircle className="h-4 w-4" />
-                            ) : (
-                              <CheckCircle className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openEditDialog(user)}
-                            title="Editar"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setSelectedUser(user)
-                              setIsDeleteDialogOpen(true)
-                            }}
-                            title="Eliminar"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+      {/* Users Table */}
+      <UsersTable
+        users={filteredUsers}
+        totalUsers={users.length}
+        filterRole={filterRole}
+        setFilterRole={setFilterRole}
+        onToggleActive={handleToggleActive}
+        onEdit={openEditDialog}
+        onDelete={setDeletingUser}
+      />
 
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Editar Usuario</DialogTitle>
-            <DialogDescription>
-              Modifica la informacion del usuario
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit_first_name">Nombre</Label>
-                <Input
-                  id="edit_first_name"
-                  value={editFormData.first_name}
-                  onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit_last_name">Apellido</Label>
-                <Input
-                  id="edit_last_name"
-                  value={editFormData.last_name}
-                  onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit_email">Email</Label>
-              <Input
-                id="edit_email"
-                type="email"
-                value={editFormData.email}
-                disabled
-                className="bg-muted"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit_phone">Telefono</Label>
-              <Input
-                id="edit_phone"
-                value={editFormData.phone}
-                onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit_role">Rol</Label>
-              <Select
-                value={editFormData.role}
-                onValueChange={(value: UserRole) => setEditFormData({ ...editFormData, role: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="manager">Gestor de Leads</SelectItem>
-                  <SelectItem value="medico">Médico</SelectItem>
-                  <SelectItem value="closer">Closer</SelectItem>
-                  <SelectItem value="recepcionista">Recepcionista</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleEdit}>Guardar Cambios</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Edit Dialog */}
+      <EditUserDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        formData={editFormData}
+        setFormData={setEditFormData}
+        onSubmit={handleEdit}
+      />
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar Usuario</AlertDialogTitle>
-            <AlertDialogDescription>
-              Estas seguro de que deseas eliminar al usuario{" "}
-              <strong>{selectedUser?.email}</strong>? Esta accion no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Delete Dialog */}
+      <DeleteUserDialog
+        user={deletingUser}
+        onClose={() => setDeletingUser(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }
