@@ -29,7 +29,7 @@ def seed_email_templates():
         password_reset_template = {
             "name": "Password Reset Email",
             "template_type": EmailTemplateType.PASSWORD_RESET,
-            "subject": "Recuperación de Contraseña - {{ project_name }}",
+            "subject": "Recuperación de Contraseña - ClinicManager",
             "html_content": """
 <!DOCTYPE html>
 <html>
@@ -53,6 +53,14 @@ def seed_email_templates():
             text-align: center;
             color: #4a5568;
             margin-bottom: 30px;
+        }
+        .logo {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 32px;
+            font-weight: bold;
+            color: #0E0E0F;
+            letter-spacing: -0.5px;
+            margin: 0;
         }
         .button {
             display: inline-block;
@@ -82,7 +90,7 @@ def seed_email_templates():
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ project_name }}</h1>
+            <h1 class="logo">ClinicManager</h1>
             <h2>Recuperación de Contraseña</h2>
         </div>
 
@@ -109,13 +117,13 @@ def seed_email_templates():
 
         <div class="footer">
             <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
-            <p>&copy; {{ project_name }} - {{ current_year }}</p>
+            <p>&copy; ClinicManager - {{ current_year }}</p>
         </div>
     </div>
 </body>
 </html>
             """,
-            "variables": '{"project_name": "Nombre del proyecto", "user_name": "Nombre del usuario", "reset_url": "URL de restablecimiento", "expire_hours": "Horas de expiración", "current_year": "Año actual"}',
+            "variables": '{"user_name": "Nombre del usuario", "reset_url": "URL de restablecimiento", "expire_hours": "Horas de expiración", "current_year": "Año actual"}',
             "is_active": True
         }
 
@@ -123,7 +131,7 @@ def seed_email_templates():
         welcome_template = {
             "name": "Welcome Email",
             "template_type": EmailTemplateType.WELCOME,
-            "subject": "¡Bienvenido a {{ project_name }}!",
+            "subject": "¡Bienvenido a ClinicManager!",
             "html_content": """
 <!DOCTYPE html>
 <html>
@@ -147,6 +155,14 @@ def seed_email_templates():
             text-align: center;
             color: #4a5568;
             margin-bottom: 30px;
+        }
+        .logo {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 32px;
+            font-weight: bold;
+            color: #0E0E0F;
+            letter-spacing: -0.5px;
+            margin: 0;
         }
         .footer {
             margin-top: 30px;
@@ -159,25 +175,26 @@ def seed_email_templates():
 <body>
     <div class="container">
         <div class="header">
-            <h1>¡Bienvenido a {{ project_name }}!</h1>
+            <h1 class="logo">ClinicManager</h1>
+            <h2>¡Bienvenido!</h2>
         </div>
 
         <p>Hola {{ user_name }},</p>
 
-        <p>¡Gracias por registrarte en {{ project_name }}!</p>
+        <p>¡Gracias por registrarte en ClinicManager!</p>
 
         <p>Tu cuenta ha sido creada exitosamente. Ahora puedes acceder a todas las funcionalidades de nuestra plataforma.</p>
 
         <p>Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos.</p>
 
         <div class="footer">
-            <p>&copy; {{ project_name }} - {{ current_year }}</p>
+            <p>&copy; ClinicManager - {{ current_year }}</p>
         </div>
     </div>
 </body>
 </html>
             """,
-            "variables": '{"project_name": "Nombre del proyecto", "user_name": "Nombre del usuario", "current_year": "Año actual"}',
+            "variables": '{"user_name": "Nombre del usuario", "current_year": "Año actual"}',
             "is_active": True
         }
 
@@ -185,7 +202,7 @@ def seed_email_templates():
         notification_template = {
             "name": "Notification Email",
             "template_type": EmailTemplateType.NOTIFICATION,
-            "subject": "Notificación - {{ project_name }}",
+            "subject": "Notificación - ClinicManager",
             "html_content": """
 <!DOCTYPE html>
 <html>
@@ -209,6 +226,14 @@ def seed_email_templates():
             text-align: center;
             color: #4a5568;
             margin-bottom: 30px;
+        }
+        .logo {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 32px;
+            font-weight: bold;
+            color: #0E0E0F;
+            letter-spacing: -0.5px;
+            margin: 0;
         }
         .message-box {
             background-color: white;
@@ -227,7 +252,7 @@ def seed_email_templates():
 <body>
     <div class="container">
         <div class="header">
-            <h2>{{ project_name }}</h2>
+            <h1 class="logo">ClinicManager</h1>
         </div>
 
         {% if user_name %}
@@ -241,13 +266,13 @@ def seed_email_templates():
         </div>
 
         <div class="footer">
-            <p>&copy; {{ project_name }} - {{ current_year }}</p>
+            <p>&copy; ClinicManager - {{ current_year }}</p>
         </div>
     </div>
 </body>
 </html>
             """,
-            "variables": '{"project_name": "Nombre del proyecto", "user_name": "Nombre del usuario", "message": "Mensaje de la notificación", "current_year": "Año actual"}',
+            "variables": '{"user_name": "Nombre del usuario", "message": "Mensaje de la notificación", "current_year": "Año actual"}',
             "is_active": True
         }
 
@@ -280,6 +305,14 @@ def seed_email_templates():
             color: #4a5568;
             margin-bottom: 30px;
         }
+        .logo {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 32px;
+            font-weight: bold;
+            color: #0E0E0F;
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
         .button {
             display: inline-block;
             padding: 14px 35px;
@@ -308,7 +341,7 @@ def seed_email_templates():
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ project_name }}</h1>
+            <h1 class="logo">ClinicManager</h1>
             <h2>Invitación a {{ tenant_name }}</h2>
         </div>
 
@@ -334,13 +367,13 @@ def seed_email_templates():
 
         <div class="footer">
             <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
-            <p>&copy; {{ project_name }} - {{ current_year }}</p>
+            <p>&copy; ClinicManager - {{ current_year }}</p>
         </div>
     </div>
 </body>
 </html>
             """,
-            "variables": '{"project_name": "Nombre del proyecto", "inviter_name": "Nombre de quien invita", "tenant_name": "Nombre de la organización", "role": "Rol asignado", "invitation_link": "Enlace de invitación", "current_year": "Año actual"}',
+            "variables": '{"inviter_name": "Nombre de quien invita", "tenant_name": "Nombre de la organización", "role": "Rol asignado", "invitation_link": "Enlace de invitación", "current_year": "Año actual"}',
             "is_active": True
         }
 
@@ -372,6 +405,14 @@ def seed_email_templates():
             text-align: center;
             color: #4a5568;
             margin-bottom: 30px;
+        }
+        .logo {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 32px;
+            font-weight: bold;
+            color: #0E0E0F;
+            letter-spacing: -0.5px;
+            margin: 0;
         }
         .button {
             display: inline-block;
@@ -406,7 +447,7 @@ def seed_email_templates():
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ project_name }}</h1>
+            <h1 class="logo">ClinicManager</h1>
             <h2>Nueva invitación a organización</h2>
         </div>
 
@@ -419,7 +460,7 @@ def seed_email_templates():
         <p><strong>{{ inviter_name }}</strong> te ha invitado a unirte a <strong>{{ tenant_name }}</strong> como <strong>{{ role }}</strong>.</p>
 
         <div class="info-box">
-            <div class="info-box-title">✓ Ya tienes una cuenta en {{ project_name }}</div>
+            <div class="info-box-title">✓ Ya tienes una cuenta en ClinicManager</div>
             <p style="margin: 5px 0 0 0;">Puedes usar tus credenciales existentes para aceptar esta invitación. No necesitas crear una cuenta nueva.</p>
         </div>
 
@@ -438,13 +479,13 @@ def seed_email_templates():
 
         <div class="footer">
             <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
-            <p>&copy; {{ project_name }} - {{ current_year }}</p>
+            <p>&copy; ClinicManager - {{ current_year }}</p>
         </div>
     </div>
 </body>
 </html>
             """,
-            "variables": '{"project_name": "Nombre del proyecto", "user_name": "Nombre del usuario", "inviter_name": "Nombre de quien invita", "tenant_name": "Nombre de la organización", "role": "Rol asignado", "invitation_link": "Enlace de invitación", "current_year": "Año actual"}',
+            "variables": '{"user_name": "Nombre del usuario", "inviter_name": "Nombre de quien invita", "tenant_name": "Nombre de la organización", "role": "Rol asignado", "invitation_link": "Enlace de invitación", "current_year": "Año actual"}',
             "is_active": True
         }
 
@@ -476,6 +517,14 @@ def seed_email_templates():
             text-align: center;
             color: #4a5568;
             margin-bottom: 30px;
+        }
+        .logo {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 32px;
+            font-weight: bold;
+            color: #0E0E0F;
+            letter-spacing: -0.5px;
+            margin: 0;
         }
         .button {
             display: inline-block;
@@ -510,7 +559,7 @@ def seed_email_templates():
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ project_name }}</h1>
+            <h1 class="logo">ClinicManager</h1>
             <h2>Nueva Organización Asignada</h2>
         </div>
 
@@ -537,13 +586,13 @@ def seed_email_templates():
 
         <div class="footer">
             <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
-            <p>&copy; {{ project_name }} - {{ current_year }}</p>
+            <p>&copy; ClinicManager - {{ current_year }}</p>
         </div>
     </div>
 </body>
 </html>
             """,
-            "variables": '{"project_name": "Nombre del proyecto", "user_name": "Nombre del usuario", "assigner_name": "Nombre de quien asigna", "tenant_name": "Nombre de la organización", "role": "Rol asignado", "login_url": "URL de login", "current_year": "Año actual"}',
+            "variables": '{"user_name": "Nombre del usuario", "assigner_name": "Nombre de quien asigna", "tenant_name": "Nombre de la organización", "role": "Rol asignado", "login_url": "URL de login", "current_year": "Año actual"}',
             "is_active": True
         }
 
