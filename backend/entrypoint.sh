@@ -45,9 +45,9 @@ echo "=== Creating initial users ==="
 python create_test_users.py || echo "Users may already exist, continuing..."
 echo ""
 
-# Seed email templates
-echo "=== Seeding email templates ==="
-python seed_email_templates.py || echo "Email templates may already exist, continuing..."
+# Seed/update email templates (--update ensures templates are always current)
+echo "=== Seeding/updating email templates ==="
+python seed_email_templates.py --update || echo "Email templates seeding failed, continuing..."
 echo ""
 
 # Seed service categories (for all tenants)

@@ -4,14 +4,17 @@ Script to seed default email templates.
 Run this script from the root of the project.
 
 Usage:
-    python seed_email_templates.py
+    python seed_email_templates.py          # Create new templates only
+    python seed_email_templates.py --update # Update existing templates
 
 Or with Docker:
     docker compose exec backend python /app/seed_email_templates.py
+    docker compose exec backend python /app/seed_email_templates.py --update
 """
 
 import sys
 import os
+import argparse
 
 # Add backend directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
@@ -20,8 +23,12 @@ from app.db.session import SessionLocal
 from app.models.email_template import EmailTemplate, EmailTemplateType
 
 
-def seed_email_templates():
-    """Create default email templates."""
+def seed_email_templates(update_existing: bool = False):
+    """Create default email templates.
+
+    Args:
+        update_existing: If True, update existing templates with new content.
+    """
     db = SessionLocal()
 
     try:
@@ -612,7 +619,17 @@ def seed_email_templates():
             ).first()
 
             if existing:
-                print(f"⚠️  Template '{template_data['name']}' already exists. Skipping...")
+                if update_existing:
+                    # Update existing template
+                    existing.name = template_data["name"]
+                    existing.subject = template_data["subject"]
+                    existing.html_content = template_data["html_content"]
+                    existing.variables = template_data["variables"]
+                    existing.is_active = template_data["is_active"]
+                    db.commit()
+                    print(f"🔄 Updated template: {existing.name} ({existing.template_type.value})")
+                else:
+                    print(f"⚠️  Template '{template_data['name']}' already exists. Skipping... (use --update to update)")
                 continue
 
             # Create template
@@ -636,10 +653,21 @@ def seed_email_templates():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Seed email templates")
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Update existing templates with new content"
+    )
+    args = parser.parse_args()
+
     print("=" * 50)
-    print("Seeding Email Templates")
+    if args.update:
+        print("Updating Email Templates")
+    else:
+        print("Seeding Email Templates")
     print("=" * 50)
 
-    seed_email_templates()
+    seed_email_templates(update_existing=args.update)
 
     sys.exit(0)
