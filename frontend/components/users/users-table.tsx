@@ -10,7 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Users, Pencil, Trash2, CheckCircle, XCircle, Building2 } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { Users, Pencil, Trash2, CheckCircle, XCircle, Building2, UserPlus } from "lucide-react"
 import { User, TenantWithStats } from "@/lib/api"
 import { getRoleBadge } from "./user-helpers"
 
@@ -20,6 +26,7 @@ interface UsersTableProps {
   onEdit: (user: User) => void
   onDelete: (user: User) => void
   onToggleActive: (user: User) => void
+  onAssignTenant?: (user: User) => void
 }
 
 export function UsersTable({
@@ -28,11 +35,74 @@ export function UsersTable({
   onEdit,
   onDelete,
   onToggleActive,
+  onAssignTenant,
 }: UsersTableProps) {
   const getTenantName = (tenantId: string | undefined) => {
     if (!tenantId) return <span className="text-muted-foreground">-</span>
     const tenant = tenants.find((t) => t.id === tenantId)
     return tenant ? tenant.name : tenantId
+  }
+
+  const renderMemberships = (user: User) => {
+    // If user has memberships array from API, use it
+    if (user.memberships && user.memberships.length > 0) {
+      if (user.memberships.length === 1) {
+        const m = user.memberships[0]
+        return (
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">{m.tenant_name}</span>
+            {m.is_default && (
+              <Badge variant="outline" className="text-xs">Default</Badge>
+            )}
+          </div>
+        )
+      }
+
+      // Multiple memberships - show first one + count
+      const defaultMembership = user.memberships.find(m => m.is_default) || user.memberships[0]
+      const otherCount = user.memberships.length - 1
+
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2 cursor-pointer">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{defaultMembership.tenant_name}</span>
+                <Badge variant="secondary" className="text-xs">
+                  +{otherCount} más
+                </Badge>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <div className="space-y-1">
+                <p className="font-medium text-xs mb-2">Organizaciones:</p>
+                {user.memberships.map((m) => (
+                  <div key={m.tenant_id} className="flex items-center justify-between gap-3 text-xs">
+                    <span>{m.tenant_name}</span>
+                    <div className="flex items-center gap-1">
+                      {getRoleBadge(m.role)}
+                      {m.is_default && (
+                        <Badge variant="outline" className="text-[10px] px-1">Default</Badge>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )
+    }
+
+    // Fallback to legacy tenant_id field
+    return (
+      <div className="flex items-center gap-2">
+        {user.tenant_id && <Building2 className="h-4 w-4 text-muted-foreground" />}
+        <span className="text-sm">{getTenantName(user.tenant_id)}</span>
+      </div>
+    )
   }
 
   if (users.length === 0) {
@@ -51,7 +121,7 @@ export function UsersTable({
           <TableHead>Usuario</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Rol</TableHead>
-          <TableHead>Tenant</TableHead>
+          <TableHead>Organizaciones</TableHead>
           <TableHead>Estado</TableHead>
           <TableHead className="text-right">Acciones</TableHead>
         </TableRow>
@@ -72,10 +142,7 @@ export function UsersTable({
             <TableCell>{user.email}</TableCell>
             <TableCell>{getRoleBadge(user.role)}</TableCell>
             <TableCell>
-              <div className="flex items-center gap-2">
-                {user.tenant_id && <Building2 className="h-4 w-4 text-muted-foreground" />}
-                <span className="text-sm">{getTenantName(user.tenant_id)}</span>
-              </div>
+              {renderMemberships(user)}
             </TableCell>
             <TableCell>
               {user.is_active ? (
@@ -92,6 +159,16 @@ export function UsersTable({
             </TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end space-x-2">
+                {onAssignTenant && user.role !== "superadmin" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onAssignTenant(user)}
+                    title="Asignar a organización"
+                  >
+                    <UserPlus className="h-4 w-4 text-primary" />
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"

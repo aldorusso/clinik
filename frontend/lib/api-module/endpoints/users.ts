@@ -3,7 +3,7 @@
  */
 
 import { API_URL } from '../client';
-import type { User, UserCreate, UserUpdate, UserRole, ClientCreate } from '../types';
+import type { User, UserCreate, UserUpdate, UserRole, ClientCreate, UserMembershipInfo } from '../types';
 
 export const userEndpoints = {
   async getUsers(token: string, params?: { role?: UserRole; tenant_id?: string }): Promise<User[]> {
@@ -271,6 +271,40 @@ export const userEndpoints = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Failed to delete user');
+    }
+  },
+
+  async assignUserToTenant(
+    token: string,
+    userId: string,
+    data: { tenant_id: string; role: UserRole; is_default?: boolean }
+  ): Promise<UserMembershipInfo> {
+    const response = await fetch(`${API_URL}/api/v1/users/${userId}/assign-to-tenant`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to assign user to tenant');
+    }
+
+    return response.json();
+  },
+
+  async removeUserFromTenant(token: string, userId: string, tenantId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/v1/users/${userId}/memberships/${tenantId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to remove user from tenant');
     }
   },
 };

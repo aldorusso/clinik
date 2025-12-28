@@ -457,3 +457,18 @@
   background-color: rgb(255 255 255 / 0.8);
   backdrop-filter: blur(4px);
 }
+
+/* Fix focus ring offset - make it tighter to avoid overlapping labels */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="combobox"]:focus-visible,
+[data-radix-collection-item]:focus-visible {
+  --tw-ring-offset-width: 0px !important;
+  outline-offset: 0px !important;
+}
+
+/* Also target shadcn/ui components that use data attributes */
+[data-state]:focus-visible {
+  --tw-ring-offset-width: 0px !important;
+}

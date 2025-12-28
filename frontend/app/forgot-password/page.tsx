@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
 import { ArrowLeft, Mail, CheckCircle } from "lucide-react"
 import { api } from "@/lib/api"
+import { Logo } from "@/components/logo"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -33,70 +34,57 @@ export default function ForgotPasswordPage() {
   if (success) {
     return (
       <main className="flex min-h-screen">
-        {/* Left side - Brand and Marketing */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-700 relative overflow-hidden">
-          {/* Background decorative elements */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-20 left-20 w-32 h-32 border border-white/30 rounded-lg rotate-12"></div>
-            <div className="absolute top-40 right-40 w-24 h-24 border border-white/30 rounded-lg -rotate-12"></div>
-            <div className="absolute bottom-40 left-40 w-28 h-28 border border-white/30 rounded-lg rotate-45"></div>
+        {/* Left side - Brand (Dark) */}
+        <div className="hidden lg:flex lg:w-1/2 bg-dark relative overflow-hidden">
+          {/* Subtle decorative elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-24 left-24 w-32 h-32 border border-white/5 rounded-2xl rotate-12"></div>
+            <div className="absolute top-1/3 right-24 w-24 h-24 border border-white/5 rounded-2xl -rotate-12"></div>
+            <div className="absolute bottom-1/3 left-1/4 w-40 h-40 border border-mint/10 rounded-3xl rotate-45"></div>
+            <div className="absolute bottom-24 right-24 w-20 h-20 border border-mint/5 rounded-2xl -rotate-6"></div>
           </div>
 
-          <div className="flex flex-col justify-between h-full p-12 relative z-10 text-white">
+          <div className="flex flex-col justify-between h-full px-16 py-14 relative z-10">
             {/* Top section with logo */}
             <div>
-              <div className="mb-8">
-                <div className="w-12 h-12 flex items-center justify-center bg-white/20 rounded-xl backdrop-blur-sm">
-                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                  </svg>
-                </div>
-              </div>
+              <Logo size="lg" variant="light" />
             </div>
 
             {/* Center section with main content */}
-            <div className="flex-1 flex flex-col justify-center">
-              {/* Main heading */}
-              <div className="mb-8">
-                <h1 className="text-5xl font-bold mb-2">
-                  Hola<br />
-                  Clinic.online! 👋
-                </h1>
-              </div>
+            <div className="flex-1 flex flex-col justify-center max-w-lg">
+              <h1 className="text-4xl lg:text-5xl font-bold leading-tight text-cream mb-6">
+                Gestiona tu clínica
+                <br />
+                <span className="text-mint">de forma inteligente.</span>
+              </h1>
 
-              {/* Description */}
-              <div className="max-w-md">
-                <p className="text-lg text-white/90 leading-relaxed">
-                  Simplifica y automatiza la gestión de leads médicos.
-                  Obtén mayor productividad a través de la automatización
-                  y ahorra toneladas de tiempo.
-                </p>
-              </div>
+              <p className="text-lg text-cream-dark/60 leading-relaxed">
+                Simplifica la gestión de pacientes, citas y leads en un solo lugar.
+              </p>
             </div>
 
             {/* Footer */}
             <div>
-              <p className="text-white/60 text-sm">
-                © 2024 Clinic.online. Todos los derechos reservados.
+              <p className="text-cream-dark/30 text-sm">
+                © 2024 ClinicManager. Todos los derechos reservados.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Right side - Success Form */}
+        {/* Right side - Success Message */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
           {/* Mobile header for small screens */}
-          <div className="lg:hidden absolute top-8 left-8 right-8 text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
-            <p className="text-muted-foreground text-sm">Gestión integral de clínicas estéticas</p>
+          <div className="lg:hidden absolute top-8 left-0 right-0 text-center">
+            <Logo size="md" variant="default" />
+            <p className="text-muted-foreground text-sm mt-2">Gestión integral de clínicas</p>
           </div>
 
           <div className="w-full max-w-md mt-24 lg:mt-0">
             <div className="text-center mb-8">
-              <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
-                <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+              <div className="mx-auto w-16 h-16 bg-mint/10 rounded-full flex items-center justify-center mb-6">
+                <CheckCircle className="h-8 w-8 text-mint" />
               </div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
               <h2 className="text-3xl font-bold text-foreground mb-4">¡Correo Enviado!</h2>
               <p className="text-muted-foreground mb-4">
                 Si existe una cuenta con el correo <strong>{email}</strong>, recibirás un enlace para restablecer tu contraseña.
@@ -104,9 +92,9 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div className="space-y-6">
-              <Alert className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800">
-                <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <AlertDescription className="text-blue-800 dark:text-blue-200">
+              <Alert className="bg-mint/5 border-mint/20">
+                <Mail className="h-4 w-4 text-mint" />
+                <AlertDescription className="text-foreground/80">
                   Revisa tu bandeja de entrada y la carpeta de spam. El enlace expira en 24 horas.
                 </AlertDescription>
               </Alert>
@@ -129,51 +117,39 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="flex min-h-screen">
-      {/* Left side - Brand and Marketing */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-700 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-32 h-32 border border-white/30 rounded-lg rotate-12"></div>
-          <div className="absolute top-40 right-40 w-24 h-24 border border-white/30 rounded-lg -rotate-12"></div>
-          <div className="absolute bottom-40 left-40 w-28 h-28 border border-white/30 rounded-lg rotate-45"></div>
+      {/* Left side - Brand (Dark) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-dark relative overflow-hidden">
+        {/* Subtle decorative elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-24 left-24 w-32 h-32 border border-white/5 rounded-2xl rotate-12"></div>
+          <div className="absolute top-1/3 right-24 w-24 h-24 border border-white/5 rounded-2xl -rotate-12"></div>
+          <div className="absolute bottom-1/3 left-1/4 w-40 h-40 border border-mint/10 rounded-3xl rotate-45"></div>
+          <div className="absolute bottom-24 right-24 w-20 h-20 border border-mint/5 rounded-2xl -rotate-6"></div>
         </div>
 
-        <div className="flex flex-col justify-between h-full p-12 relative z-10 text-white">
+        <div className="flex flex-col justify-between h-full px-16 py-14 relative z-10">
           {/* Top section with logo */}
           <div>
-            <div className="mb-8">
-              <div className="w-12 h-12 flex items-center justify-center bg-white/20 rounded-xl backdrop-blur-sm">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                </svg>
-              </div>
-            </div>
+            <Logo size="lg" variant="light" />
           </div>
 
           {/* Center section with main content */}
-          <div className="flex-1 flex flex-col justify-center">
-            {/* Main heading */}
-            <div className="mb-8">
-              <h1 className="text-5xl font-bold mb-2">
-                Hola<br />
-                Clinic.online! 👋
-              </h1>
-            </div>
+          <div className="flex-1 flex flex-col justify-center max-w-lg">
+            <h1 className="text-4xl lg:text-5xl font-bold leading-tight text-cream mb-6">
+              Gestiona tu clínica
+              <br />
+              <span className="text-mint">de forma inteligente.</span>
+            </h1>
 
-            {/* Description */}
-            <div className="max-w-md">
-              <p className="text-lg text-white/90 leading-relaxed">
-                Simplifica y automatiza la gestión de leads médicos.
-                Obtén mayor productividad a través de la automatización
-                y ahorra toneladas de tiempo.
-              </p>
-            </div>
+            <p className="text-lg text-cream-dark/60 leading-relaxed">
+              Simplifica la gestión de pacientes, citas y leads en un solo lugar.
+            </p>
           </div>
 
           {/* Footer */}
           <div>
-            <p className="text-white/60 text-sm">
-              © 2024 Clinic.online. Todos los derechos reservados.
+            <p className="text-cream-dark/30 text-sm">
+              © 2024 ClinicManager. Todos los derechos reservados.
             </p>
           </div>
         </div>
@@ -182,17 +158,16 @@ export default function ForgotPasswordPage() {
       {/* Right side - Forgot Password Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
         {/* Mobile header for small screens */}
-        <div className="lg:hidden absolute top-8 left-8 right-8 text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
-          <p className="text-muted-foreground text-sm">Gestión integral de clínicas estéticas</p>
+        <div className="lg:hidden absolute top-8 left-0 right-0 text-center">
+          <Logo size="md" variant="default" />
+          <p className="text-muted-foreground text-sm mt-2">Gestión integral de clínicas</p>
         </div>
 
         <div className="w-full max-w-md mt-24 lg:mt-0">
           <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6">
-              <Mail className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <div className="mx-auto w-16 h-16 bg-mint/10 rounded-full flex items-center justify-center mb-6">
+              <Mail className="h-8 w-8 text-mint" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Clinic.online</h1>
             <h2 className="text-3xl font-bold text-foreground mb-4">Recuperar Contraseña</h2>
             <p className="text-muted-foreground">
               Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.

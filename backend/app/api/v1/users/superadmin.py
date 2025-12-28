@@ -15,15 +15,16 @@ from app.core.security import (
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.models.tenant import Tenant
+from app.models.tenant_membership import TenantMembership
 from app.models.notification import NotificationType
-from app.schemas.user import UserCreate, UserUpdate, User as UserSchema, UserInvite
-from app.core.email import send_welcome_email, send_invitation_email
+from app.schemas.user import UserCreate, UserUpdate, User as UserSchema, UserInvite, UserWithMemberships, UserMembershipInfo, AssignUserToTenant
+from app.core.email import send_welcome_email, send_invitation_email, send_tenant_assignment_email
 from app.core.notifications import create_notification
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[UserSchema])
+@router.get("/", response_model=List[UserWithMemberships])
 async def list_users(
     skip: int = 0,
     limit: int = 100,
@@ -35,6 +36,7 @@ async def list_users(
     """
     List all users globally. Only accessible by superadmins.
     Can filter by role and tenant_id.
+    Includes all tenant memberships for each user.
     """
     query = db.query(User)
 
@@ -45,7 +47,54 @@ async def list_users(
         query = query.filter(User.tenant_id == tenant_id)
 
     users = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
-    return users
+
+    # Build response with memberships
+    result = []
+    for user in users:
+        # Get all memberships for this user
+        memberships = db.query(TenantMembership).filter(
+            TenantMembership.user_id == user.id
+        ).all()
+
+        # Build membership info list
+        membership_infos = []
+        for m in memberships:
+            tenant = db.query(Tenant).filter(Tenant.id == m.tenant_id).first()
+            if tenant:
+                membership_infos.append(UserMembershipInfo(
+                    tenant_id=m.tenant_id,
+                    tenant_name=tenant.name,
+                    role=m.role,
+                    is_active=m.is_active,
+                    is_default=m.is_default
+                ))
+
+        # Create user dict and add memberships
+        user_dict = {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone": user.phone,
+            "country": user.country,
+            "city": user.city,
+            "office_address": user.office_address,
+            "company_name": user.company_name,
+            "job_title": user.job_title,
+            "profile_photo": user.profile_photo,
+            "role": user.role,
+            "tenant_id": user.tenant_id,
+            "is_active": user.is_active,
+            "client_company_name": user.client_company_name,
+            "client_tax_id": user.client_tax_id,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
+            "memberships": membership_infos
+        }
+        result.append(UserWithMemberships.model_validate(user_dict))
+
+    return result
 
 
 @router.get("/available-for-admin", response_model=List[UserSchema])
@@ -394,5 +443,187 @@ async def delete_user(
 
     db.delete(user)
     db.commit()
+
+    return None
+
+
+@router.post("/{user_id}/assign-to-tenant", response_model=UserMembershipInfo)
+async def assign_user_to_tenant(
+    user_id: UUID,
+    assignment: AssignUserToTenant,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superadmin)
+):
+    """
+    Assign an existing user to a tenant. Only accessible by superadmins.
+    Creates a new TenantMembership for the user.
+    """
+    # Get the user
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+
+    # Superadmins cannot be assigned to tenants
+    if user.is_superadmin or user.role == UserRole.superadmin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Un superadmin no puede ser asignado a un tenant"
+        )
+
+    # Verify tenant exists
+    tenant = db.query(Tenant).filter(Tenant.id == assignment.tenant_id).first()
+    if not tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant no encontrado"
+        )
+
+    # Check if membership already exists
+    existing_membership = db.query(TenantMembership).filter(
+        TenantMembership.user_id == user_id,
+        TenantMembership.tenant_id == assignment.tenant_id
+    ).first()
+
+    if existing_membership:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El usuario ya pertenece al tenant '{tenant.name}'"
+        )
+
+    # If setting as default, unset other defaults
+    if assignment.is_default:
+        db.query(TenantMembership).filter(
+            TenantMembership.user_id == user_id,
+            TenantMembership.is_default == True
+        ).update({"is_default": False})
+
+    # Create the membership
+    membership = TenantMembership(
+        user_id=user_id,
+        tenant_id=assignment.tenant_id,
+        role=assignment.role,
+        is_active=True,
+        is_default=assignment.is_default,
+        invited_by_id=current_user.id
+    )
+    db.add(membership)
+
+    # If user has no primary tenant_id, set this one
+    if user.tenant_id is None:
+        user.tenant_id = assignment.tenant_id
+        user.role = assignment.role
+
+    db.commit()
+    db.refresh(membership)
+
+    # Send notification email
+    try:
+        await send_tenant_assignment_email(
+            db=db,
+            email_to=user.email,
+            assigner_name=current_user.first_name or current_user.email.split('@')[0],
+            tenant_name=tenant.name,
+            role=assignment.role.value,
+            user_name=user.first_name or user.email.split('@')[0]
+        )
+    except Exception as e:
+        print(f"Error enviando email de asignación: {e}")
+
+    # Create in-app notification
+    try:
+        role_translations = {
+            UserRole.tenant_admin: "Administrador",
+            UserRole.manager: "Manager",
+            UserRole.medico: "Médico",
+            UserRole.closer: "Closer/Comercial",
+            UserRole.recepcionista: "Recepcionista"
+        }
+        role_display = role_translations.get(assignment.role, assignment.role.value)
+
+        await create_notification(
+            db=db,
+            user_id=user.id,
+            type=NotificationType.INFO,
+            title=f"Te han asignado a {tenant.name}",
+            message=f"Has sido agregado a {tenant.name} como {role_display}. Puedes cambiar entre organizaciones desde tu perfil.",
+            action_url="/dashboard",
+            tenant_id=assignment.tenant_id
+        )
+    except Exception as e:
+        print(f"Error creando notificación: {e}")
+
+    return UserMembershipInfo(
+        tenant_id=membership.tenant_id,
+        tenant_name=tenant.name,
+        role=membership.role,
+        is_active=membership.is_active,
+        is_default=membership.is_default
+    )
+
+
+@router.delete("/{user_id}/memberships/{tenant_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_user_from_tenant(
+    user_id: UUID,
+    tenant_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superadmin)
+):
+    """
+    Remove a user from a tenant. Only accessible by superadmins.
+    Deletes the TenantMembership.
+    """
+    membership = db.query(TenantMembership).filter(
+        TenantMembership.user_id == user_id,
+        TenantMembership.tenant_id == tenant_id
+    ).first()
+
+    if not membership:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Membresía no encontrada"
+        )
+
+    # Get tenant name for notification
+    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    tenant_name = tenant.name if tenant else "el tenant"
+
+    # Delete the membership
+    db.delete(membership)
+
+    # If this was the user's primary tenant, clear it
+    user = db.query(User).filter(User.id == user_id).first()
+    if user and user.tenant_id == tenant_id:
+        # Try to set another membership as default
+        other_membership = db.query(TenantMembership).filter(
+            TenantMembership.user_id == user_id,
+            TenantMembership.tenant_id != tenant_id,
+            TenantMembership.is_active == True
+        ).first()
+
+        if other_membership:
+            user.tenant_id = other_membership.tenant_id
+            user.role = other_membership.role
+            other_membership.is_default = True
+        else:
+            user.tenant_id = None
+
+    db.commit()
+
+    # Create notification
+    try:
+        await create_notification(
+            db=db,
+            user_id=user_id,
+            type=NotificationType.WARNING,
+            title=f"Removido de {tenant_name}",
+            message=f"Has sido removido de {tenant_name}.",
+            action_url="/dashboard/profile",
+            tenant_id=None
+        )
+    except Exception as e:
+        print(f"Error creando notificación: {e}")
 
     return None

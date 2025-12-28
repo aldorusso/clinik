@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
 
@@ -136,3 +136,29 @@ class AcceptInvitation(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None
+
+
+# Schema for membership info in user list
+class UserMembershipInfo(BaseModel):
+    """Información resumida de una membresía para mostrar en lista de usuarios"""
+    model_config = ConfigDict(from_attributes=True)
+
+    tenant_id: UUID
+    tenant_name: str
+    role: UserRole
+    is_active: bool
+    is_default: bool
+
+
+# Schema for user with all memberships (for superadmin view)
+class UserWithMemberships(User):
+    """Usuario con todas sus membresías (para vista de superadmin)"""
+    memberships: List[UserMembershipInfo] = []
+
+
+# Schema for assigning user to tenant (superadmin)
+class AssignUserToTenant(BaseModel):
+    """Asignar un usuario existente a un tenant"""
+    tenant_id: UUID
+    role: UserRole = Field(..., description="Rol del usuario en el nuevo tenant")
+    is_default: bool = Field(default=False, description="Si este será el tenant por defecto del usuario")

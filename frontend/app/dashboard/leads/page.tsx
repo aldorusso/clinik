@@ -90,12 +90,19 @@ export default function LeadsPage() {
     }
   }
 
+  // Initial load
   useEffect(() => {
     fetchLeads()
     loadDoctors()
   }, [])
 
+  // Debounced search - only trigger when searchTerm actually changes (not on initial render)
+  const [isInitialRender, setIsInitialRender] = useState(true)
   useEffect(() => {
+    if (isInitialRender) {
+      setIsInitialRender(false)
+      return
+    }
     const delayedSearch = setTimeout(() => fetchLeads(), 500)
     return () => clearTimeout(delayedSearch)
   }, [searchTerm])

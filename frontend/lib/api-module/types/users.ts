@@ -4,6 +4,17 @@
 
 import { UserRole } from './common';
 
+/**
+ * Membership info for user listings (superadmin view)
+ */
+export interface UserMembershipInfo {
+  tenant_id: string;
+  tenant_name: string;
+  role: UserRole;
+  is_active: boolean;
+  is_default: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -27,6 +38,8 @@ export interface User {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Memberships for multi-tenant view (superadmin)
+  memberships?: UserMembershipInfo[];
 }
 
 export interface UserUpdate {

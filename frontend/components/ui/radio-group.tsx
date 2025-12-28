@@ -86,7 +86,7 @@ const RadioGroupItem = React.forwardRef<HTMLInputElement, RadioGroupItemProps>(
         />
         <div
           className={cn(
-            "aspect-square h-4 w-4 rounded-full border border-primary text-primary ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+            "aspect-square h-4 w-4 rounded-full border border-primary text-primary ring-offset-background peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
             className
           )}
         >

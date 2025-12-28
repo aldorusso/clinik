@@ -21,6 +21,7 @@ import {
   CreateUserDialog,
   EditUserDialog,
   DeleteUserDialog,
+  AssignTenantModal,
 } from "@/components/users"
 
 export default function SuperadminUsuariosPage() {
@@ -31,6 +32,7 @@ export default function SuperadminUsuariosPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isAssignTenantOpen, setIsAssignTenantOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
   // Filters
@@ -225,6 +227,29 @@ export default function SuperadminUsuariosPage() {
     setIsDeleteDialogOpen(true)
   }
 
+  const openAssignTenantModal = (user: User) => {
+    setSelectedUser(user)
+    setIsAssignTenantOpen(true)
+  }
+
+  const handleAssignTenant = async (
+    userId: string,
+    tenantId: string,
+    role: UserRole,
+    isDefault: boolean
+  ) => {
+    const token = auth.getToken()
+    if (!token) return
+
+    await api.assignUserToTenant(token, userId, {
+      tenant_id: tenantId,
+      role,
+      is_default: isDefault,
+    })
+    toast.success("Usuario asignado a la organización")
+    loadData()
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -306,6 +331,7 @@ export default function SuperadminUsuariosPage() {
             onEdit={openEditDialog}
             onDelete={openDeleteDialog}
             onToggleActive={handleToggleActive}
+            onAssignTenant={openAssignTenantModal}
           />
         </CardContent>
       </Card>
@@ -336,6 +362,14 @@ export default function SuperadminUsuariosPage() {
         onOpenChange={setIsDeleteDialogOpen}
         user={selectedUser}
         onConfirm={handleDelete}
+      />
+
+      <AssignTenantModal
+        user={selectedUser}
+        tenants={tenants}
+        open={isAssignTenantOpen}
+        onOpenChange={setIsAssignTenantOpen}
+        onAssign={handleAssignTenant}
       />
     </div>
   )
