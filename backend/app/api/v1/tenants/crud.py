@@ -1,3 +1,4 @@
+"""Tenant CRUD endpoints - Superadmin management of tenants."""
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, Request
@@ -22,16 +23,11 @@ from app.schemas.tenant import (
     TenantWithStats,
     TenantCreateWithAdmin,
 )
-from app.schemas.user import User as UserSchema
 from app.core.email import send_welcome_email
 from app.api.v1.audit_logs import create_audit_log, get_client_ip
 
 router = APIRouter()
 
-
-# ============================================
-# SUPERADMIN ENDPOINTS - Gestión global de tenants
-# ============================================
 
 @router.get("/", response_model=List[TenantList])
 async def list_tenants(
@@ -41,9 +37,7 @@ async def list_tenants(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superadmin)
 ):
-    """
-    List all tenants. Only accessible by superadmins.
-    """
+    """List all tenants. Only accessible by superadmins."""
     query = db.query(Tenant)
 
     if is_active is not None:
@@ -60,14 +54,11 @@ async def list_tenants_with_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superadmin)
 ):
-    """
-    List all tenants with user statistics. Only accessible by superadmins.
-    """
+    """List all tenants with user statistics. Only accessible by superadmins."""
     tenants = db.query(Tenant).order_by(Tenant.created_at.desc()).offset(skip).limit(limit).all()
 
     result = []
     for tenant in tenants:
-        # Count users by role for this tenant
         user_count = db.query(func.count(User.id)).filter(
             User.tenant_id == tenant.id,
             User.role == UserRole.medico
@@ -114,7 +105,6 @@ async def create_tenant_with_admin(
     1. existing_admin_id: Use an existing user as admin (creates membership)
     2. admin_email + admin_password: Create a new user as admin
     """
-    # Check if slug already exists
     existing = db.query(Tenant).filter(Tenant.slug == data.slug).first()
     if existing:
         raise HTTPException(
@@ -122,7 +112,6 @@ async def create_tenant_with_admin(
             detail="El slug ya está en uso"
         )
 
-    # Validate admin options
     has_existing_admin = data.existing_admin_id is not None
     has_new_admin = data.admin_email is not None and data.admin_password is not None
 
@@ -142,7 +131,6 @@ async def create_tenant_with_admin(
     admin_email_for_log = None
     is_new_user = False
 
-    # Option 1: Use existing user
     if has_existing_admin:
         db_admin = db.query(User).filter(User.id == data.existing_admin_id).first()
         if not db_admin:
@@ -151,7 +139,6 @@ async def create_tenant_with_admin(
                 detail="Usuario no encontrado"
             )
 
-        # Check user is not superadmin
         if db_admin.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -159,10 +146,7 @@ async def create_tenant_with_admin(
             )
 
         admin_email_for_log = db_admin.email
-
-    # Option 2: Create new user
     else:
-        # Check if admin email already exists
         existing_user = db.query(User).filter(User.email == data.admin_email).first()
         if existing_user:
             raise HTTPException(
@@ -172,18 +156,15 @@ async def create_tenant_with_admin(
         is_new_user = True
         admin_email_for_log = data.admin_email
 
-    # Create tenant
     tenant_data = data.model_dump(exclude={
         'existing_admin_id', 'admin_email', 'admin_password',
         'admin_first_name', 'admin_last_name'
     })
     db_tenant = Tenant(**tenant_data)
     db.add(db_tenant)
-    db.flush()  # Get the tenant ID without committing
+    db.flush()
 
-    # Create or assign admin
     if is_new_user:
-        # Create new admin user
         hashed_password = get_password_hash(data.admin_password)
         db_admin = User(
             email=data.admin_email,
@@ -197,18 +178,16 @@ async def create_tenant_with_admin(
         db.add(db_admin)
         db.flush()
 
-    # Create membership for the admin (both new and existing users)
     membership = TenantMembership(
         user_id=db_admin.id,
         tenant_id=db_tenant.id,
         role=UserRole.tenant_admin,
         is_active=True,
-        is_default=not has_existing_admin,  # Solo default si es usuario nuevo
+        is_default=not has_existing_admin,
         invited_by_id=current_user.id,
     )
     db.add(membership)
 
-    # For existing users, also update their legacy tenant_id if they don't have one
     if has_existing_admin and db_admin.tenant_id is None:
         db_admin.tenant_id = db_tenant.id
         db_admin.role = UserRole.tenant_admin
@@ -217,7 +196,6 @@ async def create_tenant_with_admin(
     db.refresh(db_tenant)
     db.refresh(db_admin)
 
-    # Log tenant creation
     create_audit_log(
         db=db,
         action=AuditAction.TENANT_CREATED,
@@ -236,7 +214,6 @@ async def create_tenant_with_admin(
         }
     )
 
-    # Enviar email de bienvenida al admin del tenant (solo para usuarios nuevos)
     if is_new_user:
         try:
             await send_welcome_email(
@@ -267,14 +244,12 @@ async def get_tenant(
             detail="Tenant no encontrado"
         )
 
-    # Check access
     if not verify_tenant_access(current_user, tenant_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes acceso a este tenant"
         )
 
-    # Get user counts
     user_count = db.query(func.count(User.id)).filter(
         User.tenant_id == tenant.id,
         User.role == UserRole.medico
@@ -312,9 +287,7 @@ async def update_tenant(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superadmin)
 ):
-    """
-    Update a tenant. Only accessible by superadmins.
-    """
+    """Update a tenant. Only accessible by superadmins."""
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
@@ -322,7 +295,6 @@ async def update_tenant(
             detail="Tenant no encontrado"
         )
 
-    # Check slug uniqueness if being updated
     update_data = tenant_in.model_dump(exclude_unset=True)
     if "slug" in update_data and update_data["slug"] != tenant.slug:
         existing = db.query(Tenant).filter(Tenant.slug == update_data["slug"]).first()
@@ -332,14 +304,12 @@ async def update_tenant(
                 detail="El slug ya está en uso"
             )
 
-    # Update tenant
     for field, value in update_data.items():
         setattr(tenant, field, value)
 
     db.commit()
     db.refresh(tenant)
 
-    # Log tenant update
     create_audit_log(
         db=db,
         action=AuditAction.TENANT_UPDATED,
@@ -363,9 +333,7 @@ async def delete_tenant(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superadmin)
 ):
-    """
-    Delete a tenant and all its users. Only accessible by superadmins.
-    """
+    """Delete a tenant and all its users. Only accessible by superadmins."""
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
@@ -373,18 +341,13 @@ async def delete_tenant(
             detail="Tenant no encontrado"
         )
 
-    # Store tenant info for audit log before deletion
     tenant_name = tenant.name
     tenant_slug = tenant.slug
 
-    # Delete all users belonging to this tenant
     db.query(User).filter(User.tenant_id == tenant_id).delete()
-
-    # Delete tenant
     db.delete(tenant)
     db.commit()
 
-    # Log tenant deletion
     create_audit_log(
         db=db,
         action=AuditAction.TENANT_DELETED,
@@ -408,9 +371,7 @@ async def toggle_tenant_active(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superadmin)
 ):
-    """
-    Toggle tenant active status. Only accessible by superadmins.
-    """
+    """Toggle tenant active status. Only accessible by superadmins."""
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
@@ -422,7 +383,6 @@ async def toggle_tenant_active(
     db.commit()
     db.refresh(tenant)
 
-    # Log tenant activation/suspension
     action = AuditAction.TENANT_ACTIVATED if tenant.is_active else AuditAction.TENANT_SUSPENDED
     create_audit_log(
         db=db,
@@ -438,101 +398,3 @@ async def toggle_tenant_active(
     )
 
     return tenant
-
-
-# ============================================
-# TENANT USER MANAGEMENT (by superadmin)
-# ============================================
-
-@router.get("/{tenant_id}/users", response_model=List[UserSchema])
-async def list_tenant_users(
-    tenant_id: UUID,
-    skip: int = 0,
-    limit: int = 100,
-    role: Optional[UserRole] = None,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
-    """
-    List all users of a tenant. Superadmins can access any tenant,
-    tenant admins can only access their own tenant.
-    """
-    # Check access
-    if not verify_tenant_access(current_user, tenant_id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes acceso a este tenant"
-        )
-
-    query = db.query(User).filter(User.tenant_id == tenant_id)
-
-    if role:
-        query = query.filter(User.role == role)
-
-    users = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
-    return users
-
-
-@router.post("/{tenant_id}/users", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
-async def create_tenant_user(
-    tenant_id: UUID,
-    user_in: dict,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_superadmin)
-):
-    """
-    Create a user for a specific tenant. Only accessible by superadmins.
-    """
-    # Verify tenant exists
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
-    if not tenant:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant no encontrado"
-        )
-
-    # Check if email already exists
-    existing = db.query(User).filter(User.email == user_in.get("email")).first()
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya está registrado"
-        )
-
-    # Create user
-    password = user_in.pop("password", None)
-    if not password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password es requerido"
-        )
-
-    # Ensure role is valid for tenant (not superadmin)
-    role = user_in.get("role", UserRole.medico)
-    if role == UserRole.superadmin:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No se puede crear un superadmin dentro de un tenant"
-        )
-
-    db_user = User(
-        **user_in,
-        hashed_password=get_password_hash(password),
-        tenant_id=tenant_id,
-        role=role
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-
-    # Enviar email de bienvenida
-    try:
-        await send_welcome_email(
-            db=db,
-            email_to=db_user.email,
-            user_name=db_user.full_name or db_user.first_name or db_user.email.split('@')[0]
-        )
-    except Exception as e:
-        print(f"Error enviando email de bienvenida: {e}")
-
-    return db_user
