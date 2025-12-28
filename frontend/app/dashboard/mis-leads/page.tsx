@@ -47,7 +47,7 @@ export default function MisLeadsPage() {
 
     try {
       // Cargar solo MIS leads (asignados a mí)
-      const response = await api.get(`/api/v1/leads?assigned_to_me=true`)
+      const response = await api.get<{ items?: Lead[]; leads?: Lead[] } | Lead[]>(`/api/v1/leads?assigned_to_me=true`)
       const leadsData = Array.isArray(response)
         ? response
         : response.items || response.leads || []

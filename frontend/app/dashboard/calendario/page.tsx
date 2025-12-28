@@ -1,178 +1,61 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CalendarView, CalendarViewType } from "@/components/calendar/calendar-view"
+import { CalendarStats } from "@/components/calendar/calendar-stats"
+import { AppointmentFilters } from "@/components/calendar/appointment-filters"
+import { AppointmentFormDialog, AppointmentFormData } from "@/components/calendar/appointment-form-dialog"
+import { AppointmentDetailsSheet } from "@/components/calendar/appointment-details-sheet"
 import { InventoryUsageDialog } from "@/components/appointments/inventory-usage-dialog"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
-import {
-  Calendar,
-  Plus,
-  Search,
-  Filter,
-  Clock,
-  User,
-  Phone,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Edit,
-  Eye,
-  Mail,
-  MapPin,
-  CreditCard,
-  Stethoscope,
-  UserPlus,
-  CalendarCheck,
-  CheckCircle2,
-  PhoneCall,
-  MessageSquare,
-  RefreshCw,
-  Package,
-  X,
-  CalendarDays,
-  CalendarIcon
-} from "lucide-react"
-import { Appointment, AppointmentStatus, AppointmentCreate, AppointmentType, User as UserType, api } from "@/lib/api"
-import { auth } from "@/lib/auth"
-import { useToast } from "@/hooks/use-toast"
+import { useCalendarAppointments } from "@/hooks/use-calendar-appointments"
 import { useUser } from "@/contexts/user-context"
+import { useToast } from "@/hooks/use-toast"
+import { Calendar, Plus, RefreshCw } from "lucide-react"
+import { Appointment } from "@/lib/api"
 
 export default function CalendarioPage() {
   const { toast } = useToast()
   const { user: currentUser } = useUser()
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [availableProviders, setAvailableProviders] = useState<UserType[]>([])
-  const [loading, setLoading] = useState(true)
-  
-  // Calendar state
+
+  const {
+    appointments,
+    availableProviders,
+    loading,
+    currentDate,
+    setCurrentDate,
+    reloadAppointments,
+    updateStatus,
+    createAppointment,
+    updateAppointment,
+    calculateStats,
+    appointmentToFormData,
+    emptyFormData
+  } = useCalendarAppointments()
+
+  // View state
   const [viewType, setViewType] = useState<CalendarViewType>('month')
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [selectedProvider, setSelectedProvider] = useState<string>("")
-  const [selectedStatus, setSelectedStatus] = useState<string>("")
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  
-  // Modals and sheets
+
+  // Filter state
+  const [selectedProvider, setSelectedProvider] = useState("")
+  const [selectedStatus, setSelectedStatus] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
+
+  // Modal state
   const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false)
   const [isEditAppointmentOpen, setIsEditAppointmentOpen] = useState(false)
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
-  const [isInventoryDialogOpen, setIsInventoryDialogOpen] = useState(false)
   const [isAppointmentDetailsOpen, setIsAppointmentDetailsOpen] = useState(false)
-  const [quickCreateDate, setQuickCreateDate] = useState<Date | null>(null)
-  const [quickCreateTime, setQuickCreateTime] = useState<string>("")
+  const [isInventoryDialogOpen, setIsInventoryDialogOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
 
   // Form state
-  const [newAppointmentForm, setNewAppointmentForm] = useState({
-    patient_name: '',
-    patient_phone: '',
-    patient_email: '',
-    provider_id: '',
-    service_id: '',
-    scheduled_date: '',
-    scheduled_time: '',
-    duration_minutes: 60,
-    notes: '',
-    type: 'consultation' as const
-  })
+  const [newAppointmentForm, setNewAppointmentForm] = useState<AppointmentFormData>(emptyFormData)
+  const [editAppointmentForm, setEditAppointmentForm] = useState<AppointmentFormData>(emptyFormData)
 
-  const [editAppointmentForm, setEditAppointmentForm] = useState<{
-    patient_name: string;
-    patient_phone: string;
-    patient_email: string;
-    provider_id: string;
-    service_id: string;
-    scheduled_date: string;
-    scheduled_time: string;
-    duration_minutes: number;
-    notes: string;
-    type: AppointmentType;
-  }>({
-    patient_name: '',
-    patient_phone: '',
-    patient_email: '',
-    provider_id: '',
-    service_id: '',
-    scheduled_date: '',
-    scheduled_time: '',
-    duration_minutes: 60,
-    notes: '',
-    type: 'consultation'
-  })
-
-  // Load data on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      const token = auth.getToken()
-      if (!token) return
-
-      try {
-        setLoading(true)
-
-        // Load appointments with extended date range for calendar
-        const startDate = new Date(currentDate)
-        startDate.setDate(1) // First day of month
-        const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 0) // Last day of next month
-        
-        const appointmentsData = await api.getAppointments(token, {
-          page_size: 500,
-          date_from: startDate.toISOString().split('T')[0],
-          date_to: endDate.toISOString().split('T')[0],
-          order_by: 'scheduled_at',
-          order_direction: 'asc'
-        })
-        setAppointments(appointmentsData)
-
-        // Load available providers (doctors)
-        const directoryData = await api.getMyTenantUsers(token)
-        const providers = directoryData.filter(user => 
-          user.role === 'medico' || user.role === 'tenant_admin' || user.role === 'manager'
-        )
-        setAvailableProviders(providers)
-
-      } catch (error: any) {
-        console.error('Error loading data:', error)
-        toast({
-          title: "Error",
-          description: "Error al cargar la información del calendario",
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadData()
-  }, [currentDate])
-
-  // Filter appointments by selected provider, status, and search term
+  // Filter appointments
   const filteredAppointments = appointments.filter(apt => {
-    // Filter by provider
     if (selectedProvider && apt.provider_id !== selectedProvider) return false
-    
-    // Filter by status
     if (selectedStatus && apt.status !== selectedStatus) return false
-    
-    // Filter by search term (patient name, phone, email)
     if (searchTerm) {
       const search = searchTerm.toLowerCase()
       const matchesName = apt.patient_name?.toLowerCase().includes(search)
@@ -180,9 +63,10 @@ export default function CalendarioPage() {
       const matchesEmail = apt.patient_email?.toLowerCase().includes(search)
       if (!matchesName && !matchesPhone && !matchesEmail) return false
     }
-    
     return true
   })
+
+  const stats = calculateStats(filteredAppointments, viewType)
 
   const handleAppointmentClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment)
@@ -190,926 +74,156 @@ export default function CalendarioPage() {
   }
 
   const handleTimeSlotClick = (date: Date, time: string) => {
-    // Open quick appointment creation
-    setQuickCreateDate(date)
-    setQuickCreateTime(time)
-    
-    // Pre-fill the form
     const formattedDate = date.toISOString().split('T')[0]
     setNewAppointmentForm({
-      ...newAppointmentForm,
+      ...emptyFormData,
       scheduled_date: formattedDate,
       scheduled_time: time,
       provider_id: selectedProvider || ''
     })
-    
     setIsNewAppointmentOpen(true)
   }
 
-  const handleStatusUpdate = async (appointmentId: string, newStatus: AppointmentStatus) => {
-    const token = auth.getToken()
-    if (!token) return
-
-    try {
-      await api.updateAppointmentStatus(token, appointmentId, newStatus)
-      
-      let message = "Estado actualizado correctamente"
-      if (newStatus === 'confirmed') message = "Cita confirmada"
-      else if (newStatus === 'in_progress') message = "Cita iniciada"
-      else if (newStatus === 'completed') message = "Cita completada"
-      else if (newStatus === 'no_show') message = "Paciente marcado como No Show"
-      else if (newStatus === 'cancelled_by_patient') message = "Cita cancelada por paciente"
-      else if (newStatus === 'cancelled_by_clinic') message = "Cita cancelada por clínica"
-
-      toast({
-        title: "Éxito",
-        description: message,
-      })
-      
-      // Reload appointments
-      reloadAppointments()
-    } catch (error: any) {
-      console.error('Error updating appointment status:', error)
-      toast({
-        title: "Error",
-        description: "Error al actualizar el estado",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const reloadAppointments = async () => {
-    const token = auth.getToken()
-    if (!token) return
-
-    try {
-      const startDate = new Date(currentDate)
-      startDate.setDate(1)
-      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 0)
-      
-      const appointmentsData = await api.getAppointments(token, {
-        page_size: 500,
-        date_from: startDate.toISOString().split('T')[0],
-        date_to: endDate.toISOString().split('T')[0],
-        order_by: 'scheduled_at',
-        order_direction: 'asc'
-      })
-      setAppointments(appointmentsData)
-    } catch (error: any) {
-      console.error('Error reloading appointments:', error)
-    }
-  }
-
   const handleCreateAppointment = async () => {
-    const token = auth.getToken()
-    if (!token) return
-
-    if (!newAppointmentForm.patient_name || !newAppointmentForm.patient_phone || 
-        !newAppointmentForm.provider_id || !newAppointmentForm.scheduled_date || 
-        !newAppointmentForm.scheduled_time) {
-      toast({
-        title: "Campos requeridos",
-        description: "Complete todos los campos obligatorios",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
-      const scheduledAt = new Date(`${newAppointmentForm.scheduled_date}T${newAppointmentForm.scheduled_time}`)
-      
-      const appointmentData: AppointmentCreate = {
-        patient_name: newAppointmentForm.patient_name,
-        patient_phone: newAppointmentForm.patient_phone,
-        patient_email: newAppointmentForm.patient_email || undefined,
-        provider_id: newAppointmentForm.provider_id,
-        service_id: newAppointmentForm.service_id || undefined,
-        scheduled_at: scheduledAt.toISOString(),
-        duration_minutes: newAppointmentForm.duration_minutes,
-        notes: newAppointmentForm.notes || undefined,
-        type: newAppointmentForm.type
-      }
-
-      await api.createAppointment(token, appointmentData)
-      
-      toast({
-        title: "✓ Cita creada",
-        description: `Cita agendada para ${newAppointmentForm.patient_name}`,
-      })
-      
-      // Reset form
-      setNewAppointmentForm({
-        patient_name: '',
-        patient_phone: '',
-        patient_email: '',
-        provider_id: '',
-        service_id: '',
-        scheduled_date: '',
-        scheduled_time: '',
-        duration_minutes: 60,
-        notes: '',
-        type: 'consultation'
-      })
-      
+    const success = await createAppointment(newAppointmentForm)
+    if (success) {
+      setNewAppointmentForm(emptyFormData)
       setIsNewAppointmentOpen(false)
-      setQuickCreateDate(null)
-      setQuickCreateTime("")
-      reloadAppointments()
-      
-    } catch (error: any) {
-      console.error('Error creating appointment:', error)
-      
-      let errorMessage = "Error al crear la cita"
-      if (error.response?.data?.detail) {
-        if (Array.isArray(error.response.data.detail)) {
-          errorMessage = error.response.data.detail.map((err: any) => err.msg || err.message).join(', ')
-        } else {
-          errorMessage = error.response.data.detail
-        }
-      } else if (error.message && error.message !== '[object Object]') {
-        errorMessage = error.message
-      }
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      })
     }
   }
 
   const handleEditAppointment = (appointment: Appointment) => {
-    // Pre-fill edit form with appointment data
-    const appointmentDate = new Date(appointment.scheduled_at)
-    setEditAppointmentForm({
-      patient_name: appointment.patient_name || '',
-      patient_phone: appointment.patient_phone || '',
-      patient_email: appointment.patient_email || '',
-      provider_id: appointment.provider_id || '',
-      service_id: appointment.service_id || '',
-      scheduled_date: appointmentDate.toISOString().split('T')[0],
-      scheduled_time: appointmentDate.toTimeString().slice(0, 5),
-      duration_minutes: appointment.duration_minutes || 60,
-      notes: appointment.notes || '',
-      type: appointment.type || 'consultation'
-    })
-    
+    setEditAppointmentForm(appointmentToFormData(appointment))
     setSelectedAppointment(appointment)
     setIsEditAppointmentOpen(true)
     setIsAppointmentDetailsOpen(false)
   }
 
   const handleUpdateAppointment = async () => {
-    const token = auth.getToken()
-    if (!token || !selectedAppointment) return
-
-    if (!editAppointmentForm.patient_name || !editAppointmentForm.patient_phone || 
-        !editAppointmentForm.provider_id || !editAppointmentForm.scheduled_date || 
-        !editAppointmentForm.scheduled_time) {
-      toast({
-        title: "Campos requeridos",
-        description: "Complete todos los campos obligatorios",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
-      const scheduledAt = new Date(`${editAppointmentForm.scheduled_date}T${editAppointmentForm.scheduled_time}`)
-      
-      const appointmentData = {
-        patient_name: editAppointmentForm.patient_name,
-        patient_phone: editAppointmentForm.patient_phone,
-        patient_email: editAppointmentForm.patient_email || undefined,
-        provider_id: editAppointmentForm.provider_id,
-        service_id: editAppointmentForm.service_id || undefined,
-        scheduled_at: scheduledAt.toISOString(),
-        duration_minutes: editAppointmentForm.duration_minutes,
-        notes: editAppointmentForm.notes || undefined,
-        type: editAppointmentForm.type
-      }
-
-      await api.updateAppointment(token, selectedAppointment.id, appointmentData)
-      
-      toast({
-        title: "✓ Cita actualizada",
-        description: `Cita de ${editAppointmentForm.patient_name} actualizada correctamente`,
-      })
-      
+    if (!selectedAppointment) return
+    const success = await updateAppointment(selectedAppointment.id, editAppointmentForm)
+    if (success) {
       setIsEditAppointmentOpen(false)
       setSelectedAppointment(null)
-      reloadAppointments()
-      
-    } catch (error: any) {
-      console.error('Error updating appointment:', error)
-      
-      let errorMessage = "Error al actualizar la cita"
-      if (error.response?.data?.detail) {
-        if (Array.isArray(error.response.data.detail)) {
-          errorMessage = error.response.data.detail.map((err: any) => err.msg || err.message).join(', ')
-        } else {
-          errorMessage = error.response.data.detail
-        }
-      } else if (error.message && error.message !== '[object Object]') {
-        errorMessage = error.message
-      }
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      })
     }
   }
 
-  const getStatusBadge = (status: AppointmentStatus) => {
-    const statusMap = {
-      scheduled: { label: "Programada", variant: "outline" as const, icon: Clock, color: "text-yellow-600" },
-      confirmed: { label: "Confirmada", variant: "default" as const, icon: CheckCircle, color: "text-blue-600" },
-      in_progress: { label: "En Consulta", variant: "secondary" as const, icon: Stethoscope, color: "text-green-600" },
-      completed: { label: "Completada", variant: "secondary" as const, icon: CheckCircle2, color: "text-green-600" },
-      no_show: { label: "No Asistió", variant: "destructive" as const, icon: XCircle, color: "text-red-600" },
-      cancelled_by_patient: { label: "Cancelada", variant: "destructive" as const, icon: XCircle, color: "text-red-600" },
-      cancelled_by_clinic: { label: "Cancelada", variant: "destructive" as const, icon: XCircle, color: "text-red-600" },
-      rescheduled: { label: "Reprogramada", variant: "outline" as const, icon: RefreshCw, color: "text-orange-600" }
-    }
-    
-    const statusInfo = statusMap[status] || { 
-      label: status, 
-      variant: "default" as const, 
-      icon: Clock,
-      color: "text-gray-600"
-    }
-    const IconComponent = statusInfo.icon
-    
-    return (
-      <Badge variant={statusInfo.variant} className={`flex items-center gap-1 ${statusInfo.color}`}>
-        <IconComponent className="h-3 w-3" />
-        {statusInfo.label}
-      </Badge>
-    )
-  }
-
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return `${date.toLocaleDateString('es-ES')} ${date.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })}`
-  }
-
-  const getProviderName = (providerId: string) => {
-    const provider = availableProviders.find(p => p.id === providerId)
-    return provider?.full_name || provider?.first_name || 'Proveedor'
-  }
-
-  // Calculate quick stats for current view
-  const currentViewAppointments = filteredAppointments.filter(apt => {
-    const aptDate = new Date(apt.scheduled_at)
-    const now = new Date()
-    
-    if (viewType === 'month') {
-      return aptDate.getMonth() === currentDate.getMonth() && 
-             aptDate.getFullYear() === currentDate.getFullYear()
-    } else {
-      // Week view - get week range
-      const startOfWeek = new Date(currentDate)
-      const day = startOfWeek.getDay()
-      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1)
-      startOfWeek.setDate(diff)
-      
-      const endOfWeek = new Date(startOfWeek)
-      endOfWeek.setDate(startOfWeek.getDate() + 6)
-      
-      return aptDate >= startOfWeek && aptDate <= endOfWeek
-    }
-  })
-
-  const stats = {
-    total: currentViewAppointments.length,
-    confirmed: currentViewAppointments.filter(apt => apt.status === 'confirmed').length,
-    inProgress: currentViewAppointments.filter(apt => apt.status === 'in_progress').length,
-    completed: currentViewAppointments.filter(apt => apt.status === 'completed').length
+  const handleClearFilters = () => {
+    setSelectedProvider("")
+    setSelectedStatus("")
+    setSearchTerm("")
   }
 
   return (
     <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Calendar className="h-8 w-8 text-blue-600" />
-              Calendario de Citas
-            </h1>
-            <p className="text-muted-foreground">
-              Vista calendario para gestión visual de citas médicas
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={reloadAppointments}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Actualizar
-            </Button>
-            {currentUser?.role !== 'medico' && (
-              <Button 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => setIsNewAppointmentOpen(true)}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva Cita
-              </Button>
-            )}
-          </div>
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Calendar className="h-8 w-8 text-blue-600" />
+            Calendario de Citas
+          </h1>
+          <p className="text-muted-foreground">
+            Vista calendario para gestión visual de citas médicas
+          </p>
         </div>
-
-        {/* Quick Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total {viewType === 'month' ? 'del Mes' : 'de la Semana'}
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-              <p className="text-xs text-muted-foreground">citas programadas</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Confirmadas</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.confirmed}</div>
-              <p className="text-xs text-muted-foreground">listas para atender</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">En Consulta</CardTitle>
-              <Stethoscope className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{stats.inProgress}</div>
-              <p className="text-xs text-muted-foreground">actualmente</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completadas</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-600">{stats.completed}</div>
-              <p className="text-xs text-muted-foreground">finalizadas</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar paciente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64"
-            />
-          </div>
-          
-          <Select value={selectedProvider || "all"} onValueChange={(value) => setSelectedProvider(value === "all" ? "" : value)}>
-            <SelectTrigger className="w-64">
-              <SelectValue placeholder="Filtrar por médico" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los médicos</SelectItem>
-              {availableProviders.map((provider) => (
-                <SelectItem key={provider.id} value={provider.id}>
-                  <div className="flex items-center gap-2">
-                    <Stethoscope className="h-4 w-4" />
-                    {provider.full_name || `${provider.first_name} ${provider.last_name}`}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedStatus || "all"} onValueChange={(value) => setSelectedStatus(value === "all" ? "" : value)}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Estado de cita" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="scheduled">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-yellow-600" />
-                  Programada
-                </div>
-              </SelectItem>
-              <SelectItem value="confirmed">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600" />
-                  Confirmada
-                </div>
-              </SelectItem>
-              <SelectItem value="in_progress">
-                <div className="flex items-center gap-2">
-                  <Stethoscope className="h-4 w-4 text-green-600" />
-                  En Consulta
-                </div>
-              </SelectItem>
-              <SelectItem value="completed">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  Completada
-                </div>
-              </SelectItem>
-              <SelectItem value="no_show">
-                <div className="flex items-center gap-2">
-                  <XCircle className="h-4 w-4 text-red-600" />
-                  No Asistió
-                </div>
-              </SelectItem>
-              <SelectItem value="cancelled_by_patient">
-                <div className="flex items-center gap-2">
-                  <XCircle className="h-4 w-4 text-red-600" />
-                  Cancelada (Paciente)
-                </div>
-              </SelectItem>
-              <SelectItem value="cancelled_by_clinic">
-                <div className="flex items-center gap-2">
-                  <XCircle className="h-4 w-4 text-red-600" />
-                  Cancelada (Clínica)
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          {(selectedProvider || selectedStatus || searchTerm) && (
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSelectedProvider("")
-                setSelectedStatus("")
-                setSearchTerm("")
-              }}
-              className="px-3"
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={reloadAppointments}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Actualizar
+          </Button>
+          {currentUser?.role !== 'medico' && (
+            <Button
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={() => setIsNewAppointmentOpen(true)}
             >
-              <X className="h-4 w-4 mr-1" />
-              Limpiar filtros
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva Cita
             </Button>
           )}
         </div>
-
-        {/* Calendar */}
-        <CalendarView
-          appointments={filteredAppointments}
-          viewType={viewType}
-          onViewTypeChange={setViewType}
-          currentDate={currentDate}
-          onDateChange={setCurrentDate}
-          onAppointmentClick={handleAppointmentClick}
-          onTimeSlotClick={handleTimeSlotClick}
-          loading={loading}
-        />
-
-        {/* New Appointment Dialog */}
-        <Dialog open={isNewAppointmentOpen} onOpenChange={setIsNewAppointmentOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <CalendarCheck className="h-5 w-5" />
-                {quickCreateDate ? `Nueva Cita - ${quickCreateDate.toLocaleDateString('es-ES')} ${quickCreateTime}` : 'Agendar Nueva Cita'}
-              </DialogTitle>
-              <DialogDescription>
-                Complete la información del paciente y confirme el horario
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid gap-4 py-4">
-              {/* Patient Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="patient_name">Nombre del Paciente *</Label>
-                  <Input
-                    id="patient_name"
-                    placeholder="Nombre completo"
-                    value={newAppointmentForm.patient_name}
-                    onChange={(e) => setNewAppointmentForm({...newAppointmentForm, patient_name: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="patient_phone">Teléfono *</Label>
-                  <Input
-                    id="patient_phone"
-                    placeholder="+52 55 1234 5678"
-                    value={newAppointmentForm.patient_phone}
-                    onChange={(e) => setNewAppointmentForm({...newAppointmentForm, patient_phone: e.target.value})}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="patient_email">Email (Opcional)</Label>
-                <Input
-                  id="patient_email"
-                  type="email"
-                  placeholder="email@ejemplo.com"
-                  value={newAppointmentForm.patient_email}
-                  onChange={(e) => setNewAppointmentForm({...newAppointmentForm, patient_email: e.target.value})}
-                />
-              </div>
-
-              {/* Appointment Details */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="provider_id">Médico/Especialista *</Label>
-                  <Select value={newAppointmentForm.provider_id} onValueChange={(value) => setNewAppointmentForm({...newAppointmentForm, provider_id: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar médico" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableProviders.map((provider) => (
-                        <SelectItem key={provider.id} value={provider.id}>
-                          <div className="flex items-center gap-2">
-                            <Stethoscope className="h-4 w-4" />
-                            {provider.full_name || `${provider.first_name} ${provider.last_name}`}
-                            {provider.job_title && (
-                              <span className="text-xs text-muted-foreground">• {provider.job_title}</span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="duration_minutes">Duración (min)</Label>
-                  <Select value={String(newAppointmentForm.duration_minutes)} onValueChange={(value) => setNewAppointmentForm({...newAppointmentForm, duration_minutes: parseInt(value)})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 minutos</SelectItem>
-                      <SelectItem value="60">60 minutos</SelectItem>
-                      <SelectItem value="90">90 minutos</SelectItem>
-                      <SelectItem value="120">120 minutos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="scheduled_date">Fecha *</Label>
-                  <Input
-                    id="scheduled_date"
-                    type="date"
-                    value={newAppointmentForm.scheduled_date}
-                    onChange={(e) => setNewAppointmentForm({...newAppointmentForm, scheduled_date: e.target.value})}
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="scheduled_time">Hora *</Label>
-                  <Input
-                    id="scheduled_time"
-                    type="time"
-                    value={newAppointmentForm.scheduled_time}
-                    onChange={(e) => setNewAppointmentForm({...newAppointmentForm, scheduled_time: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notas adicionales</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Motivo de la consulta, síntomas, etc."
-                  value={newAppointmentForm.notes}
-                  onChange={(e) => setNewAppointmentForm({...newAppointmentForm, notes: e.target.value})}
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setIsNewAppointmentOpen(false)
-                setQuickCreateDate(null)
-                setQuickCreateTime("")
-              }}>
-                <X className="mr-2 h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button onClick={handleCreateAppointment} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <CalendarCheck className="mr-2 h-4 w-4" />
-                Agendar Cita
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Appointment Details Sheet */}
-        <Sheet open={isAppointmentDetailsOpen} onOpenChange={setIsAppointmentDetailsOpen}>
-          <SheetContent className="w-[400px] sm:w-[540px]">
-            <SheetHeader>
-              <SheetTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Detalles de la Cita
-              </SheetTitle>
-              <SheetDescription>
-                Información completa de la cita médica
-              </SheetDescription>
-            </SheetHeader>
-
-            {selectedAppointment && (
-              <div className="space-y-6 mt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold">{selectedAppointment.patient_name}</h3>
-                    <p className="text-muted-foreground">{formatDateTime(selectedAppointment.scheduled_at)}</p>
-                  </div>
-                  {getStatusBadge(selectedAppointment.status)}
-                </div>
-
-                <div className="grid gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Información del Paciente</Label>
-                    <div className="space-y-2 mt-1">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-green-600" />
-                        <span>{selectedAppointment.patient_phone}</span>
-                      </div>
-                      {selectedAppointment.patient_email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-blue-600" />
-                          <span>{selectedAppointment.patient_email}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Información de la Cita</Label>
-                    <div className="space-y-2 mt-1">
-                      <div className="flex items-center gap-2">
-                        <Stethoscope className="h-4 w-4 text-purple-600" />
-                        <span>{selectedAppointment.provider_name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        <span>{selectedAppointment.duration_minutes} minutos</span>
-                      </div>
-                      {selectedAppointment.service_name && (
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4 text-indigo-600" />
-                          <span>{selectedAppointment.service_name}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {selectedAppointment.notes && (
-                    <div>
-                      <Label className="text-sm font-medium text-muted-foreground">Notas</Label>
-                      <p className="mt-1 text-sm">{selectedAppointment.notes}</p>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="space-y-2 pt-4 border-t">
-                    {selectedAppointment.status === 'scheduled' && (
-                      <Button 
-                        className="w-full bg-green-600 hover:bg-green-700"
-                        onClick={() => {
-                          handleStatusUpdate(selectedAppointment.id, 'confirmed')
-                          setIsAppointmentDetailsOpen(false)
-                        }}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Confirmar Cita
-                      </Button>
-                    )}
-                    
-                    {selectedAppointment.status === 'confirmed' && (
-                      <Button 
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                        onClick={() => {
-                          handleStatusUpdate(selectedAppointment.id, 'in_progress')
-                          setIsAppointmentDetailsOpen(false)
-                        }}
-                      >
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Iniciar Consulta
-                      </Button>
-                    )}
-                    
-                    {selectedAppointment.status === 'in_progress' && (
-                      <Button 
-                        className="w-full bg-green-600 hover:bg-green-700"
-                        onClick={() => {
-                          handleStatusUpdate(selectedAppointment.id, 'completed')
-                          setIsAppointmentDetailsOpen(false)
-                        }}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Completar Consulta
-                      </Button>
-                    )}
-
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        className="flex-1"
-                        onClick={() => window.open(`tel:${selectedAppointment.patient_phone}`, '_self')}
-                      >
-                        <Phone className="h-4 w-4 mr-2" />
-                        Llamar
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="flex-1"
-                        onClick={() => handleEditAppointment(selectedAppointment)}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </Button>
-                    </div>
-                    
-                    {/* Inventory button for scheduled/confirmed appointments */}
-                    {(selectedAppointment.status === 'scheduled' || selectedAppointment.status === 'confirmed') && (
-                      <Button 
-                        variant="outline" 
-                        className="w-full mt-2"
-                        onClick={() => {
-                          setIsInventoryDialogOpen(true)
-                          setIsAppointmentDetailsOpen(false)
-                        }}
-                      >
-                        <Package className="h-4 w-4 mr-2" />
-                        Usar Inventario
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </SheetContent>
-        </Sheet>
-
-        {/* Edit Appointment Dialog */}
-        <Dialog open={isEditAppointmentOpen} onOpenChange={setIsEditAppointmentOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Edit className="h-5 w-5" />
-                Editar Cita
-              </DialogTitle>
-              <DialogDescription>
-                Modifique la información de la cita según sea necesario
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid gap-4 py-4">
-              {/* Patient Information */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit_patient_name">Nombre del Paciente *</Label>
-                  <Input
-                    id="edit_patient_name"
-                    placeholder="Nombre completo"
-                    value={editAppointmentForm.patient_name}
-                    onChange={(e) => setEditAppointmentForm({...editAppointmentForm, patient_name: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit_patient_phone">Teléfono *</Label>
-                  <Input
-                    id="edit_patient_phone"
-                    placeholder="+52 55 1234 5678"
-                    value={editAppointmentForm.patient_phone}
-                    onChange={(e) => setEditAppointmentForm({...editAppointmentForm, patient_phone: e.target.value})}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit_patient_email">Email (Opcional)</Label>
-                <Input
-                  id="edit_patient_email"
-                  type="email"
-                  placeholder="email@ejemplo.com"
-                  value={editAppointmentForm.patient_email}
-                  onChange={(e) => setEditAppointmentForm({...editAppointmentForm, patient_email: e.target.value})}
-                />
-              </div>
-
-              {/* Appointment Details */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit_provider_id">Médico/Especialista *</Label>
-                  <Select value={editAppointmentForm.provider_id} onValueChange={(value) => setEditAppointmentForm({...editAppointmentForm, provider_id: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar médico" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableProviders.map((provider) => (
-                        <SelectItem key={provider.id} value={provider.id}>
-                          <div className="flex items-center gap-2">
-                            <Stethoscope className="h-4 w-4" />
-                            {provider.full_name || `${provider.first_name} ${provider.last_name}`}
-                            {provider.job_title && (
-                              <span className="text-xs text-muted-foreground">• {provider.job_title}</span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit_duration_minutes">Duración (min)</Label>
-                  <Select value={String(editAppointmentForm.duration_minutes)} onValueChange={(value) => setEditAppointmentForm({...editAppointmentForm, duration_minutes: parseInt(value)})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 minutos</SelectItem>
-                      <SelectItem value="60">60 minutos</SelectItem>
-                      <SelectItem value="90">90 minutos</SelectItem>
-                      <SelectItem value="120">120 minutos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit_scheduled_date">Fecha *</Label>
-                  <Input
-                    id="edit_scheduled_date"
-                    type="date"
-                    value={editAppointmentForm.scheduled_date}
-                    onChange={(e) => setEditAppointmentForm({...editAppointmentForm, scheduled_date: e.target.value})}
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit_scheduled_time">Hora *</Label>
-                  <Input
-                    id="edit_scheduled_time"
-                    type="time"
-                    value={editAppointmentForm.scheduled_time}
-                    onChange={(e) => setEditAppointmentForm({...editAppointmentForm, scheduled_time: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit_notes">Notas adicionales</Label>
-                <Textarea
-                  id="edit_notes"
-                  placeholder="Motivo de la consulta, síntomas, etc."
-                  value={editAppointmentForm.notes}
-                  onChange={(e) => setEditAppointmentForm({...editAppointmentForm, notes: e.target.value})}
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditAppointmentOpen(false)}>
-                <X className="mr-2 h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button onClick={handleUpdateAppointment} className="bg-green-600 hover:bg-green-700">
-                <CalendarCheck className="mr-2 h-4 w-4" />
-                Actualizar Cita
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Inventory Usage Dialog */}
-        <InventoryUsageDialog
-          isOpen={isInventoryDialogOpen}
-          onClose={() => setIsInventoryDialogOpen(false)}
-          appointmentId={selectedAppointment?.id || ""}
-          serviceId={selectedAppointment?.service_id}
-          onUsageRecorded={() => {
-            toast({
-              title: "Inventario registrado",
-              description: "El uso de inventario se ha registrado exitosamente",
-            })
-          }}
-        />
       </div>
+
+      {/* Stats */}
+      <CalendarStats viewType={viewType} stats={stats} />
+
+      {/* Filters */}
+      <AppointmentFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedProvider={selectedProvider}
+        onProviderChange={setSelectedProvider}
+        selectedStatus={selectedStatus}
+        onStatusChange={setSelectedStatus}
+        providers={availableProviders}
+        onClearFilters={handleClearFilters}
+      />
+
+      {/* Calendar */}
+      <CalendarView
+        appointments={filteredAppointments}
+        viewType={viewType}
+        onViewTypeChange={setViewType}
+        currentDate={currentDate}
+        onDateChange={setCurrentDate}
+        onAppointmentClick={handleAppointmentClick}
+        onTimeSlotClick={handleTimeSlotClick}
+        loading={loading}
+      />
+
+      {/* New Appointment Dialog */}
+      <AppointmentFormDialog
+        isOpen={isNewAppointmentOpen}
+        onClose={() => setIsNewAppointmentOpen(false)}
+        onSubmit={handleCreateAppointment}
+        title="Agendar Nueva Cita"
+        description="Complete la información del paciente y confirme el horario"
+        submitLabel="Agendar Cita"
+        formData={newAppointmentForm}
+        onFormChange={setNewAppointmentForm}
+        providers={availableProviders}
+      />
+
+      {/* Edit Appointment Dialog */}
+      <AppointmentFormDialog
+        isOpen={isEditAppointmentOpen}
+        onClose={() => setIsEditAppointmentOpen(false)}
+        onSubmit={handleUpdateAppointment}
+        title="Editar Cita"
+        description="Modifique la información de la cita según sea necesario"
+        submitLabel="Actualizar Cita"
+        formData={editAppointmentForm}
+        onFormChange={setEditAppointmentForm}
+        providers={availableProviders}
+        isEdit
+      />
+
+      {/* Appointment Details Sheet */}
+      <AppointmentDetailsSheet
+        isOpen={isAppointmentDetailsOpen}
+        onClose={() => setIsAppointmentDetailsOpen(false)}
+        appointment={selectedAppointment}
+        onStatusUpdate={updateStatus}
+        onEdit={handleEditAppointment}
+        onInventoryClick={() => {
+          setIsInventoryDialogOpen(true)
+          setIsAppointmentDetailsOpen(false)
+        }}
+      />
+
+      {/* Inventory Usage Dialog */}
+      <InventoryUsageDialog
+        isOpen={isInventoryDialogOpen}
+        onClose={() => setIsInventoryDialogOpen(false)}
+        appointmentId={selectedAppointment?.id || ""}
+        serviceId={selectedAppointment?.service_id}
+        onUsageRecorded={() => {
+          toast({
+            title: "Inventario registrado",
+            description: "El uso de inventario se ha registrado exitosamente",
+          })
+        }}
+      />
+    </div>
   )
 }
