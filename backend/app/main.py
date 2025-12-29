@@ -8,19 +8,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Log CORS configuration at startup
+logger.info(f"=== CORS Configuration ===")
+logger.info(f"ALLOWED_ORIGINS: {settings.ALLOWED_ORIGINS}")
+logger.info(f"FRONTEND_URL: {settings.FRONTEND_URL}")
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-# CORS middleware
+# CORS middleware - log allowed origins for debugging
+print(f"[CORS] Configuring with origins: {settings.ALLOWED_ORIGINS}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Include API router

@@ -120,6 +120,9 @@ async def send_email(
         db: Database session (required if tenant_id is provided)
         tenant_id: UUID of the tenant (optional)
     """
+    print(f"[EMAIL] Preparing to send email to: {email_to}")
+    print(f"[EMAIL] Subject: {subject}")
+
     message = MessageSchema(
         subject=subject,
         recipients=[email_to],
@@ -130,10 +133,17 @@ async def send_email(
     # Use tenant SMTP if available, otherwise use global
     if db and tenant_id:
         mail_instance = get_fastmail_for_tenant(db, tenant_id)
+        print(f"[EMAIL] Using tenant SMTP for tenant_id: {tenant_id}")
     else:
         mail_instance = default_fm
+        print(f"[EMAIL] Using default SMTP: {settings.MAIL_SERVER}:{settings.MAIL_PORT}")
 
-    await mail_instance.send_message(message)
+    try:
+        await mail_instance.send_message(message)
+        print(f"[EMAIL] Successfully sent email to: {email_to}")
+    except Exception as e:
+        print(f"[EMAIL] ERROR sending email to {email_to}: {type(e).__name__}: {e}")
+        raise
 
 
 async def get_email_template_from_db(db: Session, template_type: EmailTemplateType) -> Optional[EmailTemplate]:
