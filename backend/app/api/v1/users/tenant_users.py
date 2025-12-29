@@ -68,13 +68,29 @@ async def create_my_tenant_user(
             detail="Superadmins deben usar /users/ o /tenants/{tenant_id}/users"
         )
 
-    # Check if user already exists
-    user = db.query(User).filter(User.email == user_in.email).first()
-    if user:
+    # Check if user already exists in THIS tenant (by email)
+    existing_in_tenant = db.query(User).filter(
+        User.email == user_in.email,
+        User.tenant_id == current_user.current_tenant_id
+    ).first()
+    if existing_in_tenant:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya esta registrado"
+            detail="Este email ya está registrado en tu organización"
         )
+
+    # Also check TenantMembership for existing users with membership to this tenant
+    existing_user = db.query(User).filter(User.email == user_in.email).first()
+    if existing_user:
+        existing_membership = db.query(TenantMembership).filter(
+            TenantMembership.user_id == existing_user.id,
+            TenantMembership.tenant_id == current_user.current_tenant_id
+        ).first()
+        if existing_membership:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Este email ya está registrado en tu organización"
+            )
 
     # Tenant admins can create all roles except superadmin and other tenant_admins
     allowed_roles = [UserRole.manager, UserRole.medico, UserRole.closer, UserRole.recepcionista]
@@ -152,29 +168,39 @@ async def invite_user(
             detail="Solo puedes invitar usuarios con rol 'manager', 'medico', 'closer' o 'recepcionista'"
         )
 
+    # Check if user already exists directly in this tenant
+    existing_in_tenant = db.query(User).filter(
+        User.email == invitation.email,
+        User.tenant_id == current_user.current_tenant_id
+    ).first()
+    if existing_in_tenant:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Este email ya está registrado en tu organización"
+        )
+
     # Generate invitation token
     invitation_token = secrets.token_urlsafe(32)
     expires_at = datetime.utcnow() + timedelta(hours=72)  # 3 days
 
-    # Check if user already exists
+    # Check if user already exists in the system (in another tenant)
     existing_user = db.query(User).filter(User.email == invitation.email).first()
 
     if existing_user:
-        # CASE 1: User already exists in the system
+        # CASE 1: User already exists in the system (in another tenant)
 
-        # Check if already a member of this tenant
+        # Check if already a member of this tenant via TenantMembership
         existing_membership = db.query(TenantMembership).filter(
             TenantMembership.user_id == existing_user.id,
             TenantMembership.tenant_id == current_user.current_tenant_id
         ).first()
 
         if existing_membership:
-            # Already a member - return same message as new invite (privacy)
-            # But actually don't create anything new
-            return {
-                "message": f"Invitación enviada a {invitation.email}",
-                "expires_at": expires_at.isoformat()
-            }
+            # Already a member - don't allow duplicate
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Este email ya está registrado en tu organización"
+            )
 
         # Create pending TenantMembership for existing user
         membership = TenantMembership(
