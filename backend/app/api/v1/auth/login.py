@@ -46,11 +46,17 @@ async def login(
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Email o contraseña incorrectos",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     if not user.is_active:
+        # Check if user has a pending invitation
+        if user.invitation_token and not user.invitation_accepted_at:
+            detail_message = "Tu cuenta está pendiente de activación. Revisa tu email para aceptar la invitación."
+        else:
+            detail_message = "Tu cuenta está desactivada. Contacta al administrador."
+
         create_audit_log(
             db=db,
             action=AuditAction.LOGIN_FAILED,
@@ -64,7 +70,7 @@ async def login(
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
+            detail=detail_message
         )
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

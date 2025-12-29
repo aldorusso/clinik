@@ -18,10 +18,16 @@ export const authEndpoints = {
     formData.append('username', credentials.username);
     formData.append('password', credentials.password);
 
-    const response = await fetch(`${API_URL}/api/v1/auth/login`, {
-      method: 'POST',
-      body: formData,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        body: formData,
+      });
+    } catch (networkError) {
+      // Network error (CORS, server down, etc.)
+      throw new Error('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+    }
 
     if (!response.ok) {
       let errorMessage = 'Credenciales inválidas';
