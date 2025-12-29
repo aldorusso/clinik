@@ -57,8 +57,9 @@ export default function TenantAdminUsuariosPage() {
 
     try {
       const usersData = await api.getMyTenantUsers(token)
+      // Only filter out superadmin, keep tenant_admin visible (but not editable)
       const filteredUsers = usersData.filter(
-        (u) => u.role !== "superadmin" && u.role !== "tenant_admin"
+        (u) => u.role !== "superadmin"
       )
       setUsers(filteredUsers)
     } catch (error: any) {

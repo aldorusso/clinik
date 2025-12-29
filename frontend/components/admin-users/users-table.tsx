@@ -79,6 +79,7 @@ export function UsersTable({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los roles</SelectItem>
+                <SelectItem value="tenant_admin">Administrador</SelectItem>
                 <SelectItem value="manager">Gestor de Leads</SelectItem>
                 <SelectItem value="medico">Médico</SelectItem>
                 <SelectItem value="closer">Closer</SelectItem>
@@ -134,36 +135,42 @@ export function UsersTable({
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onToggleActive(user)}
-                        title={user.is_active ? "Desactivar" : "Activar"}
-                      >
-                        {user.is_active ? (
-                          <XCircle className="h-4 w-4" />
-                        ) : (
-                          <CheckCircle className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(user)}
-                        title="Editar"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDelete(user)}
-                        title="Eliminar"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+                    {user.role === "tenant_admin" ? (
+                      <span className="text-xs text-muted-foreground italic">
+                        Administrador
+                      </span>
+                    ) : (
+                      <div className="flex items-center justify-end space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onToggleActive(user)}
+                          title={user.is_active ? "Desactivar" : "Activar"}
+                        >
+                          {user.is_active ? (
+                            <XCircle className="h-4 w-4" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onEdit(user)}
+                          title="Editar"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDelete(user)}
+                          title="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
